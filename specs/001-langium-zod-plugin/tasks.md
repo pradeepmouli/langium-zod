@@ -26,10 +26,10 @@
 
 **Purpose**: Create the langium-zod package within the monorepo and configure build tooling.
 
-- [ ] T001 Create `packages/langium-zod/` directory structure with `src/` and `test/unit/` and `test/integration/` and `test/fixtures/` subdirectories
-- [ ] T002 Create `packages/langium-zod/package.json` with name `@pradeepmouli/langium-zod`, type `module`, dependencies on `langium` (^4.0.0), `x-to-zod` (^0.7.0), and `zod` (^4.0.0), devDependencies on `vitest` and `typescript`, scripts for `build`, `test`, `type-check`, and `clean`
-- [ ] T003 Create `packages/langium-zod/tsconfig.json` extending root tsconfig with `outDir: "./dist"`, `rootDir: "./src"`, composite mode, and ESM module settings
-- [ ] T004 [P] Move `x-to-zod` dependency from root `package.json` to `packages/langium-zod/package.json` (remove from root dependencies)
+- [X] T001 Create `packages/langium-zod/` directory structure with `src/` and `test/unit/` and `test/integration/` and `test/fixtures/` subdirectories
+- [X] T002 Create `packages/langium-zod/package.json` with name `@pradeepmouli/langium-zod`, type `module`, dependencies on `langium` (^4.0.0), `x-to-zod` (^0.7.0), and `zod` (^4.0.0), devDependencies on `vitest` and `typescript`, scripts for `build`, `test`, `type-check`, and `clean`
+- [X] T003 Create `packages/langium-zod/tsconfig.json` extending root tsconfig with `outDir: "./dist"`, `rootDir: "./src"`, composite mode, and ESM module settings
+- [X] T004 [P] Move `x-to-zod` dependency from root `package.json` to `packages/langium-zod/package.json` (remove from root dependencies)
 
 ---
 
@@ -39,9 +39,9 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T005 [P] Define IR types (`ZodTypeDescriptor`, `ZodPropertyDescriptor`, `ZodTypeExpression` discriminated union with variants: `primitive`, `literal`, `reference`, `array`, `crossReference`, `union`, `lazy`) in `packages/langium-zod/src/types.ts` — see data-model.md for full schema
-- [ ] T006 [P] Define `ZodGeneratorConfig` interface (`grammar`, `services?`, `include?`, `exclude?`, `outputPath?`) and `FilterConfig` interface with default values in `packages/langium-zod/src/config.ts` — see contracts/generator-api.md
-- [ ] T007 [P] Define `ZodGeneratorError` class extending `Error` with `grammarElement?`, `typeName?`, and `suggestion?` properties in `packages/langium-zod/src/errors.ts` — see contracts/generator-api.md
+- [X] T005 [P] Define IR types (`ZodTypeDescriptor`, `ZodPropertyDescriptor`, `ZodTypeExpression` discriminated union with variants: `primitive`, `literal`, `reference`, `array`, `crossReference`, `union`, `lazy`) in `packages/langium-zod/src/types.ts` — see data-model.md for full schema
+- [X] T006 [P] Define `ZodGeneratorConfig` interface (`grammar`, `services?`, `include?`, `exclude?`, `outputPath?`) and `FilterConfig` interface with default values in `packages/langium-zod/src/config.ts` — see contracts/generator-api.md
+- [X] T007 [P] Define `ZodGeneratorError` class extending `Error` with `grammarElement?`, `typeName?`, and `suggestion?` properties in `packages/langium-zod/src/errors.ts` — see contracts/generator-api.md
 
 **Checkpoint**: IR types, config, and error infrastructure ready — user story implementation can now begin.
 
@@ -61,19 +61,19 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T008 [P] [US1] Create test grammar fixture `packages/langium-zod/test/fixtures/simple.langium` with basic parser rules: a `Greeting` type with `name: ID` (string), `count: INT` (number), `active?=true` (boolean), `tags+=Tag` (array), an optional property `description: STRING` not assigned in all alternatives, and a `fragment CommonProps` contributing a `source: STRING` property to at least one rule (exercises FR-012 fragment handling)
-- [ ] T009 [P] [US1] Unit test for type-mapper in `packages/langium-zod/test/unit/type-mapper.test.ts` — test mapping of: `ID`→`z.string()`, `STRING`→`z.string()`, `INT`→`z.number()`, `?=`→`z.boolean()`, `+=`→`z.array()`, data type rules→underlying primitive, AST type reference→reference expression, optional properties→optional wrapper
-- [ ] T010 [P] [US1] Unit test for extractor in `packages/langium-zod/test/unit/extractor.test.ts` — test: `InterfaceType` transforms to `ZodTypeDescriptor` with kind `"object"`, properties include `$type` literal, property count matches, optional flags preserved
-- [ ] T011 [P] [US1] Unit test for recursion-detector in `packages/langium-zod/test/unit/recursion-detector.test.ts` — test: non-recursive types return empty set, self-referencing type detected, mutual recursion (A→B→A) detected, diamond dependency (non-circular) not flagged
-- [ ] T012 [US1] Integration test in `packages/langium-zod/test/integration/generation.test.ts` — test: load `simple.langium`, run `generateZodSchemas()`, verify output is valid TypeScript containing `z.looseObject()` schemas, `z.literal()` for `$type`, `z.string()`/`z.number()`/`z.boolean()` for primitives, `z.array()` for arrays, `z.optional()` for optional properties; eval and validate mock AST nodes
+- [X] T008 [P] [US1] Create test grammar fixture `packages/langium-zod/test/fixtures/simple.langium` with basic parser rules: a `Greeting` type with `name: ID` (string), `count: INT` (number), `active?=true` (boolean), `tags+=Tag` (array), an optional property `description: STRING` not assigned in all alternatives, and a `fragment CommonProps` contributing a `source: STRING` property to at least one rule (exercises FR-012 fragment handling)
+- [X] T009 [P] [US1] Unit test for type-mapper in `packages/langium-zod/test/unit/type-mapper.test.ts` — test mapping of: `ID`→`z.string()`, `STRING`→`z.string()`, `INT`→`z.number()`, `?=`→`z.boolean()`, `+=`→`z.array()`, data type rules→underlying primitive, AST type reference→reference expression, optional properties→optional wrapper
+- [X] T010 [P] [US1] Unit test for extractor in `packages/langium-zod/test/unit/extractor.test.ts` — test: `InterfaceType` transforms to `ZodTypeDescriptor` with kind `"object"`, properties include `$type` literal, property count matches, optional flags preserved
+- [X] T011 [P] [US1] Unit test for recursion-detector in `packages/langium-zod/test/unit/recursion-detector.test.ts` — test: non-recursive types return empty set, self-referencing type detected, mutual recursion (A→B→A) detected, diamond dependency (non-circular) not flagged
+- [X] T012 [US1] Integration test in `packages/langium-zod/test/integration/generation.test.ts` — test: load `simple.langium`, run `generateZodSchemas()`, verify output is valid TypeScript containing `z.looseObject()` schemas, `z.literal()` for `$type`, `z.string()`/`z.number()`/`z.boolean()` for primitives, `z.array()` for arrays, `z.optional()` for optional properties; eval and validate mock AST nodes
 
 ### Implementation for User Story 1
 
-- [ ] T013 [P] [US1] Implement `mapPropertyType()` in `packages/langium-zod/src/type-mapper.ts` — convert Langium `PropertyType` to `ZodTypeExpression`: string terminals (`ID`, `STRING`, string data type rules) → `{ kind: "primitive", primitive: "string" }`, `INT` → `{ kind: "primitive", primitive: "number" }`, boolean assignments → `{ kind: "primitive", primitive: "boolean" }`, AST type references → `{ kind: "reference", typeName }`, arrays → `{ kind: "array", element }`. Handle data type rules by tracing to underlying primitive. Include `mapTerminalToZod()` helper.
-- [ ] T014 [P] [US1] Implement `detectRecursiveTypes()` in `packages/langium-zod/src/recursion-detector.ts` — build a directed dependency graph from `ZodTypeDescriptor[]` (edges from type references), run DFS-based cycle detection, return `Set<string>` of type names involved in cycles. Mark which specific property edges are recursive.
-- [ ] T015 [US1] Implement `extractTypeDescriptors()` in `packages/langium-zod/src/extractor.ts` — call Langium's `collectAst(grammar)` to get `AstTypes`, iterate `interfaces` array, transform each `InterfaceType` to `ZodTypeDescriptor` with kind `"object"`, map each property via `mapPropertyType()`, add `$type: z.literal(name)` property, set optional flags. Exclude `$`-prefixed properties except `$type`. **Note**: `collectAst()` transparently resolves fragments (FR-012) and grammar actions/`{infer}` types (FR-013) — they appear as regular `InterfaceType` entries with properties already flattened, so no special handling is required beyond iterating the `interfaces` array.
-- [ ] T016 [US1] Implement `generateZodCode()` in `packages/langium-zod/src/generator.ts` — take `ZodTypeDescriptor[]` and `Set<string>` recursive types, use `x-to-zod` builder API (`build.object()`, `build.string()`, `build.number()`, `build.boolean()`, `build.literal()`, `build.array()`) to construct Zod schema code; use `z.looseObject()` for passthrough mode (FR-019); apply getter pattern for recursive properties; output complete TypeScript file with `import { z } from "zod"` header and named exports (`export const <Name>Schema = ...`).
-- [ ] T017 [US1] Implement `generateZodSchemas()` public API in `packages/langium-zod/src/index.ts` — orchestrate: validate config → extract type descriptors → detect recursion → generate code → return TypeScript source string. Export `generateZodSchemas`, `extractTypeDescriptors`, `ZodGeneratorConfig`, `ZodGeneratorError`, and all IR types.
+- [X] T013 [P] [US1] Implement `mapPropertyType()` in `packages/langium-zod/src/type-mapper.ts` — convert Langium `PropertyType` to `ZodTypeExpression`: string terminals (`ID`, `STRING`, string data type rules) → `{ kind: "primitive", primitive: "string" }`, `INT` → `{ kind: "primitive", primitive: "number" }`, boolean assignments → `{ kind: "primitive", primitive: "boolean" }`, AST type references → `{ kind: "reference", typeName }`, arrays → `{ kind: "array", element }`. Handle data type rules by tracing to underlying primitive. Include `mapTerminalToZod()` helper.
+- [X] T014 [P] [US1] Implement `detectRecursiveTypes()` in `packages/langium-zod/src/recursion-detector.ts` — build a directed dependency graph from `ZodTypeDescriptor[]` (edges from type references), run DFS-based cycle detection, return `Set<string>` of type names involved in cycles. Mark which specific property edges are recursive.
+- [X] T015 [US1] Implement `extractTypeDescriptors()` in `packages/langium-zod/src/extractor.ts` — call Langium's `collectAst(grammar)` to get `AstTypes`, iterate `interfaces` array, transform each `InterfaceType` to `ZodTypeDescriptor` with kind `"object"`, map each property via `mapPropertyType()`, add `$type: z.literal(name)` property, set optional flags. Exclude `$`-prefixed properties except `$type`. **Note**: `collectAst()` transparently resolves fragments (FR-012) and grammar actions/`{infer}` types (FR-013) — they appear as regular `InterfaceType` entries with properties already flattened, so no special handling is required beyond iterating the `interfaces` array.
+- [X] T016 [US1] Implement `generateZodCode()` in `packages/langium-zod/src/generator.ts` — take `ZodTypeDescriptor[]` and `Set<string>` recursive types, use `x-to-zod` builder API (`build.object()`, `build.string()`, `build.number()`, `build.boolean()`, `build.literal()`, `build.array()`) to construct Zod schema code; use `z.looseObject()` for passthrough mode (FR-019); apply getter pattern for recursive properties; output complete TypeScript file with `import { z } from "zod"` header and named exports (`export const <Name>Schema = ...`).
+- [X] T017 [US1] Implement `generateZodSchemas()` public API in `packages/langium-zod/src/index.ts` — orchestrate: validate config → extract type descriptors → detect recursion → generate code → return TypeScript source string. Export `generateZodSchemas`, `extractTypeDescriptors`, `ZodGeneratorConfig`, `ZodGeneratorError`, and all IR types.
 
 **Checkpoint**: User Story 1 complete. Generator produces valid Zod schemas for basic Langium grammars with primitives, arrays, optional properties, and the `$type` discriminator. Recursive types handled via getter pattern.
 
@@ -89,16 +89,16 @@
 
 ### Tests for User Story 2
 
-- [ ] T018 [P] [US2] Create test grammar fixture `packages/langium-zod/test/fixtures/hierarchy.langium` with: base interface `Element` (name: ID), interface `Entity extends Element` (features: Feature[]), declared union `type AbstractElement = Entity | DataType`, and `DataType extends Element`
-- [ ] T019 [P] [US2] Unit test for inheritance extraction in `packages/langium-zod/test/unit/extractor.test.ts` — test: `Entity` descriptor includes `name` from parent `Element` plus its own `features`, `$type` literal is `"Entity"` not `"Element"`
-- [ ] T020 [P] [US2] Unit test for union extraction in `packages/langium-zod/test/unit/extractor.test.ts` — test: `AbstractElement` produces `ZodTypeDescriptor` with kind `"union"`, members `["Entity", "DataType"]`, discriminator `"$type"`
+- [X] T018 [P] [US2] Create test grammar fixture `packages/langium-zod/test/fixtures/hierarchy.langium` with: base interface `Element` (name: ID), interface `Entity extends Element` (features: Feature[]), declared union `type AbstractElement = Entity | DataType`, and `DataType extends Element`
+- [X] T019 [P] [US2] Unit test for inheritance extraction in `packages/langium-zod/test/unit/extractor.test.ts` — test: `Entity` descriptor includes `name` from parent `Element` plus its own `features`, `$type` literal is `"Entity"` not `"Element"`
+- [X] T020 [P] [US2] Unit test for union extraction in `packages/langium-zod/test/unit/extractor.test.ts` — test: `AbstractElement` produces `ZodTypeDescriptor` with kind `"union"`, members `["Entity", "DataType"]`, discriminator `"$type"`
 
 ### Implementation for User Story 2
 
-- [ ] T021 [US2] Extend `extractTypeDescriptors()` in `packages/langium-zod/src/extractor.ts` to flatten inherited properties from `InterfaceType.superTypes` into subtype descriptors, resolving the full property set for each concrete type
-- [ ] T022 [US2] Extend `extractTypeDescriptors()` in `packages/langium-zod/src/extractor.ts` to transform `UnionType` entries from `AstTypes.unions` into `ZodTypeDescriptor` with kind `"union"`, extracting member type names from the union's type definition
-- [ ] T023 [US2] Extend `generateZodCode()` in `packages/langium-zod/src/generator.ts` to emit `z.discriminatedUnion("$type", [MemberSchema1, MemberSchema2, ...])` for union type descriptors, ensuring member schemas are emitted before the union schema in topological order
-- [ ] T024 [US2] Integration test in `packages/langium-zod/test/integration/generation.test.ts` — test: load `hierarchy.langium`, generate schemas, verify `EntitySchema` includes inherited `name` property, `AbstractElementSchema` is a discriminated union, validate mock AST nodes with correct/incorrect `$type` values
+- [X] T021 [US2] Extend `extractTypeDescriptors()` in `packages/langium-zod/src/extractor.ts` to flatten inherited properties from `InterfaceType.superTypes` into subtype descriptors, resolving the full property set for each concrete type
+- [X] T022 [US2] Extend `extractTypeDescriptors()` in `packages/langium-zod/src/extractor.ts` to transform `UnionType` entries from `AstTypes.unions` into `ZodTypeDescriptor` with kind `"union"`, extracting member type names from the union's type definition
+- [X] T023 [US2] Extend `generateZodCode()` in `packages/langium-zod/src/generator.ts` to emit `z.discriminatedUnion("$type", [MemberSchema1, MemberSchema2, ...])` for union type descriptors, ensuring member schemas are emitted before the union schema in topological order
+- [X] T024 [US2] Integration test in `packages/langium-zod/test/integration/generation.test.ts` — test: load `hierarchy.langium`, generate schemas, verify `EntitySchema` includes inherited `name` property, `AbstractElementSchema` is a discriminated union, validate mock AST nodes with correct/incorrect `$type` values
 
 **Checkpoint**: User Stories 1 AND 2 complete. Generator handles inheritance, union types, and $type discriminated unions.
 
@@ -114,14 +114,14 @@
 
 ### Tests for User Story 3
 
-- [ ] T025 [P] [US3] Create test grammar fixture `packages/langium-zod/test/fixtures/crossref.langium` with: `Variable` type (name: ID), `VariableRef` type with `variable=[Variable]` cross-reference property
-- [ ] T026 [P] [US3] Unit test for cross-reference type mapping in `packages/langium-zod/test/unit/type-mapper.test.ts` — test: cross-reference property type maps to `{ kind: "crossReference", targetType: "Variable" }`
+- [X] T025 [P] [US3] Create test grammar fixture `packages/langium-zod/test/fixtures/crossref.langium` with: `Variable` type (name: ID), `VariableRef` type with `variable=[Variable]` cross-reference property
+- [X] T026 [P] [US3] Unit test for cross-reference type mapping in `packages/langium-zod/test/unit/type-mapper.test.ts` — test: cross-reference property type maps to `{ kind: "crossReference", targetType: "Variable" }`
 
 ### Implementation for User Story 3
 
-- [ ] T027 [US3] Extend `mapPropertyType()` in `packages/langium-zod/src/type-mapper.ts` to detect cross-reference properties (via `isCrossReference` flag or `Reference<T>` type pattern) and return `{ kind: "crossReference", targetType }`
-- [ ] T028 [US3] Extend `generateZodCode()` in `packages/langium-zod/src/generator.ts` to emit a shared `ReferenceSchema = z.looseObject({ $refText: z.string(), ref: z.optional(z.unknown()) })` at the top of the output, and reference it for all cross-reference properties
-- [ ] T029 [US3] Integration test in `packages/langium-zod/test/integration/generation.test.ts` — test: load `crossref.langium`, generate schemas, verify `VariableRefSchema` references `ReferenceSchema`, validate unresolved ref (has `$refText`, no `ref`), resolved ref (has both), and invalid ref (missing `$refText`)
+- [X] T027 [US3] Extend `mapPropertyType()` in `packages/langium-zod/src/type-mapper.ts` to detect cross-reference properties (via `isCrossReference` flag or `Reference<T>` type pattern) and return `{ kind: "crossReference", targetType }`
+- [X] T028 [US3] Extend `generateZodCode()` in `packages/langium-zod/src/generator.ts` to emit a shared `ReferenceSchema = z.looseObject({ $refText: z.string(), ref: z.optional(z.unknown()) })` at the top of the output, and reference it for all cross-reference properties
+- [X] T029 [US3] Integration test in `packages/langium-zod/test/integration/generation.test.ts` — test: load `crossref.langium`, generate schemas, verify `VariableRefSchema` references `ReferenceSchema`, validate unresolved ref (has `$refText`, no `ref`), resolved ref (has both), and invalid ref (missing `$refText`)
 
 **Checkpoint**: User Stories 1, 2, AND 3 complete. Generator handles all core Langium type system features.
 
@@ -137,13 +137,13 @@
 
 ### Tests for User Story 4
 
-- [ ] T030 [P] [US4] Integration test in `packages/langium-zod/test/integration/di.test.ts` — test: create Langium services with `ZodSchemaGeneratorModule` injected, invoke `services.ZodSchemaGenerator.generate(grammar)`, verify valid Zod schema output
+- [X] T030 [P] [US4] Integration test in `packages/langium-zod/test/integration/di.test.ts` — test: create Langium services with `ZodSchemaGeneratorModule` injected, invoke `services.ZodSchemaGenerator.generate(grammar)`, verify valid Zod schema output
 
 ### Implementation for User Story 4
 
-- [ ] T031 [US4] Implement `DefaultZodSchemaGenerator` class in `packages/langium-zod/src/di.ts` — wraps `generateZodSchemas()` as a Langium service with `generate(grammar, config?)` method, receives `LangiumCoreServices` via constructor injection
-- [ ] T032 [US4] Create `ZodSchemaGeneratorModule` in `packages/langium-zod/src/di.ts` — Langium `Module` that registers `DefaultZodSchemaGenerator` under `shared.ZodSchemaGenerator`
-- [ ] T033 [US4] Export DI types (`ZodSchemaGenerator` interface, `ZodSchemaGeneratorModule`, `DefaultZodSchemaGenerator`) from `packages/langium-zod/src/index.ts`
+- [X] T031 [US4] Implement `DefaultZodSchemaGenerator` class in `packages/langium-zod/src/di.ts` — wraps `generateZodSchemas()` as a Langium service with `generate(grammar, config?)` method, receives `LangiumCoreServices` via constructor injection
+- [X] T032 [US4] Create `ZodSchemaGeneratorModule` in `packages/langium-zod/src/di.ts` — Langium `Module` that registers `DefaultZodSchemaGenerator` under `shared.ZodSchemaGenerator`
+- [X] T033 [US4] Export DI types (`ZodSchemaGenerator` interface, `ZodSchemaGeneratorModule`, `DefaultZodSchemaGenerator`) from `packages/langium-zod/src/index.ts`
 
 **Checkpoint**: User Stories 1–4 complete. Generator integrates with Langium's DI system.
 
@@ -159,12 +159,12 @@
 
 ### Tests for User Story 5
 
-- [ ] T034 [P] [US5] Unit test for include/exclude filtering in `packages/langium-zod/test/unit/extractor.test.ts` — test: include only `["Entity"]` → only Entity descriptor returned; exclude `["DataType"]` → all except DataType; no config → all types returned
+- [X] T034 [P] [US5] Unit test for include/exclude filtering in `packages/langium-zod/test/unit/extractor.test.ts` — test: include only `["Entity"]` → only Entity descriptor returned; exclude `["DataType"]` → all except DataType; no config → all types returned
 
 ### Implementation for User Story 5
 
-- [ ] T035 [US5] Implement include/exclude filtering in `extractTypeDescriptors()` in `packages/langium-zod/src/extractor.ts` — apply `FilterConfig.include` (whitelist) and `FilterConfig.exclude` (blacklist) before transformation; include takes precedence if both set; union types auto-filter members based on available concrete types
-- [ ] T036 [US5] Integration test in `packages/langium-zod/test/integration/generation.test.ts` — test: load `hierarchy.langium`, generate with `include: ["Entity"]`, verify only `EntitySchema` in output; generate with `exclude: ["DataType"]`, verify `DataType` absent but others present
+- [X] T035 [US5] Implement include/exclude filtering in `extractTypeDescriptors()` in `packages/langium-zod/src/extractor.ts` — apply `FilterConfig.include` (whitelist) and `FilterConfig.exclude` (blacklist) before transformation; include takes precedence if both set; union types auto-filter members based on available concrete types
+- [X] T036 [US5] Integration test in `packages/langium-zod/test/integration/generation.test.ts` — test: load `hierarchy.langium`, generate with `include: ["Entity"]`, verify only `EntitySchema` in output; generate with `exclude: ["DataType"]`, verify `DataType` absent but others present
 
 **Checkpoint**: All 5 user stories complete.
 
@@ -174,10 +174,10 @@
 
 **Purpose**: Edge cases, robustness, and validation across all user stories.
 
-- [ ] T037 [P] Create test grammar fixture `packages/langium-zod/test/fixtures/recursive.langium` with self-referencing type (`TreeNode` with `children: TreeNode[]`) and mutual recursion (`A` references `B`, `B` references `A`), plus integration test verifying getter-based lazy evaluation in output
-- [ ] T038 [P] Add error handling integration test in `packages/langium-zod/test/integration/generation.test.ts` — test: unmappable property type produces `ZodGeneratorError` with `typeName` and `suggestion`; generated schemas produce descriptive validation errors (FR-016, FR-017)
-- [ ] T039 Run full test suite (`pnpm test`) and lint (`pnpm lint`) from repo root, fix any failures
-- [ ] T040 Validate quickstart.md scenarios: verify programmatic API usage example works end-to-end with a real Langium grammar
+- [X] T037 [P] Create test grammar fixture `packages/langium-zod/test/fixtures/recursive.langium` with self-referencing type (`TreeNode` with `children: TreeNode[]`) and mutual recursion (`A` references `B`, `B` references `A`), plus integration test verifying getter-based lazy evaluation in output
+- [X] T038 [P] Add error handling integration test in `packages/langium-zod/test/integration/generation.test.ts` — test: unmappable property type produces `ZodGeneratorError` with `typeName` and `suggestion`; generated schemas produce descriptive validation errors (FR-016, FR-017)
+- [X] T039 Run full test suite (`pnpm test`) and lint (`pnpm lint`) from repo root, fix any failures
+- [X] T040 Validate quickstart.md scenarios: verify programmatic API usage example works end-to-end with a real Langium grammar
 
 ---
 

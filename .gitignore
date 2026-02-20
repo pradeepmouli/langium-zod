@@ -11,3 +11,10 @@ coverage/
 .nyc_output/
 .pnpm-debug.log*
 *.tsbuildinfo
+
+.env*
+*.tmp
+*.swp
+Thumbs.db
+.vscode/
+.idea/

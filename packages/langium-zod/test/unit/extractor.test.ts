@@ -1,0 +1,65 @@
+import { describe, expect, it } from 'vitest';
+import { extractTypeDescriptors } from '../../src/extractor.js';
+import type { AstTypesLike } from '../../src/types.js';
+
+const baseAstTypes: AstTypesLike = {
+	interfaces: [
+		{
+			name: 'Element',
+			properties: [{ name: 'name', type: 'ID', optional: false }]
+		},
+		{
+			name: 'Entity',
+			superTypes: new Set(['Element']),
+			properties: [{ name: 'features', type: 'Feature', optional: false, assignment: '+=' }]
+		},
+		{
+			name: 'DataType',
+			superTypes: new Set(['Element']),
+			properties: [{ name: 'typeName', type: 'STRING', optional: false }]
+		}
+	],
+	unions: [
+		{
+			name: 'AbstractElement',
+			members: ['Entity', 'DataType']
+		}
+	]
+};
+
+describe('extractor', () => {
+	it('transforms interfaces and adds $type literal', () => {
+		const descriptors = extractTypeDescriptors(baseAstTypes);
+		const entity = descriptors.find((entry) => entry.name === 'Entity' && entry.kind === 'object');
+		if (!entity || entity.kind !== 'object') {
+			throw new Error('Entity descriptor not found');
+		}
+
+		expect(entity.properties.find((property) => property.name === '$type')?.zodType).toEqual({
+			kind: 'literal',
+			value: 'Entity'
+		});
+		expect(entity.properties.some((property) => property.name === 'name')).toBe(true);
+		expect(entity.properties.some((property) => property.name === 'features')).toBe(true);
+	});
+
+	it('creates union descriptors with discriminator', () => {
+		const descriptors = extractTypeDescriptors(baseAstTypes);
+		const union = descriptors.find((entry) => entry.name === 'AbstractElement');
+
+		expect(union).toEqual({
+			name: 'AbstractElement',
+			kind: 'union',
+			members: ['Entity', 'DataType'],
+			discriminator: '$type'
+		});
+	});
+
+	it('applies include/exclude filtering', () => {
+		const includeOnlyEntity = extractTypeDescriptors(baseAstTypes, { include: ['Entity'] });
+		expect(includeOnlyEntity.map((entry) => entry.name)).toEqual(['Entity']);
+
+		const excludeDataType = extractTypeDescriptors(baseAstTypes, { exclude: ['DataType'] });
+		expect(excludeDataType.some((entry) => entry.name === 'DataType')).toBe(false);
+	});
+});

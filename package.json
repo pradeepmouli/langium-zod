@@ -44,8 +44,5 @@
     "node": ">=20.0.0",
     "pnpm": ">=10.0.0"
   },
-  "packageManager": "pnpm@10.27.0",
-  "dependencies": {
-    "x-to-zod": "^0.7.0"
-  }
+  "packageManager": "pnpm@10.27.0"
 }
