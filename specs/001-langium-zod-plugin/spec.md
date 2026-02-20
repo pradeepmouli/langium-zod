@@ -124,7 +124,7 @@ As a language developer, I want to control which grammar rules and AST types pro
 - **FR-006**: The plugin MUST mark properties that are not always assigned across all alternatives as optional in the generated schema.
 - **FR-007**: The plugin MUST support Langium's type inheritance by including all inherited properties in the subtype's schema.
 - **FR-008**: The plugin MUST generate discriminated union schemas for Langium union types, using the `$type` property as the discriminator.
-- **FR-009**: The plugin MUST include a `$type` literal string property in every generated AST node schema, matching the Langium convention where every AST node has a `$type` discriminator.
+- **FR-009**: The plugin MUST include a `$type` literal string property in every generated AST node schema, matching the Langium convention where every AST node has a `$type` discriminator. Other Langium internal `$`-prefixed metadata properties (`$container`, `$containerProperty`, `$containerIndex`, `$cstNode`, `$document`) MUST be excluded from generated schemas.
 - **FR-010**: The plugin MUST handle cross-reference properties by generating a schema that validates a Reference structure (containing `$refText` and optional `ref`).
 - **FR-011**: The plugin MUST handle recursive/circular type references using lazy evaluation in the generated schemas.
 - **FR-012**: The plugin MUST handle grammar fragments by incorporating fragment properties into the schemas of the rules that use them, without creating separate schemas for fragments.
@@ -162,6 +162,7 @@ As a language developer, I want to control which grammar rules and AST types pro
 ### Session 2026-02-20
 
 - Q: How should generated schemas be organized into files? → A: Single file (e.g., `zod-schemas.ts`) containing all schemas, mirroring Langium's `ast.ts` pattern.
+- Q: Should schemas validate Langium's internal `$`-prefixed metadata properties (`$container`, `$cstNode`, `$document`, etc.) beyond `$type`? → A: No. Only `$type` plus grammar-defined properties. Other `$`-prefixed metadata is excluded.
 
 ## Assumptions
 
