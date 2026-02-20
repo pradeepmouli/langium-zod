@@ -1,0 +1,10 @@
+package.json
+*.md
+.github
+.gemini
+.specify
+.codex
+.claude
+.agents
+.changeset
+.vscode
