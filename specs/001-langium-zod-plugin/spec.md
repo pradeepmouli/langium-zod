@@ -117,7 +117,7 @@ As a language developer, I want to control which grammar rules and AST types pro
 ### Functional Requirements
 
 - **FR-001**: The plugin MUST parse Langium grammar definitions (`.langium` files) and extract all AST node type information including parser rules, declared interfaces, declared union types, and their properties.
-- **FR-002**: The plugin MUST generate valid Zod schema definitions for each AST node type, producing importable modules with proper exports.
+- **FR-002**: The plugin MUST generate all Zod schema definitions into a single output file (e.g., `zod-schemas.ts`) mirroring Langium's single-file `ast.ts` pattern, with named exports for each schema.
 - **FR-003**: The plugin MUST map Langium's three assignment operators to Zod types: `=` assignments to the corresponding Zod primitive or object type, `?=` assignments to z.boolean(), and `+=` assignments to z.array() of the element type.
 - **FR-004**: The plugin MUST map Langium built-in terminal rules to Zod primitives: `ID` and `STRING` to z.string(), `INT` to z.number().
 - **FR-005**: The plugin MUST map data type rules to their underlying primitive types for Zod schema generation.
@@ -156,6 +156,12 @@ As a language developer, I want to control which grammar rules and AST types pro
 - **SC-005**: The plugin handles grammars with at least 50 AST node types without errors or degradation in output quality.
 - **SC-006**: Generated schema files are directly importable and usable without additional transformation or manual editing.
 - **SC-007**: Validation errors from generated schemas identify the specific property, expected type, and reason for failure, enabling developers to locate and fix issues in their AST data.
+
+## Clarifications
+
+### Session 2026-02-20
+
+- Q: How should generated schemas be organized into files? → A: Single file (e.g., `zod-schemas.ts`) containing all schemas, mirroring Langium's `ast.ts` pattern.
 
 ## Assumptions
 
