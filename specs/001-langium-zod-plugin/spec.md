@@ -166,6 +166,7 @@ As a language developer, I want to control which grammar rules and AST types pro
 - Q: Should schemas validate Langium's internal `$`-prefixed metadata properties (`$container`, `$cstNode`, `$document`, etc.) beyond `$type`? → A: No. Only `$type` plus grammar-defined properties. Other `$`-prefixed metadata is excluded.
 - Q: How should the plugin handle multi-file grammars (grammars that import other grammars)? → A: Operate on Langium's resolved grammar/type system. Multi-file support is transparent since Langium resolves imports before code generation.
 - Q: Should schemas reject objects with extra/unknown properties (strict) or allow them (passthrough)? → A: Passthrough mode by default. Validates grammar-defined properties while tolerating Langium's runtime-injected `$`-prefixed metadata.
+- Q: Which Zod version should the plugin generate schemas for? → A: Zod 4.x.
 
 ## Assumptions
 
@@ -176,3 +177,4 @@ As a language developer, I want to control which grammar rules and AST types pro
 - The plugin does not validate semantic constraints beyond structural type correctness (e.g., it validates that a property is a string but not that it matches a particular business rule or naming convention).
 - Schema generation is a build-time activity; generated schemas are static artifacts produced during the `langium generate` step or CI/CD pipeline.
 - The plugin supports both inferred and declared types, with declared types (strict grammar mode) as the recommended approach for production grammars.
+- The plugin targets Zod version 4.x for generated schema output, using Zod 4's API conventions.
