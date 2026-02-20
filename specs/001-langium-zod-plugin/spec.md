@@ -116,7 +116,7 @@ As a language developer, I want to control which grammar rules and AST types pro
 
 ### Functional Requirements
 
-- **FR-001**: The plugin MUST parse Langium grammar definitions (`.langium` files) and extract all AST node type information including parser rules, declared interfaces, declared union types, and their properties.
+- **FR-001**: The plugin MUST operate on Langium's resolved grammar and type system (post-import-resolution) to extract all AST node type information including parser rules, declared interfaces, declared union types, and their properties. Multi-file grammar support is handled transparently by Langium's import resolution.
 - **FR-002**: The plugin MUST generate all Zod schema definitions into a single output file (e.g., `zod-schemas.ts`) mirroring Langium's single-file `ast.ts` pattern, with named exports for each schema.
 - **FR-003**: The plugin MUST map Langium's three assignment operators to Zod types: `=` assignments to the corresponding Zod primitive or object type, `?=` assignments to z.boolean(), and `+=` assignments to z.array() of the element type.
 - **FR-004**: The plugin MUST map Langium built-in terminal rules to Zod primitives: `ID` and `STRING` to z.string(), `INT` to z.number().
@@ -163,6 +163,7 @@ As a language developer, I want to control which grammar rules and AST types pro
 
 - Q: How should generated schemas be organized into files? → A: Single file (e.g., `zod-schemas.ts`) containing all schemas, mirroring Langium's `ast.ts` pattern.
 - Q: Should schemas validate Langium's internal `$`-prefixed metadata properties (`$container`, `$cstNode`, `$document`, etc.) beyond `$type`? → A: No. Only `$type` plus grammar-defined properties. Other `$`-prefixed metadata is excluded.
+- Q: How should the plugin handle multi-file grammars (grammars that import other grammars)? → A: Operate on Langium's resolved grammar/type system. Multi-file support is transparent since Langium resolves imports before code generation.
 
 ## Assumptions
 
