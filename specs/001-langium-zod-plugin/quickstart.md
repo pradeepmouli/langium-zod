@@ -65,13 +65,15 @@ const generator = shared.ZodSchemaGenerator;
 const zodSource = generator.generate(grammar);
 ```
 
-### Option 3: CLI Extension
+### Option 3: CLI Extension *(future enhancement — not in current scope)*
+
+> **Note**: CLI integration is a potential future enhancement. For now, use Option 1 (programmatic) or Option 2 (DI integration).
 
 ```bash
-# Generate all artifacts including Zod schemas
+# Future: Generate all artifacts including Zod schemas
 npx langium generate --zod
 
-# Or run standalone
+# Future: Or run standalone
 npx langium-zod generate src/language/my-grammar.langium
 ```
 

@@ -53,13 +53,15 @@
 
 **Independent Test**: Run generator against `simple.langium` test fixture → verify Zod schemas are produced for each type → import schemas and validate AST node objects (valid passes, invalid fails with descriptive errors).
 
-**Acceptance**: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-009, FR-011, FR-012, FR-013, FR-018, FR-019
+**Acceptance**: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-009, FR-018, FR-019
+
+> **Note**: FR-011 (recursion), FR-012 (fragments), and FR-013 (actions) are exercised via `collectAst()` in this phase but have dedicated test coverage in Phase 8 (T037, T038).
 
 ### Tests for User Story 1
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T008 [P] [US1] Create test grammar fixture `packages/langium-zod/test/fixtures/simple.langium` with basic parser rules: a `Greeting` type with `name: ID` (string), `count: INT` (number), `active?=true` (boolean), `tags+=Tag` (array), and an optional property `description: STRING` not assigned in all alternatives
+- [ ] T008 [P] [US1] Create test grammar fixture `packages/langium-zod/test/fixtures/simple.langium` with basic parser rules: a `Greeting` type with `name: ID` (string), `count: INT` (number), `active?=true` (boolean), `tags+=Tag` (array), an optional property `description: STRING` not assigned in all alternatives, and a `fragment CommonProps` contributing a `source: STRING` property to at least one rule (exercises FR-012 fragment handling)
 - [ ] T009 [P] [US1] Unit test for type-mapper in `packages/langium-zod/test/unit/type-mapper.test.ts` — test mapping of: `ID`→`z.string()`, `STRING`→`z.string()`, `INT`→`z.number()`, `?=`→`z.boolean()`, `+=`→`z.array()`, data type rules→underlying primitive, AST type reference→reference expression, optional properties→optional wrapper
 - [ ] T010 [P] [US1] Unit test for extractor in `packages/langium-zod/test/unit/extractor.test.ts` — test: `InterfaceType` transforms to `ZodTypeDescriptor` with kind `"object"`, properties include `$type` literal, property count matches, optional flags preserved
 - [ ] T011 [P] [US1] Unit test for recursion-detector in `packages/langium-zod/test/unit/recursion-detector.test.ts` — test: non-recursive types return empty set, self-referencing type detected, mutual recursion (A→B→A) detected, diamond dependency (non-circular) not flagged
@@ -69,7 +71,7 @@
 
 - [ ] T013 [P] [US1] Implement `mapPropertyType()` in `packages/langium-zod/src/type-mapper.ts` — convert Langium `PropertyType` to `ZodTypeExpression`: string terminals (`ID`, `STRING`, string data type rules) → `{ kind: "primitive", primitive: "string" }`, `INT` → `{ kind: "primitive", primitive: "number" }`, boolean assignments → `{ kind: "primitive", primitive: "boolean" }`, AST type references → `{ kind: "reference", typeName }`, arrays → `{ kind: "array", element }`. Handle data type rules by tracing to underlying primitive. Include `mapTerminalToZod()` helper.
 - [ ] T014 [P] [US1] Implement `detectRecursiveTypes()` in `packages/langium-zod/src/recursion-detector.ts` — build a directed dependency graph from `ZodTypeDescriptor[]` (edges from type references), run DFS-based cycle detection, return `Set<string>` of type names involved in cycles. Mark which specific property edges are recursive.
-- [ ] T015 [US1] Implement `extractTypeDescriptors()` in `packages/langium-zod/src/extractor.ts` — call Langium's `collectAst(grammar)` to get `AstTypes`, iterate `interfaces` array, transform each `InterfaceType` to `ZodTypeDescriptor` with kind `"object"`, map each property via `mapPropertyType()`, add `$type: z.literal(name)` property, set optional flags. Exclude `$`-prefixed properties except `$type`. Handle fragments (incorporated by Langium into consuming rules).
+- [ ] T015 [US1] Implement `extractTypeDescriptors()` in `packages/langium-zod/src/extractor.ts` — call Langium's `collectAst(grammar)` to get `AstTypes`, iterate `interfaces` array, transform each `InterfaceType` to `ZodTypeDescriptor` with kind `"object"`, map each property via `mapPropertyType()`, add `$type: z.literal(name)` property, set optional flags. Exclude `$`-prefixed properties except `$type`. **Note**: `collectAst()` transparently resolves fragments (FR-012) and grammar actions/`{infer}` types (FR-013) — they appear as regular `InterfaceType` entries with properties already flattened, so no special handling is required beyond iterating the `interfaces` array.
 - [ ] T016 [US1] Implement `generateZodCode()` in `packages/langium-zod/src/generator.ts` — take `ZodTypeDescriptor[]` and `Set<string>` recursive types, use `x-to-zod` builder API (`build.object()`, `build.string()`, `build.number()`, `build.boolean()`, `build.literal()`, `build.array()`) to construct Zod schema code; use `z.looseObject()` for passthrough mode (FR-019); apply getter pattern for recursive properties; output complete TypeScript file with `import { z } from "zod"` header and named exports (`export const <Name>Schema = ...`).
 - [ ] T017 [US1] Implement `generateZodSchemas()` public API in `packages/langium-zod/src/index.ts` — orchestrate: validate config → extract type descriptors → detect recursion → generate code → return TypeScript source string. Export `generateZodSchemas`, `extractTypeDescriptors`, `ZodGeneratorConfig`, `ZodGeneratorError`, and all IR types.
 

@@ -97,13 +97,22 @@ class ZodGeneratorError extends Error {
 
 ## x-to-zod Integration Contract
 
-The plugin passes `ZodTypeDescriptor[]` to `x-to-zod` for Zod code generation. The expected `x-to-zod` API:
+The plugin uses the published `x-to-zod` npm package (v0.7.0+) via its fluent builder API. The `generator.ts` module iterates over `ZodTypeDescriptor[]` and constructs Zod code strings using the builder:
 
 ```typescript
-// Expected x-to-zod interface (owned by user's library)
-interface XToZodGenerator {
-  generate(descriptors: ZodTypeDescriptor[]): string;
-}
+// x-to-zod builder API (published npm package)
+import { build } from 'x-to-zod';
+
+// Example usage in generator.ts:
+build.string()          // → "z.string()"
+build.number()          // → "z.number()"
+build.boolean()         // → "z.boolean()"
+build.literal("Foo")    // → 'z.literal("Foo")'
+build.array(inner)      // → "z.array(<inner>)"
+build.object({ ... })   // → "z.looseObject({ ... })"
+
+// Each builder call produces a node; call .text() to get the Zod code string
+const code = build.object({ name: build.string() }).text();
 ```
 
-The exact API will depend on `x-to-zod`'s implementation. The `ZodTypeDescriptor` IR serves as the contract boundary between the Langium plugin and the Zod generation library.
+The `ZodTypeDescriptor` IR is internal to `langium-zod` and is not exposed to `x-to-zod`. The `generator.ts` module is responsible for translating IR into builder calls.

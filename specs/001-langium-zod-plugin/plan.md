@@ -30,7 +30,7 @@ The project constitution is in template state (no custom principles defined). No
 - ESLint + Prettier formatting
 
 **Pre-design check**: PASS (no violations)
-**Post-design check**: PASS (no violations — two packages follow monorepo pattern)
+**Post-design check**: PASS (no violations — single package follows monorepo pattern, uses published x-to-zod from npm)
 
 ## Project Structure
 
@@ -53,41 +53,35 @@ specs/001-langium-zod-plugin/
 
 ```text
 packages/
-├── x-to-zod/                      # User's Zod generation library
-│   ├── src/
-│   │   ├── index.ts                # Public API exports
-│   │   ├── generator.ts            # Core Zod code generation from descriptors
-│   │   └── types.ts                # ZodTypeDescriptor, ZodPropertyDescriptor, ZodTypeExpression
-│   ├── tests/
-│   │   └── generator.test.ts       # Unit tests for Zod generation
-│   ├── package.json
-│   └── tsconfig.json
-│
 └── langium-zod/                    # Langium plugin package
     ├── src/
     │   ├── index.ts                # Public API: generateZodSchemas, ZodSchemaGenerator
     │   ├── extractor.ts            # Langium AstTypes → ZodTypeDescriptor[] transformation
     │   ├── type-mapper.ts          # Property type → ZodTypeExpression mapping
     │   ├── recursion-detector.ts   # Detect circular type references for lazy evaluation
+    │   ├── generator.ts            # ZodTypeDescriptor[] → Zod code via x-to-zod builder API
     │   ├── config.ts               # ZodGeneratorConfig type and defaults
-    │   └── errors.ts               # ZodGeneratorError class
-    ├── tests/
+    │   ├── errors.ts               # ZodGeneratorError class
+    │   ├── types.ts                # IR types: ZodTypeDescriptor, ZodPropertyDescriptor, ZodTypeExpression
+    │   └── di.ts                   # Langium DI service wrapper
+    ├── test/
     │   ├── unit/
     │   │   ├── extractor.test.ts   # Unit tests for type extraction
     │   │   ├── type-mapper.test.ts # Unit tests for type mapping
-    │   │   └── recursion.test.ts   # Unit tests for recursion detection
-    │   └── integration/
-    │       ├── grammars/           # Test .langium grammar fixtures
-    │       │   ├── simple.langium  # Basic types: string, number, boolean
-    │       │   ├── hierarchy.langium # Inheritance + unions
-    │       │   ├── crossref.langium  # Cross-references
-    │       │   └── recursive.langium # Recursive/circular types
-    │       └── generation.test.ts  # End-to-end: grammar → Zod schemas → validation
+    │   │   └── recursion-detector.test.ts # Unit tests for recursion detection
+    │   ├── integration/
+    │   │   ├── generation.test.ts  # End-to-end: grammar → Zod schemas → validation
+    │   │   └── di.test.ts          # DI service integration test
+    │   └── fixtures/               # Test .langium grammar fixtures
+    │       ├── simple.langium      # Basic types: string, number, boolean, fragments
+    │       ├── hierarchy.langium   # Inheritance + unions
+    │       ├── crossref.langium    # Cross-references
+    │       └── recursive.langium   # Recursive/circular types
     ├── package.json
     └── tsconfig.json
 ```
 
-**Structure Decision**: Two packages in the monorepo. `x-to-zod` is a general-purpose Zod code generation library (user's library). `langium-zod` is the Langium-specific plugin that extracts types from grammars and delegates to `x-to-zod`. This separation allows `x-to-zod` to be reused independently for non-Langium scenarios.
+**Structure Decision**: Single package (`langium-zod`) in the monorepo. The `x-to-zod` library is already published on npm (v0.7.0) with a fluent builder API (`build.string()`, `build.object()`, etc.) and is consumed as an npm dependency. The IR (`ZodTypeDescriptor`) is internal to `langium-zod`.
 
 ## Architecture Overview
 
@@ -99,7 +93,8 @@ packages/
 │   Grammar    │                   │ interfaces  │                  │       IR[]        │
 │  (.langium)  │                   │   unions    │                  └────────┬─────────┘
 └─────────────┘                    └────────────┘                           │
-                                                                   x-to-zod │ generate()
+                                                               generator.ts │ x-to-zod
+                                                               builder API  │ build.*().text()
                                                                             │
                                                                    ┌────────▼─────────┐
                                                                    │  zod-schemas.ts   │
@@ -122,7 +117,7 @@ packages/
 
 3. **Detect Recursion** (`recursion-detector.ts`): Build a dependency graph of type references. Find cycles using DFS. Mark recursive edges for lazy evaluation.
 
-4. **Generate** (`x-to-zod`): Take `ZodTypeDescriptor[]` and produce Zod 4.x TypeScript source:
+4. **Generate** (`generator.ts` via `x-to-zod` builder API): Take `ZodTypeDescriptor[]` and produce Zod 4.x TypeScript source:
    - Objects use `z.looseObject({...})`
    - Unions use `z.discriminatedUnion("$type", [...])`
    - Recursive references use getter pattern
@@ -167,4 +162,4 @@ export const VariableRefSchema = z.looseObject({
 
 ## Complexity Tracking
 
-No constitution violations to justify. The two-package structure follows the established monorepo pattern and separates concerns cleanly.
+No constitution violations to justify. The single-package structure uses the published x-to-zod library as an npm dependency, following the established monorepo pattern.

@@ -104,7 +104,7 @@ Describes a single property within a type descriptor.
 
 ```typescript
 // src/generated/zod-schemas.ts
-import { z } from "zod/v4";
+import { z } from "zod";
 
 // Shared reference schema for cross-references
 export const ReferenceSchema = z.looseObject({
@@ -113,11 +113,12 @@ export const ReferenceSchema = z.looseObject({
 });
 
 // Per-type schemas (one per InterfaceType)
+// Recursive properties use getter pattern for lazy evaluation
 export const AdditionSchema = z.looseObject({
   $type: z.literal("Addition"),
-  left: z.lazy(() => ExpressionSchema),
+  get left() { return ExpressionSchema; },
   operator: z.string(),
-  right: z.lazy(() => ExpressionSchema),
+  get right() { return ExpressionSchema; },
 });
 
 // Union schemas (one per UnionType)
