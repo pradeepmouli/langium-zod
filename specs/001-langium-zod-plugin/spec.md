@@ -134,6 +134,7 @@ As a language developer, I want to control which grammar rules and AST types pro
 - **FR-016**: The plugin MUST provide clear, actionable error messages when schema generation fails, indicating which grammar element caused the issue.
 - **FR-017**: The plugin MUST generate schemas that produce descriptive validation error messages identifying which properties failed and why.
 - **FR-018**: The plugin MUST support both inferred types (from parser rules) and declared types (explicit `interface` and `type` declarations in the grammar).
+- **FR-019**: Generated schemas MUST use passthrough mode by default, validating grammar-defined properties and `$type` while allowing extra unknown properties (such as Langium's runtime `$`-prefixed metadata) to pass through without causing validation failures.
 
 ### Key Entities
 
@@ -164,6 +165,7 @@ As a language developer, I want to control which grammar rules and AST types pro
 - Q: How should generated schemas be organized into files? → A: Single file (e.g., `zod-schemas.ts`) containing all schemas, mirroring Langium's `ast.ts` pattern.
 - Q: Should schemas validate Langium's internal `$`-prefixed metadata properties (`$container`, `$cstNode`, `$document`, etc.) beyond `$type`? → A: No. Only `$type` plus grammar-defined properties. Other `$`-prefixed metadata is excluded.
 - Q: How should the plugin handle multi-file grammars (grammars that import other grammars)? → A: Operate on Langium's resolved grammar/type system. Multi-file support is transparent since Langium resolves imports before code generation.
+- Q: Should schemas reject objects with extra/unknown properties (strict) or allow them (passthrough)? → A: Passthrough mode by default. Validates grammar-defined properties while tolerating Langium's runtime-injected `$`-prefixed metadata.
 
 ## Assumptions
 
