@@ -1,50 +1,132 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!-- SYNC IMPACT REPORT
+Version change: [UNSET] -> 1.0.0
+Modified principles: N/A - initial ratification (all five principles are new)
+Added sections: Core Principles (I-V), Technology Stack, Development Workflow, Governance
+Removed sections: N/A
+Templates requiring updates:
+  OK .specify/templates/plan-template.md -- Constitution Check gate is generic; compatible as-is
+  OK .specify/templates/spec-template.md -- User-story/acceptance-scenario structure compatible
+  OK .specify/templates/tasks-template.md -- Phase/story organization compatible; task types align
+  OK .github/prompts/* -- No agent-specific capitalisation issues; constitution path unchanged
+Follow-up TODOs: None -- all placeholders resolved
+-->
+
+# langium-zod Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Grammar-Driven Schema Derivation (NON-NEGOTIABLE)
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+All Zod schemas exposed by this library MUST be derived mechanically from Langium grammar
+definitions. Hand-authored schemas that duplicate or shadow grammar-defined structure are
+prohibited. Derivation logic MUST live entirely in the generator layer; no schema rule may
+be injected at schema-creation call sites outside the generator.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+**Rationale**: The value proposition of langium-zod is a single source of truth - the
+grammar. Manually duplicating grammar structure in schema code creates drift, defeats the
+generator's purpose, and silently breaks consumers when grammars evolve.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### II. AST Type Compatibility
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+Every generated Zod schema MUST produce an inferred TypeScript type that is structurally
+compatible with the corresponding Langium-generated AST interface (typically found in
+`language/generated/ast.ts`). "Structurally compatible" means the schema's inferred type
+MUST be assignable to the AST type without casting or type assertions.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+**Rationale**: Consumers rely on both the AST type for static analysis and the Zod schema
+for runtime validation. If the two diverge the library is unsafe, misleading consumers
+about correctness while compiling successfully.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### III. Test-First (NON-NEGOTIABLE)
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+TDD is mandatory across all workspace packages. The cycle is strictly enforced:
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+1. Tests written and reviewed.
+2. Tests confirmed to fail (red).
+3. Implementation written to pass tests (green).
+4. Refactor with tests continuously passing.
+
+Unit tests MUST cover all public schema-generation functions. Integration tests MUST cover
+at least one full grammar-to-schema round trip per supported Langium major version. Test
+files MAY NOT be committed without a corresponding failing state first captured in the PR.
+
+**Rationale**: Schema generation involves complex structural transformations. Regressions
+are silent - a wrong schema compiles but silently accepts invalid AST input. TDD is the
+primary and non-negotiable defence.
+
+### IV. Langium Version Compatibility Contract
+
+The library MUST declare explicit `peerDependencies` for every Langium major version it
+supports. Each supported major Langium release MUST have a corresponding integration test
+suite. Dropping support for a Langium major version requires a semver MAJOR bump and a
+published migration guide in `docs/` before the change is merged.
+
+**Rationale**: Langium's AST shape changes across major releases. Consumers target a
+specific Langium version; the library MUST be honest and explicit about which versions it
+validates correctly to avoid silent schema mismatches in production language tools.
+
+### V. Package Modularity
+
+Each distinct concern - grammar traversal, Zod schema generation, and Langium
+CLI/generator plugin integration - MUST reside in a separate pnpm workspace package.
+Packages MUST NOT introduce circular dependencies. Public APIs MUST be declared explicitly
+via `package.json` `exports` fields. Internal utilities MUST NOT be re-exported from a
+package's public entry point.
+
+**Rationale**: The monorepo structure allows consumers to install only what they need.
+Monolithic coupling forces unnecessary transitive dependencies on consumers and makes
+packages untestable in isolation, undermining the grammar-driven design contract.
+
+## Technology Stack
+
+- **Language**: TypeScript >= 5.4 with strict mode (`noUncheckedIndexedAccess`,
+  `exactOptionalPropertyTypes` enabled).
+- **Runtime validation**: Zod >= 3.22 (declared as `peerDependency`).
+- **Grammar framework**: Langium >= 3.0 (declared as `peerDependency`; multiple major
+  versions supported via `peerDependencies` range).
+- **Package manager**: pnpm >= 10 with workspaces (`pnpm-workspace.yaml`).
+- **Test runner**: Vitest; coverage via `@vitest/coverage-v8`.
+- **Linting / formatting**: oxlint + oxfmt; zero lint errors MUST be maintained on every
+  commit.
+- **Versioning**: Changesets (`@changesets/cli`); conventional commit messages required.
+- **Node.js**: >= 20.
+- **Module format**: ESM-only (`"type": "module"`); no CJS output from library packages.
+- **Bundlers**: Prohibited in library packages; consumers bundle their own output.
+
+## Development Workflow
+
+1. All changes MUST start from a feature branch named `###-short-description`.
+2. A spec (`spec.md`) MUST exist for any change that modifies a public API or adds a
+   workspace package.
+3. The Constitution Check gate in `plan-template.md` MUST be passed before Phase 0
+   research begins and re-verified after Phase 1 design.
+4. PRs MUST pass: `pnpm run lint`, `pnpm test`, and `pnpm run type-check`.
+5. A changeset MUST be included for any change that affects a published package version.
+6. Changes introducing a semver MAJOR bump MUST include a migration guide in `docs/`
+   before the PR is merged.
+7. Generated code (e.g., `language/generated/`) MUST NOT be edited by hand; regenerate
+   via `pnpm run langium:generate` or equivalent.
+8. All PRs MUST include a Constitution Check section confirming compliance with Principles
+   I-V. Non-compliance blocks merge unless an explicit exception is documented in the PR
+   and the plan's Complexity Tracking section.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all other documented practices. Amendments follow semantic
+versioning:
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+- **MAJOR** - Removal of a principle, redefinition that fundamentally changes enforcement
+  scope, or removal of a supported-version policy.
+- **MINOR** - Addition of a new principle or section, or material expansion of existing
+  guidance that adds new obligations.
+- **PATCH** - Clarifications, wording refinements, typographical corrections, or
+  non-semantic reordering.
+
+All amendments MUST be submitted as PRs containing: (a) a summary of what changed and
+why, (b) an updated `CONSTITUTION_VERSION` in this file, (c) an updated
+`LAST_AMENDED_DATE`, and (d) this Sync Impact Report updated to reflect the amendment.
+
+Use `AGENTS.md` for runtime multi-agent workflow guidance and `docs/DEVELOPMENT.md` for
+day-to-day development process details.
+
+**Version**: 1.0.0 | **Ratified**: 2026-02-19 | **Last Amended**: 2026-02-19
