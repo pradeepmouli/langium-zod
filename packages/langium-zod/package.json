@@ -1,0 +1,34 @@
+{
+  "name": "@pradeepmouli/langium-zod",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Langium generator plugin that derives Zod schemas from grammar definitions",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "test": "vitest run",
+    "type-check": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "langium": "^4.2.1",
+    "x-to-zod": "^0.7.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "langium-cli": "^4.2.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}
