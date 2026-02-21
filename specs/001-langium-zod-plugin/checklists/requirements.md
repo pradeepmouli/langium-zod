@@ -6,9 +6,9 @@
 
 ## Content Quality
 
-- [x] No implementation details (languages, frameworks, APIs)
+- [ ] No implementation details (languages, frameworks, APIs)
 - [x] Focused on user value and business needs
-- [x] Written for non-technical stakeholders
+- [ ] Written for non-technical stakeholders
 - [x] All mandatory sections completed
 
 ## Requirement Completeness
@@ -27,11 +27,11 @@
 - [x] All functional requirements have clear acceptance criteria
 - [x] User scenarios cover primary flows
 - [x] Feature meets measurable outcomes defined in Success Criteria
-- [x] No implementation details leak into specification
+- [ ] No implementation details leak into specification
 
 ## Notes
 
-- The spec references Langium-specific domain terminology ($type, Reference, .langium files, DI module) which is necessary for accuracy but keeps the focus on WHAT not HOW.
+- The spec includes Langium-specific domain terminology ($type, Reference, .langium files, DI module, `collectAst`) and concrete API references (Langium/Zod versions). These are implementation details that go beyond the feature's user-facing scope.
 - Zod is referenced as the output format (part of the feature definition) rather than as an implementation choice.
 - All 18 functional requirements are testable via the acceptance scenarios in the user stories.
 - Spec validated against Langium 4.x documentation to ensure domain accuracy (type hierarchy, cross-references, grammar syntax, $type discriminator).

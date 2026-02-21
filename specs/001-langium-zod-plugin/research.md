@@ -64,23 +64,25 @@ This gives us the complete, post-resolution type system without needing to manua
 
 ## Decision 4: Project Structure — Monorepo Package
 
-**Decision**: Create the plugin as a package within the existing pnpm monorepo at `packages/langium-zod`. The `x-to-zod` library will be a separate package at `packages/x-to-zod`.
+**Decision**: Create the plugin as a package within the existing pnpm monorepo at `packages/langium-zod`. The `x-to-zod` library is consumed as an npm dependency of `packages/langium-zod`.
 
-**Rationale**: The project is already set up as a pnpm workspace monorepo. Placing the plugin as a package follows the established pattern and allows `x-to-zod` to remain independent/reusable.
+**Rationale**: The project is already set up as a pnpm workspace monorepo. Placing the plugin as a package follows the established pattern. The `x-to-zod` library is published to npm and consumed as a regular dependency rather than a workspace package.
 
 **Alternatives considered**:
+- Separate workspace package for `x-to-zod` — rejected because `x-to-zod` is already on npm and the plugin consumes it as a versioned dependency
 - Single package combining both — rejected as it couples Langium-specific logic to the Zod generation engine
-- External dependency for x-to-zod — rejected as user indicated it's their library (likely in this monorepo)
+- External dependency for x-to-zod — this is the chosen approach, as the library is available on npm
 
 ## Decision 5: Output File Strategy
 
-**Decision**: Generate a single `zod-schemas.ts` file in the same `src/generated/` directory where Langium outputs `ast.ts`. The file will import Zod from `zod/v4` and export named schemas matching the pattern `<TypeName>Schema` (e.g., `ExpressionSchema`, `AdditionSchema`).
+**Decision**: Generate a single `zod-schemas.ts` file in the same `src/generated/` directory where Langium outputs `ast.ts`. The file will import Zod using `import { z } from 'zod'` and export named schemas matching the pattern `<TypeName>Schema` (e.g., `ExpressionSchema`, `AdditionSchema`).
 
-**Rationale**: Mirrors Langium's own single-file `ast.ts` pattern (per clarification). Placing it in `src/generated/` follows Langium conventions and ensures it's regenerated alongside other artifacts.
+**Rationale**: Mirrors Langium's own single-file `ast.ts` pattern (per clarification). Placing it in `src/generated/` follows Langium conventions and ensures it's regenerated alongside other artifacts. Importing from `'zod'` (not `'zod/v4'`) is the standard Zod 4.x entry point when the `zod` package version is 4.x.
 
 **Alternatives considered**:
 - Separate output directory — rejected as it breaks the convention of co-located generated artifacts
 - One file per type — rejected per clarification choosing single-file output
+- `import { z } from 'zod/v4'` — not used; the standard `'zod'` import resolves to Zod 4.x when `zod@4` is installed
 
 ## Decision 6: Integration with Langium DI
 

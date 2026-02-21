@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { generateZodSchemas } from '../../src/index.js';
 import { ZodGeneratorError } from '../../src/errors.js';
@@ -145,6 +146,73 @@ describe('generation integration', () => {
 			const typed = error as ZodGeneratorError;
 			expect(typed.typeName).toBe('Broken');
 			expect(typed.suggestion).toContain('resolvable terminal');
+		}
+	});
+
+	it('emits referred type before referring type (topo sort avoids TDZ)', () => {
+		// Consumer is listed first in the input but references Producer,
+		// so ProducerSchema must be declared before ConsumerSchema.
+		const source = generateZodSchemas({
+			astTypes: {
+				interfaces: [
+					{
+						name: 'Consumer',
+						properties: [{ name: 'item', type: 'Producer', optional: false }]
+					},
+					{
+						name: 'Producer',
+						properties: [{ name: 'name', type: 'ID', optional: false }]
+					}
+				],
+				unions: []
+			}
+		});
+
+		const producerIdx = source.indexOf('export const ProducerSchema');
+		const consumerIdx = source.indexOf('export const ConsumerSchema');
+		expect(producerIdx).toBeGreaterThanOrEqual(0);
+		expect(consumerIdx).toBeGreaterThanOrEqual(0);
+		expect(producerIdx).toBeLessThan(consumerIdx);
+	});
+
+	it('emits getters for all cycle members in a mutually-recursive pair', () => {
+		// ExprNode ↔ TermNode: both should use getter syntax for their cross-type reference.
+		const source = generateZodSchemas({
+			astTypes: {
+				interfaces: [
+					{
+						name: 'ExprNode',
+						properties: [{ name: 'term', type: 'TermNode', optional: false }]
+					},
+					{
+						name: 'TermNode',
+						properties: [{ name: 'expr', type: 'ExprNode', optional: false }]
+					}
+				],
+				unions: []
+			}
+		});
+
+		expect(source).toContain('export const ExprNodeSchema = z.looseObject({');
+		expect(source).toContain('export const TermNodeSchema = z.looseObject({');
+		expect(source).toContain('get term() { return TermNodeSchema; }');
+		expect(source).toContain('get expr() { return ExprNodeSchema; }');
+	});
+
+	it('writes generated source to outputPath and creates the directory', () => {
+		const tmpDir = join(tmpdir(), `langium-zod-test-${crypto.randomUUID()}`);
+		const outputPath = join(tmpDir, 'generated', 'zod-schemas.ts');
+
+		try {
+			const source = generateZodSchemas({
+				astTypes: simpleAstTypes,
+				outputPath
+			});
+
+			expect(existsSync(outputPath)).toBe(true);
+			expect(readFileSync(outputPath, 'utf8')).toBe(source);
+		} finally {
+			rmSync(tmpDir, { recursive: true, force: true });
 		}
 	});
 });
