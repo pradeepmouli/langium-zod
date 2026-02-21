@@ -5,10 +5,9 @@ import { join } from 'node:path';
 import { generateZodSchemas } from '../../src/index.js';
 import type { AstTypesLike } from '../../src/types.js';
 
-const DEFAULT_RUNE_CORE_PATH = '/Users/pmouli/GitHub.nosync/rune-langium/packages/core';
-const runeCorePath = process.env.RUNE_LANGIUM_CORE_PATH ?? DEFAULT_RUNE_CORE_PATH;
+const runeCorePath = process.env.RUNE_LANGIUM_CORE_PATH ?? '';
 
-const describeExternal = existsSync(runeCorePath) ? describe : describe.skip;
+const describeExternal = runeCorePath && existsSync(runeCorePath) ? describe : describe.skip;
 
 function collectAstTypesFromRuneCore(cwd: string): AstTypesLike {
 	const script = `
