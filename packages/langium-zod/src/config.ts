@@ -7,7 +7,7 @@ export interface FilterConfig {
 }
 
 export interface ZodGeneratorConfig extends FilterConfig {
-	grammar: Grammar | Grammar[];
+	grammar?: Grammar | Grammar[];
 	services?: LangiumCoreServices;
 	outputPath?: string;
 	astTypes?: AstTypesLike;

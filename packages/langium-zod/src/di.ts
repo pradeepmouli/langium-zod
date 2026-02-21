@@ -1,6 +1,6 @@
 import type { Grammar, LangiumCoreServices, Module } from 'langium';
 import type { ZodGeneratorConfig } from './config.js';
-import { generateZodSchemas } from './index.js';
+import { generateZodSchemas } from './api.js';
 
 export interface ZodSchemaGenerator {
 	generate(grammar: Grammar, config?: Partial<ZodGeneratorConfig>): string;

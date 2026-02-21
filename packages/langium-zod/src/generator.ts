@@ -1,5 +1,5 @@
 import { build, type BaseBuilder } from 'x-to-zod/builders';
-import type { ZodPropertyDescriptor, ZodTypeDescriptor, ZodTypeExpression } from './types.js';
+import type { ZodObjectTypeDescriptor, ZodPropertyDescriptor, ZodTypeDescriptor, ZodTypeExpression } from './types.js';
 
 function expressionToBuilder(expression: ZodTypeExpression): BaseBuilder {
 	switch (expression.kind) {
@@ -58,6 +58,15 @@ function containsReferenceTo(expression: ZodTypeExpression, typeName: string): b
 	}
 }
 
+function propertyReferencesAnyCycleMember(zodType: ZodTypeExpression, recursiveTypes: Set<string>): boolean {
+	for (const rt of recursiveTypes) {
+		if (containsReferenceTo(zodType, rt)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 function propertyLine(property: ZodPropertyDescriptor, ownerTypeName: string, recursiveTypes: Set<string>): string {
 	const builder = expressionToBuilder(property.zodType);
 	if (property.optional) {
@@ -65,13 +74,73 @@ function propertyLine(property: ZodPropertyDescriptor, ownerTypeName: string, re
 	}
 
 	const withOptional = builder.text();
-	const shouldUseGetter = recursiveTypes.has(ownerTypeName) && containsReferenceTo(property.zodType, ownerTypeName);
+	const shouldUseGetter = recursiveTypes.has(ownerTypeName) && propertyReferencesAnyCycleMember(property.zodType, recursiveTypes);
 
 	if (shouldUseGetter) {
 		return `\tget ${property.name}() { return ${withOptional}; }`;
 	}
 
 	return `\t${property.name}: ${withOptional}`;
+}
+
+/**
+ * Topologically sorts object descriptors so that each type's dependencies are
+ * emitted before it. References within a cycle (recursiveTypes) are safe
+ * regardless of order because they are emitted using getter syntax.
+ */
+function topoSortObjectDescriptors(descriptors: ZodObjectTypeDescriptor[], recursiveTypes: Set<string>): ZodObjectTypeDescriptor[] {
+	const nameToDesc = new Map(descriptors.map((d) => [d.name, d]));
+	const sorted: ZodObjectTypeDescriptor[] = [];
+	const visited = new Set<string>();
+	const visiting = new Set<string>();
+
+	function visit(name: string): void {
+		if (visited.has(name)) {
+			return;
+		}
+
+		visiting.add(name);
+		const d = nameToDesc.get(name);
+		if (d) {
+			for (const property of d.properties) {
+				for (const ref of collectReferenceTypeNames(property.zodType)) {
+					if (nameToDesc.has(ref) && !visiting.has(ref)) {
+						const bothAreRecursive = recursiveTypes.has(name) && recursiveTypes.has(ref);
+						if (!bothAreRecursive) {
+							visit(ref);
+						}
+					}
+				}
+			}
+		}
+
+		visiting.delete(name);
+		visited.add(name);
+		if (d) {
+			sorted.push(d);
+		}
+	}
+
+	for (const d of descriptors) {
+		visit(d.name);
+	}
+
+	return sorted;
+}
+
+function collectReferenceTypeNames(expression: ZodTypeExpression): string[] {
+	switch (expression.kind) {
+		case 'reference':
+			return [expression.typeName];
+		case 'array':
+			return collectReferenceTypeNames(expression.element);
+		case 'union':
+			return expression.members.flatMap((m) => collectReferenceTypeNames(m));
+		case 'lazy':
+			return collectReferenceTypeNames(expression.inner);
+		default:
+			return [];
+	}
 }
 
 export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes: Set<string>): string {
@@ -94,12 +163,11 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 		lines.push('');
 	}
 
-	for (const descriptor of descriptors) {
-		if (descriptor.kind !== 'object') {
-			continue;
-		}
+	const objectDescriptors = descriptors.filter((d): d is ZodObjectTypeDescriptor => d.kind === 'object');
+	const sortedObjects = topoSortObjectDescriptors(objectDescriptors, recursiveTypes);
 
-		const hasRecursiveGetter = recursiveTypes.has(descriptor.name) && descriptor.properties.some((property) => containsReferenceTo(property.zodType, descriptor.name));
+	for (const descriptor of sortedObjects) {
+		const hasRecursiveGetter = recursiveTypes.has(descriptor.name) && descriptor.properties.some((property) => propertyReferencesAnyCycleMember(property.zodType, recursiveTypes));
 
 		if (hasRecursiveGetter) {
 			lines.push(`export const ${descriptor.name}Schema = z.looseObject({`);
@@ -138,3 +206,4 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 
 	return `${lines.join('\n').trim()}\n`;
 }
+
