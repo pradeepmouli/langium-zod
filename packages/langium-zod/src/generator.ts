@@ -105,8 +105,10 @@ function topoSortObjectDescriptors(descriptors: ZodObjectTypeDescriptor[], recur
 			for (const property of d.properties) {
 				for (const ref of collectReferenceTypeNames(property.zodType)) {
 					if (nameToDesc.has(ref) && !visiting.has(ref)) {
-						const bothAreRecursive = recursiveTypes.has(name) && recursiveTypes.has(ref);
-						if (!bothAreRecursive) {
+						const shouldUseGetter =
+							recursiveTypes.has(name) &&
+							propertyReferencesAnyCycleMember(property.zodType, recursiveTypes);
+						if (!shouldUseGetter) {
 							visit(ref);
 						}
 					}
