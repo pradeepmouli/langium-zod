@@ -1,5 +1,5 @@
 {
-  "name": "@pradeepmouli/langium-zod",
+  "name": "langium-zod",
   "version": "0.1.0",
   "type": "module",
   "description": "Langium generator plugin that derives Zod schemas from grammar definitions",

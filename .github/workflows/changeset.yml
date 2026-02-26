@@ -129,7 +129,7 @@ jobs:
 
           cat <<EOF > .changeset/${TIMESTAMP}.md
           ---
-          "@pradeepmouli/langium-zod": ${CHANGE_TYPE}
+          "langium-zod": ${CHANGE_TYPE}
           ---
 
           $(cat /tmp/changelog_content.txt)

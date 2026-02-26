@@ -24,7 +24,7 @@ pnpm run build
 ### Option 1: Programmatic (Standalone)
 
 ```typescript
-import { generateZodSchemas } from '@pradeepmouli/langium-zod';
+import { generateZodSchemas } from 'langium-zod';
 import { createMyLanguageServices } from './my-language-module';
 
 const services = createMyLanguageServices();
@@ -48,7 +48,7 @@ writeFileSync('src/generated/zod-schemas.ts', zodSource);
 Register the generator in your language's DI module:
 
 ```typescript
-import { ZodSchemaGeneratorModule } from '@pradeepmouli/langium-zod';
+import { ZodSchemaGeneratorModule } from 'langium-zod';
 import { createDefaultSharedModule, inject, Module } from 'langium';
 
 // Add to your shared module

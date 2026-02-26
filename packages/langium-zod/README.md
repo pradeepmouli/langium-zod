@@ -1,17 +1,17 @@
-# @pradeepmouli/langium-zod
+# langium-zod
 
 Generate Zod schemas from Langium grammars.
 
 ## Install
 
 ```bash
-pnpm add @pradeepmouli/langium-zod
+pnpm add langium-zod
 ```
 
 ## Usage
 
 ```ts
-import { generateZodSchemas } from '@pradeepmouli/langium-zod';
+import { generateZodSchemas } from 'langium-zod';
 
 const source = generateZodSchemas({ grammar, services });
 ```

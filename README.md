@@ -1,10 +1,10 @@
 # langium-zod
 
-Monorepo for `@pradeepmouli/langium-zod`, a Langium generator plugin that derives Zod validation schemas from grammar definitions.
+Monorepo for `langium-zod`, a Langium generator plugin that derives Zod validation schemas from grammar definitions.
 
 ## Package
 
-- npm: `@pradeepmouli/langium-zod`
+- npm: `langium-zod`
 - source: `packages/langium-zod`
 
 ## Quick Start
@@ -18,7 +18,7 @@ pnpm run test
 ## Use in a project
 
 ```ts
-import { generateZodSchemas } from '@pradeepmouli/langium-zod';
+import { generateZodSchemas } from 'langium-zod';
 
 const zodSource = generateZodSchemas({ grammar, services });
 ```

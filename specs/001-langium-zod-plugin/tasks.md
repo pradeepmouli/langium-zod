@@ -27,7 +27,7 @@
 **Purpose**: Create the langium-zod package within the monorepo and configure build tooling.
 
 - [X] T001 Create `packages/langium-zod/` directory structure with `src/` and `test/unit/` and `test/integration/` and `test/fixtures/` subdirectories
-- [X] T002 Create `packages/langium-zod/package.json` with name `@pradeepmouli/langium-zod`, type `module`, dependencies on `langium` (^4.0.0), `x-to-zod` (^0.7.0), and `zod` (^4.0.0), devDependencies on `vitest` and `typescript`, scripts for `build`, `test`, `type-check`, and `clean`
+- [X] T002 Create `packages/langium-zod/package.json` with name `langium-zod`, type `module`, dependencies on `langium` (^4.0.0), `x-to-zod` (^0.7.0), and `zod` (^4.0.0), devDependencies on `vitest` and `typescript`, scripts for `build`, `test`, `type-check`, and `clean`
 - [X] T003 Create `packages/langium-zod/tsconfig.json` extending root tsconfig with `outDir: "./dist"`, `rootDir: "./src"`, composite mode, and ESM module settings
 - [X] T004 [P] Move `x-to-zod` dependency from root `package.json` to `packages/langium-zod/package.json` (remove from root dependencies)
 
