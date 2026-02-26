@@ -1,5 +1,5 @@
 {
-  "name": "langium-zod",
+  "name": "langium-zod-workspace",
   "version": "0.1.0",
   "private": true,
   "description": "A Langium generator plugin that derives Zod validation schemas from grammar definitions, enabling runtime validation of AST nodes in Langium-based language tools",
@@ -26,6 +26,7 @@
     "fresh": "pnpm clean:all && pnpm install",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
+    "prepublishOnly": "echo 'Root workspace is private. Publish with: pnpm --filter langium-zod publish --access public' && exit 1",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
