@@ -15,6 +15,9 @@
   ],
   "scripts": {
     "build": "pnpm -r run build",
+    "changeset": "changeset",
+    "changeset:publish": "changeset publish",
+    "changeset:version": "changeset version",
     "clean": "pnpm -r run clean && rm -rf node_modules/.cache",
     "clean:all": "pnpm -r exec rm -rf dist node_modules && rm -rf node_modules",
     "dev": "pnpm -r --parallel run dev",

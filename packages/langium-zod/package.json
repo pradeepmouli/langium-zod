@@ -3,7 +3,26 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Langium generator plugin that derives Zod schemas from grammar definitions",
+  "keywords": [
+    "langium",
+    "zod",
+    "codegen",
+    "typescript",
+    "ast"
+  ],
+  "homepage": "https://github.com/pradeepmouli/langium-zod#readme",
+  "bugs": {
+    "url": "https://github.com/pradeepmouli/langium-zod/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pradeepmouli/langium-zod.git",
+    "directory": "packages/langium-zod"
+  },
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

@@ -20,7 +20,7 @@ export function generateZodSchemas(config: ZodGeneratorConfig): string {
 	if (config.astTypes) {
 		rawAstTypes = config.astTypes;
 	} else if (config.grammar) {
-		rawAstTypes = collectAst(config.grammar) as AstTypesLike;
+		rawAstTypes = collectAst(config.grammar) as unknown as AstTypesLike;
 	} else {
 		throw new ZodGeneratorError('Missing grammar or astTypes in ZodGeneratorConfig', {
 			suggestion: "Provide astTypes from Langium's collectAst() or pass a grammar object"

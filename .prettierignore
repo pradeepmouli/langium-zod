@@ -8,3 +8,8 @@ package.json
 .agents
 .changeset
 .vscode
+node_modules/
+dist/
+build/
+coverage/
+pnpm-lock.yaml

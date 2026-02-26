@@ -25,7 +25,7 @@ name: Release
 on:
   push:
     branches:
-      - main
+      - master
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -107,7 +107,7 @@ jobs:
             # Commit version changes
             git add -A
             git commit -m "chore: version packages" || echo "No version changes to commit"
-            git push origin main
+            git push origin master
             
             # Publish the packages we identified earlier
             if [ -n "$PACKAGES_TO_PUBLISH" ]; then

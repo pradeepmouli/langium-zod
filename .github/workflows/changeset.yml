@@ -51,7 +51,7 @@ jobs:
           if [ -n "${{ inputs.base_ref }}" ]; then
             BASE_REF="${{ inputs.base_ref }}"
           else
-            BASE_REF=$(git describe --tags --abbrev=0 2>/dev/null || echo "main")
+            BASE_REF=$(git describe --tags --abbrev=0 2>/dev/null || echo "master")
           fi
 
           echo "Analyzing commits since: $BASE_REF"
@@ -129,8 +129,7 @@ jobs:
 
           cat <<EOF > .changeset/${TIMESTAMP}.md
           ---
-          "@company/core": ${CHANGE_TYPE}
-          "@company/utils": ${CHANGE_TYPE}
+          "@pradeepmouli/langium-zod": ${CHANGE_TYPE}
           ---
 
           $(cat /tmp/changelog_content.txt)

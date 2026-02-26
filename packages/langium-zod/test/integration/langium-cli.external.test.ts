@@ -6,8 +6,23 @@ import { generateZodSchemas } from '../../src/index.js';
 import type { AstTypesLike } from '../../src/types.js';
 
 const runeCorePath = process.env.RUNE_LANGIUM_CORE_PATH ?? '';
+const runExternalLangiumTests = process.env.RUN_EXTERNAL_LANGIUM_TESTS === 'true';
+const externalTimeoutMs = Number(process.env.EXTERNAL_TEST_TIMEOUT_MS ?? '120000');
 
-const describeExternal = runeCorePath && existsSync(runeCorePath) ? describe : describe.skip;
+const describeExternal =
+	runExternalLangiumTests && runeCorePath && existsSync(runeCorePath) ? describe : describe.skip;
+
+function runExternalCommand(command: string, cwd: string): void {
+	execSync(command, {
+		cwd,
+		stdio: 'pipe',
+		timeout: externalTimeoutMs,
+		env: {
+			...process.env,
+			CI: 'true'
+		}
+	});
+}
 
 function collectAstTypesFromRuneCore(cwd: string): AstTypesLike {
 	const script = `
@@ -101,7 +116,8 @@ console.log(JSON.stringify(normalized));
 
 	const raw = execSync(`node ${scriptPath}`, {
 		cwd,
-		stdio: 'pipe'
+		stdio: 'pipe',
+		timeout: externalTimeoutMs
 	}).toString();
 
 	rmSync(scriptPath, { force: true });
@@ -111,15 +127,9 @@ console.log(JSON.stringify(normalized));
 
 describeExternal('langium cli external integration (rune-langium)', () => {
 	it('runs langium CLI generation and then generates zod schemas from RuneDsl grammar', () => {
-		execSync('pnpm generate', {
-			cwd: runeCorePath,
-			stdio: 'pipe'
-		});
+		runExternalCommand('pnpm generate', runeCorePath);
 
-		execSync('pnpm build', {
-			cwd: runeCorePath,
-			stdio: 'pipe'
-		});
+		runExternalCommand('pnpm build', runeCorePath);
 
 		const generatedAstPath = join(runeCorePath, 'src/generated/ast.ts');
 		expect(existsSync(generatedAstPath)).toBe(true);

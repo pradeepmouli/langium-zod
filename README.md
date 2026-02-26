@@ -1,70 +1,49 @@
 # langium-zod
 
-A Langium generator plugin that derives Zod validation schemas from grammar definitions, enabling runtime validation of AST nodes in Langium-based language tools
+Monorepo for `@pradeepmouli/langium-zod`, a Langium generator plugin that derives Zod validation schemas from grammar definitions.
 
-## Getting Started
+## Package
 
-### Prerequisites
+- npm: `@pradeepmouli/langium-zod`
+- source: `packages/langium-zod`
 
-- Node.js >= 20.0.0
-- pnpm >= 10.0.0
-
-### Installation
+## Quick Start
 
 ```bash
-git clone https://github.com/pradeepmouli/langium-zod.git
-cd langium-zod
 pnpm install
+pnpm run build
+pnpm run test
 ```
 
-### Development
+## Use in a project
+
+```ts
+import { generateZodSchemas } from '@pradeepmouli/langium-zod';
+
+const zodSource = generateZodSchemas({ grammar, services });
+```
+
+## Release / Publish
+
+- Create a changeset: `pnpm changeset`
+- Version packages: `pnpm changeset:version`
+- Publish package(s): `pnpm changeset:publish`
+
+Automated release is configured in GitHub Actions at `.github/workflows/release.yml`.
+
+## Development Commands
 
 ```bash
-# Start development
-pnpm run dev
-
-# Run tests
-pnpm run test
-
-# Lint and format
 pnpm run lint
-pnpm run format
+pnpm run format:check
+pnpm run type-check
+pnpm run build
+pnpm run test
 ```
-
-## Project Structure
-
-This project uses pnpm workspaces for managing multiple packages:
-
-```
-langium-zod/
-├── packages/
-│   └── [your packages here]
-├── docs/
-├── .github/workflows/
-├── package.json
-└── README.md
-```
-
-## Creating Your First Package
-
-See [docs/WORKSPACE.md](docs/WORKSPACE.md) for detailed instructions on adding packages.
 
 ## Documentation
 
-- [Workspace Guide](docs/WORKSPACE.md) - Managing packages
-- [Development Workflow](docs/DEVELOPMENT.md) - Development process
-- [Testing Guide](docs/TESTING.md) - Testing setup
-- [Examples](docs/EXAMPLES.md) - Usage examples
-
-## Contributing
-
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## License
-
-MIT - See [LICENSE](LICENSE) for details
-
----
-
-**Author**: Pradeep Mouli
-**Created**: February 19, 2026
+- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
+- [docs/TESTING.md](docs/TESTING.md)
+- [docs/EXAMPLES.md](docs/EXAMPLES.md)
+- [CONTRIBUTING.md](CONTRIBUTING.md)
