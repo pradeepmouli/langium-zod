@@ -92,7 +92,7 @@ jobs:
         run: |
           # Check if there are any changesets
           CHANGESET_COUNT=$(find .changeset -maxdepth 1 -name '*.md' ! -name 'README.md' | wc -l)
-          
+
           if [ "$CHANGESET_COUNT" -gt 0 ]; then
             echo "Found $CHANGESET_COUNT changesets, proceeding with publishing..."
 
@@ -103,12 +103,12 @@ jobs:
 
             # Version packages
             pnpm changeset:version
-            
+
             # Commit version changes
             git add -A
             git commit -m "chore: version packages" || echo "No version changes to commit"
             git push origin master
-            
+
             # Publish the packages we identified earlier
             if [ -n "$PACKAGES_TO_PUBLISH" ]; then
               FILTER_ARGS=""
