@@ -9,14 +9,14 @@ Implement five independent enhancements in `packages/langium-zod` to support Run
 
 ## Technical Context
 
-**Language/Version**: TypeScript 5.x (ESM, strict mode)  
-**Primary Dependencies**: `langium` 4.x, `zod` 4.x (generated target), existing `commander`-style CLI in package, Node `fs/path` for config loading  
-**Storage**: File-system based code generation artifacts (`zod-schemas.ts`, optional `*.conformance.ts`)  
-**Testing**: Vitest unit + integration tests in `packages/langium-zod/test`  
-**Target Platform**: Node.js >= 20 on macOS/Linux/CI runners  
-**Project Type**: pnpm monorepo package enhancement (single package scope)  
-**Performance Goals**: Preserve current generation performance envelope; no material slowdown for grammars up to ~100 types  
-**Constraints**: Backward compatible by default; new behavior gated by explicit CLI/config flags except cardinality correctness fix  
+**Language/Version**: TypeScript 5.x (ESM, strict mode)
+**Primary Dependencies**: `langium` 4.x, `zod` 4.x (generated target), existing `commander`-style CLI in package, Node `fs/path` for config loading
+**Storage**: File-system based code generation artifacts (`zod-schemas.ts`, optional `*.conformance.ts`)
+**Testing**: Vitest unit + integration tests in `packages/langium-zod/test`
+**Target Platform**: Node.js >= 20 on macOS/Linux/CI runners
+**Project Type**: pnpm monorepo package enhancement (single package scope)
+**Performance Goals**: Preserve current generation performance envelope; no material slowdown for grammars up to ~100 types
+**Constraints**: Backward compatible by default; new behavior gated by explicit CLI/config flags except cardinality correctness fix
 **Scale/Scope**: Changes limited to `packages/langium-zod/src/*`, tests, and package docs/contracts for feature 002
 
 ## Constitution Check
