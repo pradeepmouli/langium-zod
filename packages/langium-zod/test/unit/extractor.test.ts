@@ -62,4 +62,46 @@ describe('extractor', () => {
 		const excludeDataType = extractTypeDescriptors(baseAstTypes, { exclude: ['DataType'] });
 		expect(excludeDataType.some((entry) => entry.name === 'DataType')).toBe(false);
 	});
+
+	it('creates primitive-alias descriptor for datatype union aliases', () => {
+		const descriptors = extractTypeDescriptors({
+			interfaces: [
+				{
+					name: 'Node',
+					properties: [{ name: 'id', type: 'ValidID', optional: false }]
+				}
+			],
+			unions: [
+				{
+					name: 'ValidID',
+					type: {
+						primitive: 'string'
+					}
+				}
+			]
+		});
+
+		expect(descriptors).toContainEqual({
+			name: 'ValidID',
+			kind: 'primitive-alias',
+			primitive: 'string'
+		});
+	});
+
+	it('does not emit fallback stubs excluded by filter config', () => {
+		const descriptors = extractTypeDescriptors(
+			{
+				interfaces: [
+					{
+						name: 'Consumer',
+						properties: [{ name: 'value', type: 'MissingType', optional: false }]
+					}
+				],
+				unions: []
+			},
+			{ exclude: ['MissingType'] }
+		);
+
+		expect(descriptors.some((entry) => entry.name === 'MissingType')).toBe(false);
+	});
 });

@@ -290,6 +290,9 @@ export function extractTypeDescriptors(astTypes: AstTypesLike, config?: FilterCo
 		if (generatedNames.has(refName)) {
 			continue;
 		}
+		if (!shouldInclude(refName, config)) {
+			continue;
+		}
 		// Check if the union map has a primitive alias for this name
 		const unionEntry = unionMap.get(refName);
 		const primitive = unionEntry ? resolvePrimitiveAlias(unionEntry) : undefined;

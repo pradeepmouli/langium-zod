@@ -157,7 +157,9 @@ export function mapPropertyType(property: PropertyLike): ZodTypeExpression {
 
 	// Explicit cross-reference marker takes precedence over type inspection
 	if (property.isCrossRef) {
-		const base: ZodTypeExpression = { kind: 'crossReference', targetType: 'unknown' };
+		const normalized = normalizePropertyType(property.type);
+		const targetType = property.referenceType ?? normalized.typeName ?? 'unknown';
+		const base: ZodTypeExpression = { kind: 'crossReference', targetType };
 		if (assignmentOperator === '+=') {
 			return { kind: 'array', element: base };
 		}

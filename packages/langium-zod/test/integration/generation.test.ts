@@ -59,6 +59,7 @@ describe('generation integration', () => {
 
 		expect(source).toContain("import { z } from 'zod';");
 		expect(source).toContain('export const GreetingSchema = z.looseObject({');
+		expect(source).toContain('export const AstNodeSchema = z.discriminatedUnion("$type", [TagSchema, GreetingSchema]);');
 		expect(source).toContain('"$type": z.literal("Greeting")');
 		expect(source).toContain('"name": z.string()');
 		expect(source).toContain('"count": z.number()');
@@ -78,6 +79,7 @@ describe('generation integration', () => {
 		expect(source).toContain('"name": z.string()');
 		expect(source).toContain('"features": z.array(FeatureSchema)');
 		expect(source).toContain('export const AbstractElementSchema = z.discriminatedUnion("$type", [EntitySchema, DataTypeSchema]);');
+		expect(source).toContain('export const AstNodeSchema = z.discriminatedUnion("$type", [ElementSchema, FeatureSchema, EntitySchema, DataTypeSchema]);');
 	});
 
 	it('emits shared ReferenceSchema for cross references', () => {

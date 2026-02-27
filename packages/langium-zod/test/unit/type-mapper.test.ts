@@ -42,6 +42,25 @@ describe('type-mapper', () => {
 		});
 	});
 
+	it('maps cross-reference arrays and preserves target type', () => {
+		const actual = mapPropertyType({
+			name: 'refs',
+			assignment: '+=',
+			isCrossRef: true,
+			type: {
+				referenceType: 'RefTarget'
+			}
+		});
+
+		expect(actual).toEqual({
+			kind: 'array',
+			element: {
+				kind: 'crossReference',
+				targetType: 'RefTarget'
+			}
+		});
+	});
+
 	it('maps optional data-type style property to primitive', () => {
 		const actual = mapPropertyType({
 			name: 'description',
