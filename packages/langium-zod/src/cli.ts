@@ -295,7 +295,7 @@ export async function generate(opts: GenerateOptions): Promise<void> {
 // CLI entry point
 // ────────────────────────────────────────────────────────────────────────────
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
 	const args = process.argv.slice(2);
 
 	if (args.length === 0 || args.includes('--help') || args.includes('-h')) {

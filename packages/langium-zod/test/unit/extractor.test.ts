@@ -130,4 +130,39 @@ describe('extractor', () => {
 		expect(container.properties.find((property) => property.name === 'optionalItems')?.minItems).toBeUndefined();
 		expect(container.properties.find((property) => property.name === 'plainItems')?.minItems).toBeUndefined();
 	});
+
+	it('creates keyword-enum and regex-enum descriptors from union layouts', () => {
+		const descriptors = extractTypeDescriptors({
+			interfaces: [],
+			unions: [
+				{
+					name: 'CardinalityModifier',
+					type: {
+						types: [{ string: 'any' }, { string: 'all' }]
+					}
+				},
+				{
+					name: 'ValidID',
+					type: {
+						types: [
+							{ primitive: 'string', regex: '/[a-z]+/' },
+							{ string: 'condition' }
+						]
+					}
+				}
+			]
+		});
+
+		expect(descriptors).toContainEqual({
+			name: 'CardinalityModifier',
+			kind: 'keyword-enum',
+			keywords: ['any', 'all']
+		});
+		expect(descriptors).toContainEqual({
+			name: 'ValidID',
+			kind: 'regex-enum',
+			regex: '/[a-z]+/',
+			keywords: ['condition']
+		});
+	});
 });
