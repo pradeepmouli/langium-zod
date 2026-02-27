@@ -1,9 +1,10 @@
 # langium-zod
 
-## 0.3.2
+## 0.3.3
 
 ### Patch Changes
 
+- 0b8d795: Emit `z.union([z.literal(...)])` for Langium keyword enum rules (e.g. `CardinalityModifier returns string: 'any' | 'all'`) instead of falling back to `z.string()`.
 - 6c27687: handle literal types
 
 ## 0.3.1
