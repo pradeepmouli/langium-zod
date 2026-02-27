@@ -68,4 +68,38 @@ describe('type-mapper', () => {
 		});
 		expect(actual).toEqual({ kind: 'primitive', primitive: 'string' });
 	});
+
+	it('maps Langium StringType to zod literal expression', () => {
+		const actual = mapPropertyType({
+			name: 'operator',
+			type: {
+				string: 'contains'
+			}
+		});
+
+		expect(actual).toEqual({
+			kind: 'literal',
+			value: 'contains'
+		});
+	});
+
+	it('maps PropertyUnion of StringType members to union of literals', () => {
+		const actual = mapPropertyType({
+			name: 'operator',
+			type: {
+				types: [
+					{ string: '+' },
+					{ string: '-' }
+				]
+			}
+		});
+
+		expect(actual).toEqual({
+			kind: 'union',
+			members: [
+				{ kind: 'literal', value: '+' },
+				{ kind: 'literal', value: '-' }
+			]
+		});
+	});
 });

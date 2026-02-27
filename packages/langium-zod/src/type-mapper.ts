@@ -44,9 +44,9 @@ function mapLangiumPropertyType(type: unknown): ZodTypeExpression | undefined {
 		return { kind: 'primitive', primitive: 'string' };
 	}
 
-	// StringType: { string: string } — keyword match, always a string
+	// StringType: { string: string } — exact keyword/token literal
 	if ('string' in t && typeof t['string'] === 'string') {
-		return { kind: 'primitive', primitive: 'string' };
+		return { kind: 'literal', value: t['string'] };
 	}
 
 	// ValueType: { value: { name: string } } — reference to an interface or union type
