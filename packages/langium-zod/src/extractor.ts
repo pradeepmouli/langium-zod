@@ -160,17 +160,17 @@ function resolveKeywordEnum(unionType: UnionTypeLike): string[] | undefined {
  * (e.g. `type ValidID = ID` → 'string', `type Integer = INT` → 'number').
  * Returns undefined when the union is not a simple primitive alias.
  */
-function resolvePrimitiveAlias(unionType: UnionTypeLike): 'string' | 'number' | 'boolean' | undefined {
+function resolvePrimitiveAlias(unionType: UnionTypeLike): 'string' | 'number' | 'boolean' | 'bigint' | undefined {
 	const source = unionType.type as Record<string, unknown> | undefined;
 	if (!source) {
 		return undefined;
 	}
 
-	// PrimitiveType: { primitive: 'string' | 'number' | 'boolean' }
+	// PrimitiveType: { primitive: 'string' | 'number' | 'boolean' | 'bigint' }
 	if (typeof source['primitive'] === 'string') {
 		const p = source['primitive'];
-		if (p === 'string' || p === 'number' || p === 'boolean') {
-			return p;
+		if (p === 'string' || p === 'number' || p === 'boolean' || p === 'bigint') {
+			return p as 'string' | 'number' | 'boolean' | 'bigint';
 		}
 		return 'string'; // unknown primitives default to string
 	}

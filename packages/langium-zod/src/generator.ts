@@ -19,6 +19,10 @@ function expressionToBuilder(expression: ZodTypeExpression, lazyNames: ReadonlyS
 				return build.number();
 			}
 
+			if (expression.primitive === 'bigint') {
+				return build.raw('z.bigint()');
+			}
+
 			return build.boolean();
 		case 'literal':
 			return build.literal(expression.value);
@@ -202,11 +206,11 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 		if (descriptor.kind !== 'primitive-alias') {
 			continue;
 		}
-		const zodExpr = descriptor.primitive === 'number'
-			? 'z.number()'
-			: descriptor.primitive === 'boolean'
-				? 'z.boolean()'
-				: 'z.string()';
+		const zodExpr =
+			descriptor.primitive === 'number' ? 'z.number()' :
+			descriptor.primitive === 'boolean' ? 'z.boolean()' :
+			descriptor.primitive === 'bigint' ? 'z.bigint()' :
+			'z.string()';
 		lines.push(`export const ${descriptor.name}Schema = ${zodExpr};`);
 		lines.push('');
 	}

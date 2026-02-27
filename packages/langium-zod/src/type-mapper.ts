@@ -34,13 +34,19 @@ function mapLangiumPropertyType(type: unknown): ZodTypeExpression | undefined {
 
 	const t = type as Record<string, unknown>;
 
-	// PrimitiveType: { primitive: 'string' | 'number' | 'boolean' }
+	// PrimitiveType: { primitive: 'string' | 'number' | 'boolean' | 'bigint' }
 	if ('primitive' in t && typeof t['primitive'] === 'string') {
-		const p = t['primitive'] as ZodPrimitive;
+		const p = t['primitive'];
 		if (p === 'string' || p === 'number' || p === 'boolean') {
 			return { kind: 'primitive', primitive: p };
 		}
-		// Langium may surface other datatype-rule primitive names, default to string
+		if (p === 'bigint') {
+			// Langium bigint datatype rules (e.g. `Integer returns bigint`) are
+			// surfaced as references so the caller gets a named schema (IntegerSchema).
+			// If encountered inline, emit as a literal 'bigint' primitive.
+			return { kind: 'primitive', primitive: 'bigint' as ZodPrimitive };
+		}
+		// Other unknown primitive names: default to string
 		return { kind: 'primitive', primitive: 'string' };
 	}
 

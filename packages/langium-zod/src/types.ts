@@ -1,4 +1,4 @@
-export type ZodPrimitive = 'string' | 'number' | 'boolean';
+export type ZodPrimitive = 'string' | 'number' | 'boolean' | 'bigint';
 
 export type ZodTypeExpression =
 	| { kind: 'primitive'; primitive: ZodPrimitive }
@@ -28,7 +28,7 @@ export interface ZodUnionTypeDescriptor {
 	discriminator: string;
 }
 
-/** Emits `export const XSchema = z.string()` (or number/boolean) for Langium datatype rules. */
+/** Emits `export const XSchema = z.string()` (or number/boolean/bigint) for Langium datatype rules. */
 export interface ZodPrimitiveAliasDescriptor {
 	name: string;
 	kind: 'primitive-alias';
