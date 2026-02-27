@@ -410,6 +410,7 @@ describe('generation integration', () => {
 		const optionalRef = zRef(['known']).optional();
 		expect(optionalRef.safeParse(undefined).success).toBe(true);
 		expect(optionalRef.safeParse('').success).toBe(true);
+		expect(optionalRef.safeParse('   ').success).toBe(true);
 	});
 
 	it('does not emit cross-reference refinements for projection-stripped fields', () => {
