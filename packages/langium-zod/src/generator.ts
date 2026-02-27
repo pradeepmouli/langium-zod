@@ -245,8 +245,9 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 
 	// 4. Master union across all emitted object schemas using `$type`.
 	//    Useful as a single entry point for validating any AST node.
-	if (sortedObjects.length === 1) {
-		lines.push(`export const AstNodeSchema = ${sortedObjects[0].name}Schema;`);
+	const onlyObject = sortedObjects[0];
+	if (sortedObjects.length === 1 && onlyObject) {
+		lines.push(`export const AstNodeSchema = ${onlyObject.name}Schema;`);
 		lines.push('');
 	} else if (sortedObjects.length > 1) {
 		const allMembers = sortedObjects.map((descriptor) => build.raw(`${descriptor.name}Schema`));
