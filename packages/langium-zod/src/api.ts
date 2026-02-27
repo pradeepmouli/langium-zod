@@ -6,7 +6,7 @@ import { ZodGeneratorError } from './errors.js';
 import { extractTypeDescriptors } from './extractor.js';
 import { generateZodCode } from './generator.js';
 import { detectRecursiveTypes } from './recursion-detector.js';
-import type { AstTypesLike } from './types.js';
+import type { AstTypesLike, ZodRegexEnumDescriptor, ZodTypeDescriptor } from './types.js';
 
 function resolveAstTypes(astTypes: AstTypesLike): AstTypesLike {
 	return {
@@ -29,10 +29,27 @@ export function generateZodSchemas(config: ZodGeneratorConfig): string {
 
 	const astTypes = resolveAstTypes(rawAstTypes);
 
-	const descriptors = extractTypeDescriptors(astTypes, {
+	const rawDescriptors = extractTypeDescriptors(astTypes, {
 		include: config.include,
 		exclude: config.exclude
 	});
+
+	// Apply regexOverrides: upgrade primitive-alias schemas to regex-enum for types
+	// whose Langium grammar rule is too complex for automatic regex derivation.
+	const overrides = config.regexOverrides ?? {};
+	const descriptors: ZodTypeDescriptor[] = rawDescriptors.map((d) => {
+		const override = overrides[d.name];
+		if (override && (d.kind === 'primitive-alias' || d.kind === 'regex-enum')) {
+			return {
+				name: d.name,
+				kind: 'regex-enum',
+				regex: override,
+				keywords: d.kind === 'regex-enum' ? (d as ZodRegexEnumDescriptor).keywords : []
+			} satisfies ZodRegexEnumDescriptor;
+		}
+		return d;
+	});
+
 	const recursiveTypes = detectRecursiveTypes(descriptors);
 	const source = generateZodCode(descriptors, recursiveTypes);
 

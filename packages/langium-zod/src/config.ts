@@ -11,6 +11,23 @@ export interface ZodGeneratorConfig extends FilterConfig {
 	services?: LangiumCoreServices;
 	outputPath?: string;
 	astTypes?: AstTypesLike;
+	/**
+	 * Override the generated schema for specific type names.
+	 *
+	 * Use this for parser-based datatype rules (e.g. `BigDecimal returns string: ... INT ...`)
+	 * whose structure cannot be expressed as a regex automatically by Langium.
+	 *
+	 * The value is a raw regex pattern string (without surrounding `/` slashes).
+	 * The named type will emit `z.string().regex(new RegExp("..."))` instead of `z.string()`.
+	 *
+	 * @example
+	 * ```ts
+	 * regexOverrides: {
+	 *   BigDecimal: String.raw`^[+-]?(\.[0-9]+|[0-9]+\.?[0-9]*)([eE][+-]?[0-9]+)?$`
+	 * }
+	 * ```
+	 */
+	regexOverrides?: Record<string, string>;
 }
 
 export const DEFAULT_OUTPUT_PATH = 'src/generated/zod-schemas.ts';
