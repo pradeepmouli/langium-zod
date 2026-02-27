@@ -1,5 +1,11 @@
 # langium-zod
 
+## 0.3.1
+
+### Patch Changes
+
+- 882efc3: Map Langium `StringType` values to `z.literal(...)` and map `PropertyUnion` of string tokens to unions of literals for more precise AST node validation.
+
 ## 0.3.0
 
 ### Minor Changes
