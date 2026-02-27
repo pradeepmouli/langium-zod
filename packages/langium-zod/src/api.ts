@@ -94,6 +94,7 @@ export function generateZodSchemas(config: ZodGeneratorConfig): string {
 		);
 		const conformance = generateConformanceSource({
 			schemaOutputPath: config.outputPath,
+			conformanceOutputPath,
 			astTypesPath: config.conformance.astTypesPath,
 			schemaTypeNames,
 			stripFields: resolveEffectiveStripFields({

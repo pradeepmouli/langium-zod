@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 
 export interface ConformanceGenerationOptions {
 	schemaOutputPath: string;
+	conformanceOutputPath?: string;
 	astTypesPath: string;
 	schemaTypeNames: string[];
 	stripFields: string[];
@@ -63,7 +64,7 @@ export function collectAstExportNames(astTypesPath: string): Set<string> {
 export function generateConformanceSource(
 	options: ConformanceGenerationOptions,
 ): { source: string; missingAstTypes: string[] } {
-	const conformanceDir = dirname(options.schemaOutputPath);
+	const conformanceDir = dirname(options.conformanceOutputPath ?? options.schemaOutputPath);
 	const astImport = ensureImportPath(
 		toPosixPath(replaceWithJsExtension(relative(conformanceDir, options.astTypesPath))),
 	);
@@ -89,7 +90,7 @@ export function generateConformanceSource(
 	const schemaImports = matchedSchemaNames.map((name) => `${name}Schema`).join(', ');
 
 	const lines: string[] = [
-		'// @ts-nocheck — generated conformance file',
+		'// generated conformance file',
 		"import type { z } from 'zod';",
 		`import type * as AST from ${JSON.stringify(astImport)};`
 	];

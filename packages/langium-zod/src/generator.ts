@@ -108,7 +108,7 @@ function renderPropertyExpression(property: ZodPropertyDescriptor, lazyNames: Re
 function renderRefinedCrossRefExpression(expression: ZodTypeExpression): string {
 	switch (expression.kind) {
 		case 'crossReference':
-			return `zRef(() => refs.${expression.targetType} ?? [])`;
+			return `ReferenceSchema.extend({ $refText: zRef(() => refs.${expression.targetType} ?? []) })`;
 		case 'array': {
 			const inner = renderRefinedCrossRefExpression(expression.element);
 			return `z.array(${inner})`;
@@ -393,11 +393,9 @@ export function generateZodCode(
 			lines.push('');
 
 			lines.push(`export function create${descriptor.name}Schema(refs: ${descriptor.name}SchemaRefs = {}) {`);
-			lines.push('	return z.looseObject({');
-			for (const property of descriptor.properties) {
-				const expression = containsCrossReference(property.zodType)
-					? renderCrossRefPropertyExpression(property)
-					: renderPropertyExpression(property, unionNames);
+			lines.push(`	return ${descriptor.name}Schema.extend({`);
+			for (const property of crossRefProperties) {
+				const expression = renderCrossRefPropertyExpression(property);
 				lines.push(`		"${property.name}": ${expression},`);
 			}
 			lines.push('	});');
