@@ -28,7 +28,14 @@ export interface ZodUnionTypeDescriptor {
 	discriminator: string;
 }
 
-export type ZodTypeDescriptor = ZodObjectTypeDescriptor | ZodUnionTypeDescriptor;
+/** Emits `export const XSchema = z.string()` (or number/boolean) for Langium datatype rules. */
+export interface ZodPrimitiveAliasDescriptor {
+	name: string;
+	kind: 'primitive-alias';
+	primitive: ZodPrimitive;
+}
+
+export type ZodTypeDescriptor = ZodObjectTypeDescriptor | ZodUnionTypeDescriptor | ZodPrimitiveAliasDescriptor;
 
 export interface InterfaceTypeLike {
 	name: string;

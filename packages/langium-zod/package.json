@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "langium": "^4.2.1",
-    "x-to-zod": "^0.7.0",
+    "x-to-zod": "^0.8.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

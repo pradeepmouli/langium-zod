@@ -1,7 +1,13 @@
 import { build, type BaseBuilder } from 'x-to-zod/builders';
 import type { ZodObjectTypeDescriptor, ZodPropertyDescriptor, ZodTypeDescriptor, ZodTypeExpression } from './types.js';
 
-function expressionToBuilder(expression: ZodTypeExpression): BaseBuilder {
+/**
+ * Converts a ZodTypeExpression into an x-to-zod builder.
+ *
+ * @param lazyNames - Type names that must be wrapped in `z.lazy()` because they
+ *   are declared later in the file (e.g. union schemas emitted after object schemas).
+ */
+function expressionToBuilder(expression: ZodTypeExpression, lazyNames: ReadonlySet<string> = new Set()): BaseBuilder {
 	switch (expression.kind) {
 		case 'primitive':
 			if (expression.primitive === 'string') {
@@ -16,15 +22,22 @@ function expressionToBuilder(expression: ZodTypeExpression): BaseBuilder {
 		case 'literal':
 			return build.literal(expression.value);
 		case 'reference':
+			if (lazyNames.has(expression.typeName)) {
+				// Union schemas are emitted after all object schemas, so references
+				// from object properties to union types must be lazy to avoid
+				// "used before declaration" TypeScript errors.
+				return build.lazy(build.raw(`${expression.typeName}Schema`));
+			}
+
 			return build.raw(`${expression.typeName}Schema`);
 		case 'array':
-			return build.array(expressionToBuilder(expression.element));
+			return build.array(expressionToBuilder(expression.element, lazyNames));
 		case 'crossReference':
 			return build.raw('ReferenceSchema');
 		case 'union':
-			return build.union(expression.members.map((member) => expressionToBuilder(member)));
+			return build.union(expression.members.map((member) => expressionToBuilder(member, lazyNames)));
 		case 'lazy':
-			return build.lazy(expressionToBuilder(expression.inner));
+			return build.lazy(expressionToBuilder(expression.inner, lazyNames));
 	}
 }
 
@@ -67,8 +80,8 @@ function propertyReferencesAnyCycleMember(zodType: ZodTypeExpression, recursiveT
 	return false;
 }
 
-function propertyLine(property: ZodPropertyDescriptor, ownerTypeName: string, recursiveTypes: Set<string>): string {
-	const builder = expressionToBuilder(property.zodType);
+function propertyLine(property: ZodPropertyDescriptor, ownerTypeName: string, recursiveTypes: Set<string>, lazyNames: ReadonlySet<string> = new Set()): string {
+	const builder = expressionToBuilder(property.zodType, lazyNames);
 	if (property.optional) {
 		builder.optional();
 	}
@@ -147,9 +160,14 @@ function collectReferenceTypeNames(expression: ZodTypeExpression): string[] {
 
 export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes: Set<string>): string {
 	const lines: string[] = [
+		'// @ts-nocheck — generated file; edit generate-zod.ts to regenerate',
 		"import { z } from 'zod';",
 		''
 	];
+
+	// Names of union descriptors — object properties that reference these must use
+	// z.lazy() because union schemas are emitted after all object schemas.
+	const unionNames = new Set(descriptors.filter((d) => d.kind === 'union').map((d) => d.name));
 
 	const hasCrossReferences = descriptors.some((descriptor) => descriptor.kind === 'object' && descriptor.properties.some((property) => containsCrossReference(property.zodType)));
 
@@ -165,6 +183,23 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 		lines.push('');
 	}
 
+	// 1. Primitive alias schemas first — they have no dependencies and are
+	//    referenced by object schemas as leaf nodes.
+	for (const descriptor of descriptors) {
+		if (descriptor.kind !== 'primitive-alias') {
+			continue;
+		}
+		const zodExpr = descriptor.primitive === 'number'
+			? 'z.number()'
+			: descriptor.primitive === 'boolean'
+				? 'z.boolean()'
+				: 'z.string()';
+		lines.push(`export const ${descriptor.name}Schema = ${zodExpr};`);
+		lines.push('');
+	}
+
+	// 2. Object schemas in topological dependency order.
+	//    References to union names use z.lazy() since unions are emitted last.
 	const objectDescriptors = descriptors.filter((d): d is ZodObjectTypeDescriptor => d.kind === 'object');
 	const sortedObjects = topoSortObjectDescriptors(objectDescriptors, recursiveTypes);
 
@@ -174,7 +209,7 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 		if (hasRecursiveGetter) {
 			lines.push(`export const ${descriptor.name}Schema = z.looseObject({`);
 			for (const property of descriptor.properties) {
-				lines.push(`${propertyLine(property, descriptor.name, recursiveTypes)},`);
+				lines.push(`${propertyLine(property, descriptor.name, recursiveTypes, unionNames)},`);
 			}
 			lines.push('});');
 			lines.push('');
@@ -183,7 +218,7 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 
 		const objectProperties: Record<string, BaseBuilder> = {};
 		for (const property of descriptor.properties) {
-			const builder = expressionToBuilder(property.zodType);
+			const builder = expressionToBuilder(property.zodType, unionNames);
 			if (property.optional) {
 				builder.optional();
 			}
@@ -195,6 +230,8 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 		lines.push('');
 	}
 
+	// 3. Discriminated union schemas last — all member object schemas are
+	//    already declared above.
 	for (const descriptor of descriptors) {
 		if (descriptor.kind !== 'union') {
 			continue;

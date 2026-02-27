@@ -1,4 +1,4 @@
-import type { PropertyLike, ZodTypeExpression } from './types.js';
+import type { PropertyLike, ZodPrimitive, ZodTypeExpression } from './types.js';
 
 export function mapTerminalToZod(terminalName: string): ZodTypeExpression | undefined {
 	if (terminalName === 'ID' || terminalName === 'STRING' || terminalName === 'string') {
@@ -11,6 +11,85 @@ export function mapTerminalToZod(terminalName: string): ZodTypeExpression | unde
 
 	if (terminalName === 'boolean') {
 		return { kind: 'primitive', primitive: 'boolean' };
+	}
+
+	return undefined;
+}
+
+/**
+ * Maps Langium's actual PropertyType discriminated union variants to ZodTypeExpression.
+ *
+ * Langium 4.x PropertyType variants:
+ *   PrimitiveType  { primitive: 'string' | 'number' | 'boolean' }
+ *   StringType     { string: string }          — keyword literal match
+ *   ValueType      { value: { name: string } } — reference to an interface/union
+ *   ReferenceType  { referenceType: PropertyType; isMulti?: boolean } — cross-reference
+ *   ArrayType      { elementType: PropertyType }
+ *   PropertyUnion  { types: PropertyType[] }
+ */
+function mapLangiumPropertyType(type: unknown): ZodTypeExpression | undefined {
+	if (!type || typeof type !== 'object') {
+		return undefined;
+	}
+
+	const t = type as Record<string, unknown>;
+
+	// PrimitiveType: { primitive: 'string' | 'number' | 'boolean' }
+	if ('primitive' in t && typeof t['primitive'] === 'string') {
+		const p = t['primitive'] as ZodPrimitive;
+		if (p === 'string' || p === 'number' || p === 'boolean') {
+			return { kind: 'primitive', primitive: p };
+		}
+		// Langium may surface other datatype-rule primitive names, default to string
+		return { kind: 'primitive', primitive: 'string' };
+	}
+
+	// StringType: { string: string } — keyword match, always a string
+	if ('string' in t && typeof t['string'] === 'string') {
+		return { kind: 'primitive', primitive: 'string' };
+	}
+
+	// ValueType: { value: { name: string } } — reference to an interface or union type
+	if ('value' in t && t['value'] && typeof t['value'] === 'object') {
+		const value = t['value'] as Record<string, unknown>;
+		if (typeof value['name'] === 'string') {
+			return { kind: 'reference', typeName: value['name'] };
+		}
+	}
+
+	// ReferenceType: { referenceType: PropertyType } — cross-reference [Type]
+	// The inner referenceType is typically a ValueType { value: { name: string } }
+	if ('referenceType' in t && t['referenceType']) {
+		const innerRef = t['referenceType'] as Record<string, unknown>;
+		let targetType = 'unknown';
+		if (innerRef['value'] && typeof innerRef['value'] === 'object') {
+			const val = innerRef['value'] as Record<string, unknown>;
+			if (typeof val['name'] === 'string') {
+				targetType = val['name'];
+			}
+		}
+		return { kind: 'crossReference', targetType };
+	}
+
+	// ArrayType: { elementType: PropertyType }
+	if ('elementType' in t && t['elementType']) {
+		const inner = mapLangiumPropertyType(t['elementType']);
+		if (inner) {
+			return { kind: 'array', element: inner };
+		}
+	}
+
+	// PropertyUnion: { types: PropertyType[] } — union / optional branches
+	if ('types' in t && Array.isArray(t['types'])) {
+		const members = (t['types'] as unknown[])
+			.map((item) => mapLangiumPropertyType(item))
+			.filter((m): m is ZodTypeExpression => m !== undefined);
+		if (members.length === 1) {
+			return members[0];
+		}
+		if (members.length > 1) {
+			return { kind: 'union', members };
+		}
 	}
 
 	return undefined;
@@ -76,12 +155,34 @@ export function mapPropertyType(property: PropertyLike): ZodTypeExpression {
 		return { kind: 'primitive', primitive: 'boolean' };
 	}
 
+	// Explicit cross-reference marker takes precedence over type inspection
+	if (property.isCrossRef) {
+		const base: ZodTypeExpression = { kind: 'crossReference', targetType: 'unknown' };
+		if (assignmentOperator === '+=') {
+			return { kind: 'array', element: base };
+		}
+		return base;
+	}
+
+	// Try Langium's native PropertyType discriminated union first.
+	// This handles: PrimitiveType { primitive }, StringType { string }, ValueType { value },
+	// ReferenceType { referenceType }, ArrayType { elementType }, PropertyUnion { types }.
+	const langiumResult = mapLangiumPropertyType(property.type);
+	if (langiumResult) {
+		// Don't double-wrap — mapLangiumPropertyType handles ArrayType internally
+		if (assignmentOperator === '+=' && langiumResult.kind !== 'array') {
+			return { kind: 'array', element: langiumResult };
+		}
+		return langiumResult;
+	}
+
+	// Legacy fallback: simple string type names and duck-typed wrapper shapes
 	const normalized = normalizePropertyType(property.type);
 	const sourceTypeName = property.referenceType ?? normalized.typeName ?? '';
 	const primitive = mapTerminalToZod(sourceTypeName);
 
 	let base: ZodTypeExpression;
-	if (property.isCrossRef || normalized.isCrossRef) {
+	if (normalized.isCrossRef) {
 		base = {
 			kind: 'crossReference',
 			targetType: sourceTypeName || 'unknown'

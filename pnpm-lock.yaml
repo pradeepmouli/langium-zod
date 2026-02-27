@@ -45,8 +45,8 @@ importers:
         specifier: ^4.2.1
         version: 4.2.1
       x-to-zod:
-        specifier: ^0.7.0
-        version: 0.7.0
+        specifier: ^0.8.0
+        version: 0.8.0
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -1501,8 +1501,8 @@ packages:
     resolution: {integrity: sha512-42AtmgqjV+X1VpdOfyTGOYRi0/zsoLqtXQckTmqTeybT+BDIbM/Guxo7x3pE2vtpr1ok6xRqM9OpBe+Jyoqyww==}
     engines: {node: '>=18'}
 
-  x-to-zod@0.7.0:
-    resolution: {integrity: sha512-eupHPhkilUvmVbrlIWO9+YtJEXiyNQfOJ3Q2T2VUzzCp0wCAKNqQSY9cUzu/7l48LzEorwhh4CCtq/kNYqJIDg==}
+  x-to-zod@0.8.0:
+    resolution: {integrity: sha512-BbD5YehkU6Lr/rtZ+c9ByJYpld9Wme0xfjMt7soVozNA98Bdh/4W7jxs3W69k+iRekdjE3RJhlcA17TkdBssug==}
     hasBin: true
 
   yaml@2.8.2:
@@ -2811,7 +2811,7 @@ snapshots:
       string-width: 7.2.0
       strip-ansi: 7.1.2
 
-  x-to-zod@0.7.0:
+  x-to-zod@0.8.0:
     dependencies:
       json-schema-typed: 8.0.2
 
