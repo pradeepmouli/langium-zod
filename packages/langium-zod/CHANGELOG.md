@@ -1,5 +1,11 @@
 # langium-zod
 
+## 0.3.4
+
+### Patch Changes
+
+- Map Langium `bigint` primitive rules (e.g. `Integer returns bigint`) to `z.bigint()` instead of falling back to `z.string()`.
+
 ## 0.3.3
 
 ### Patch Changes
