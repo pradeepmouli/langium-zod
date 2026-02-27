@@ -35,7 +35,14 @@ export interface ZodPrimitiveAliasDescriptor {
 	primitive: ZodPrimitive;
 }
 
-export type ZodTypeDescriptor = ZodObjectTypeDescriptor | ZodUnionTypeDescriptor | ZodPrimitiveAliasDescriptor;
+/** Emits `export const XSchema = z.union([z.literal("a"), z.literal("b")])` for Langium keyword enum rules. */
+export interface ZodKeywordEnumDescriptor {
+	name: string;
+	kind: 'keyword-enum';
+	keywords: string[];
+}
+
+export type ZodTypeDescriptor = ZodObjectTypeDescriptor | ZodUnionTypeDescriptor | ZodPrimitiveAliasDescriptor | ZodKeywordEnumDescriptor;
 
 export interface InterfaceTypeLike {
 	name: string;

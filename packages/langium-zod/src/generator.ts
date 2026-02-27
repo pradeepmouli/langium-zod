@@ -1,5 +1,6 @@
 import { build, type BaseBuilder } from 'x-to-zod/builders';
 import type { ZodObjectTypeDescriptor, ZodPropertyDescriptor, ZodTypeDescriptor, ZodTypeExpression } from './types.js';
+import type { ZodKeywordEnumDescriptor } from './types.js';
 
 /**
  * Converts a ZodTypeExpression into an x-to-zod builder.
@@ -183,8 +184,20 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 		lines.push('');
 	}
 
-	// 1. Primitive alias schemas first — they have no dependencies and are
-	//    referenced by object schemas as leaf nodes.
+	// 1. Keyword-enum and primitive alias schemas first — they have no dependencies
+	//    and are referenced by object schemas as leaf nodes.
+	for (const descriptor of descriptors) {
+		if (descriptor.kind === 'keyword-enum') {
+			const { keywords } = descriptor as ZodKeywordEnumDescriptor;
+			const members = keywords.map((kw) => `z.literal(${JSON.stringify(kw)})`).join(', ');
+			const zodExpr = keywords.length === 1
+				? `z.literal(${JSON.stringify(keywords[0])})`
+				: `z.union([${members}])`;
+			lines.push(`export const ${descriptor.name}Schema = ${zodExpr};`);
+			lines.push('');
+		}
+	}
+
 	for (const descriptor of descriptors) {
 		if (descriptor.kind !== 'primitive-alias') {
 			continue;
@@ -258,4 +271,3 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 
 	return `${lines.join('\n').trim()}\n`;
 }
-

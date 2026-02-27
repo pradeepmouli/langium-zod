@@ -7,6 +7,7 @@ import type {
 	ZodTypeDescriptor,
 	ZodTypeExpression
 } from './types.js';
+import type { ZodKeywordEnumDescriptor } from './types.js';
 import type { FilterConfig } from './config.js';
 import { ZodGeneratorError } from './errors.js';
 import { mapPropertyType } from './type-mapper.js';
@@ -115,6 +116,43 @@ function extractUnionMembers(unionType: UnionTypeLike): string[] {
 	}
 
 	return members;
+}
+
+/**
+ * Resolve keyword literals for a Langium keyword enum rule
+ * (e.g. `CardinalityModifier returns string: 'any' | 'all'`).
+ * Returns the keyword strings when all union members are string literals, undefined otherwise.
+ */
+function resolveKeywordEnum(unionType: UnionTypeLike): string[] | undefined {
+	const source = unionType.type as Record<string, unknown> | undefined;
+	if (!source) {
+		return undefined;
+	}
+
+	// PropertyUnion where every member is a StringType: { types: [ { string: 'any' }, ... ] }
+	if (Array.isArray(source['types'])) {
+		const keywords: string[] = [];
+		for (const item of source['types'] as unknown[]) {
+			if (!item || typeof item !== 'object') {
+				return undefined;
+			}
+			const t = item as Record<string, unknown>;
+			if (typeof t['string'] === 'string') {
+				keywords.push(t['string']);
+			} else {
+				// Mixed with non-string-literal members — not a keyword enum
+				return undefined;
+			}
+		}
+		return keywords.length > 0 ? keywords : undefined;
+	}
+
+	// Single StringType at top level: { string: 'any' }
+	if (typeof source['string'] === 'string') {
+		return [source['string']];
+	}
+
+	return undefined;
 }
 
 /**
@@ -247,16 +285,26 @@ export function extractTypeDescriptors(astTypes: AstTypesLike, config?: FilterCo
 				discriminator: '$type'
 			});
 		} else {
-			// No interface members — check if this is a primitive alias (e.g. ValidID = string)
-			const primitive = resolvePrimitiveAlias(entry);
-			if (primitive) {
+			// No interface members — check if this is a keyword enum (e.g. 'any' | 'all')
+			const keywords = resolveKeywordEnum(entry);
+			if (keywords) {
 				unionDescriptors.push({
 					name: entry.name,
-					kind: 'primitive-alias',
-					primitive
-				});
+					kind: 'keyword-enum',
+					keywords
+				} satisfies ZodKeywordEnumDescriptor);
+			} else {
+				// Check if this is a primitive alias (e.g. ValidID = string)
+				const primitive = resolvePrimitiveAlias(entry);
+				if (primitive) {
+					unionDescriptors.push({
+						name: entry.name,
+						kind: 'primitive-alias',
+						primitive
+					});
+				}
+				// Otherwise silently skip (e.g. unions whose members are other unions, handled below)
 			}
-			// Otherwise silently skip (e.g. unions whose members are other unions, handled below)
 		}
 	}
 
@@ -293,14 +341,23 @@ export function extractTypeDescriptors(astTypes: AstTypesLike, config?: FilterCo
 		if (!shouldInclude(refName, config)) {
 			continue;
 		}
-		// Check if the union map has a primitive alias for this name
+		// Check if the union map has a keyword enum or primitive alias for this name
 		const unionEntry = unionMap.get(refName);
-		const primitive = unionEntry ? resolvePrimitiveAlias(unionEntry) : undefined;
-		stubDescriptors.push({
-			name: refName,
-			kind: 'primitive-alias',
-			primitive: primitive ?? 'string' // default to string for unknown datatype rules
-		});
+		const keywords = unionEntry ? resolveKeywordEnum(unionEntry) : undefined;
+		if (keywords) {
+			stubDescriptors.push({
+				name: refName,
+				kind: 'keyword-enum',
+				keywords
+			} satisfies ZodKeywordEnumDescriptor);
+		} else {
+			const primitive = unionEntry ? resolvePrimitiveAlias(unionEntry) : undefined;
+			stubDescriptors.push({
+				name: refName,
+				kind: 'primitive-alias',
+				primitive: primitive ?? 'string' // default to string for unknown datatype rules
+			});
+		}
 	}
 
 	return [...objectDescriptors, ...unionDescriptors, ...stubDescriptors];
