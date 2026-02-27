@@ -137,6 +137,8 @@ jobs:
           cat .changeset/${TIMESTAMP}.md
 
       - name: Create Pull Request
+        id: create_pr
+        continue-on-error: true
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -167,3 +169,10 @@ jobs:
           labels: |
             changelog
             automated
+
+      - name: PR fallback instructions
+        if: steps.create_pr.outcome == 'failure'
+        run: |
+          BRANCH="changeset/auto-${{ github.run_number }}"
+          echo "Changeset branch was pushed but PR creation is blocked by repository settings."
+          echo "Create PR manually: https://github.com/${{ github.repository }}/pull/new/${BRANCH}"
