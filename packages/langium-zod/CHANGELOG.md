@@ -1,5 +1,16 @@
 # langium-zod
 
+## Unreleased
+
+### Minor Changes
+
+- Add Rune DSL generation enhancements:
+  - preserve `+= Rule+` as `z.array(...).min(1)`
+  - add CLI `--include`/`--exclude` filtering with overlap resolution (`exclude` wins) and unknown-type warnings
+  - add projection support via `--projection` plus global `--strip-internals`
+  - add optional conformance artifact generation (`--conformance`, `--ast-types`, `--conformance-out`)
+  - add optional runtime cross-reference validation factories (`--cross-ref-validation`) and export reusable `zRef`
+
 ## 0.4.0
 
 ### Minor Changes

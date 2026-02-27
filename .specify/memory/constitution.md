@@ -1,14 +1,14 @@
 <!-- SYNC IMPACT REPORT
-Version change: [UNSET] -> 1.0.0
-Modified principles: N/A - initial ratification (all five principles are new)
-Added sections: Core Principles (I-V), Technology Stack, Development Workflow, Governance
+Version change: 1.0.0 -> 2.0.0
+Modified principles: V. Package Modularity (enforcement scope updated)
+Added sections: N/A
 Removed sections: N/A
 Templates requiring updates:
-  OK .specify/templates/plan-template.md -- Constitution Check gate is generic; compatible as-is
-  OK .specify/templates/spec-template.md -- User-story/acceptance-scenario structure compatible
-  OK .specify/templates/tasks-template.md -- Phase/story organization compatible; task types align
-  OK .github/prompts/* -- No agent-specific capitalisation issues; constitution path unchanged
-Follow-up TODOs: None -- all placeholders resolved
+  OK .specify/templates/plan-template.md -- Constitution Check gate remains compatible
+  OK .specify/templates/spec-template.md -- No structural impact
+  OK .specify/templates/tasks-template.md -- No structural impact
+  OK .github/prompts/* -- Constitution path unchanged
+Follow-up TODOs: Ensure active plans/tasks align with updated Principle V interpretation
 -->
 
 # langium-zod Constitution
@@ -68,14 +68,17 @@ validates correctly to avoid silent schema mismatches in production language too
 ### V. Package Modularity
 
 Each distinct concern - grammar traversal, Zod schema generation, and Langium
-CLI/generator plugin integration - MUST reside in a separate pnpm workspace package.
-Packages MUST NOT introduce circular dependencies. Public APIs MUST be declared explicitly
-via `package.json` `exports` fields. Internal utilities MUST NOT be re-exported from a
-package's public entry point.
+CLI/generator plugin integration - MUST have explicit modular boundaries.
+In a monorepo, these boundaries MAY be implemented either as separate pnpm workspace
+packages or as clearly separated modules within a single package.
+Architectures MUST NOT introduce circular dependencies across concern boundaries.
+Public APIs MUST be declared explicitly via `package.json` `exports` fields.
+Internal utilities MUST NOT be re-exported from a package's public entry point.
 
-**Rationale**: The monorepo structure allows consumers to install only what they need.
-Monolithic coupling forces unnecessary transitive dependencies on consumers and makes
-packages untestable in isolation, undermining the grammar-driven design contract.
+**Rationale**: The core requirement is clean separation of concerns and stable public
+contracts. Some repositories require separate installable packages, while others can
+preserve equivalent modularity within one package. Enforcing architectural boundaries
+without over-prescribing packaging minimizes churn while protecting maintainability.
 
 ## Technology Stack
 
@@ -129,4 +132,4 @@ why, (b) an updated `CONSTITUTION_VERSION` in this file, (c) an updated
 Use `AGENTS.md` for runtime multi-agent workflow guidance and `docs/DEVELOPMENT.md` for
 day-to-day development process details.
 
-**Version**: 1.0.0 | **Ratified**: 2026-02-19 | **Last Amended**: 2026-02-19
+**Version**: 2.0.0 | **Ratified**: 2026-02-19 | **Last Amended**: 2026-02-27

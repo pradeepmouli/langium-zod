@@ -31,6 +31,7 @@ This repository is designed for multi-agent collaboration (Copilot, Claude, Gemi
 - Coordinate with other agents by updating docs (README, TEMPLATE_INITIALIZATION.md) when workflows change.
 - When modifying scripts, explain any new prompts or defaults in TEMPLATE_INITIALIZATION.md.
 - If adding hooks, prefer simple-git-hooks and lint-staged already in package.json.
+- For this workspace, prefer running tests through the terminal (`pnpm test` from repo root) because IDE/workspace test invocations can intermittently hang.
 
 ## Deliverables Expectation
 - Summaries should include what changed, where, and how to verify.

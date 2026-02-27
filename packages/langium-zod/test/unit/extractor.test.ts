@@ -104,4 +104,30 @@ describe('extractor', () => {
 
 		expect(descriptors.some((entry) => entry.name === 'MissingType')).toBe(false);
 	});
+
+	it('sets minItems=1 only for += properties with + cardinality', () => {
+		const descriptors = extractTypeDescriptors({
+			interfaces: [
+				{
+					name: 'Container',
+					properties: [
+						{ name: 'requiredItems', type: 'Item', assignment: '+=', cardinality: '+', optional: false },
+						{ name: 'optionalItems', type: 'Item', assignment: '+=', cardinality: '*', optional: false },
+						{ name: 'plainItems', type: 'Item', assignment: '+=', optional: false }
+					]
+				},
+				{ name: 'Item', properties: [{ name: 'name', type: 'ID', optional: false }] }
+			],
+			unions: []
+		});
+
+		const container = descriptors.find((entry) => entry.name === 'Container' && entry.kind === 'object');
+		if (!container || container.kind !== 'object') {
+			throw new Error('Container descriptor not found');
+		}
+
+		expect(container.properties.find((property) => property.name === 'requiredItems')?.minItems).toBe(1);
+		expect(container.properties.find((property) => property.name === 'optionalItems')?.minItems).toBeUndefined();
+		expect(container.properties.find((property) => property.name === 'plainItems')?.minItems).toBeUndefined();
+	});
 });

@@ -1,6 +1,13 @@
 import { build, type BaseBuilder } from 'x-to-zod/builders';
 import type { ZodObjectTypeDescriptor, ZodPropertyDescriptor, ZodTypeDescriptor, ZodTypeExpression } from './types.js';
 import type { ZodKeywordEnumDescriptor, ZodRegexEnumDescriptor } from './types.js';
+import { applyProjectionToDescriptors, type ProjectionConfig } from './projection.js';
+
+export interface GenerationOptions {
+	projection?: ProjectionConfig;
+	stripInternals?: boolean;
+	crossRefValidation?: boolean;
+}
 
 /**
  * Converts a ZodTypeExpression into an x-to-zod builder.
@@ -85,20 +92,67 @@ function propertyReferencesAnyCycleMember(zodType: ZodTypeExpression, recursiveT
 	return false;
 }
 
-function propertyLine(property: ZodPropertyDescriptor, ownerTypeName: string, recursiveTypes: Set<string>, lazyNames: ReadonlySet<string> = new Set()): string {
-	const builder = expressionToBuilder(property.zodType, lazyNames);
+function renderPropertyExpression(property: ZodPropertyDescriptor, lazyNames: ReadonlySet<string>): string {
+	const baseExpression = expressionToBuilder(property.zodType, lazyNames).text();
+	const withArrayMin = property.zodType.kind === 'array' && typeof property.minItems === 'number'
+		? `${baseExpression}.min(${property.minItems})`
+		: baseExpression;
+
 	if (property.optional) {
-		builder.optional();
+		return `${withArrayMin}.optional()`;
 	}
 
-	const withOptional = builder.text();
+	return withArrayMin;
+}
+
+function renderRefinedCrossRefExpression(expression: ZodTypeExpression): string {
+	switch (expression.kind) {
+		case 'crossReference':
+			return `zRef(() => refs.${expression.targetType} ?? [])`;
+		case 'array': {
+			const inner = renderRefinedCrossRefExpression(expression.element);
+			return `z.array(${inner})`;
+		}
+		case 'union': {
+			const members = expression.members.map((member) => renderRefinedCrossRefExpression(member));
+			return `z.union([${members.join(', ')}])`;
+		}
+		case 'primitive':
+			if (expression.primitive === 'string') return 'z.string()';
+			if (expression.primitive === 'number') return 'z.number()';
+			if (expression.primitive === 'bigint') return 'z.bigint()';
+			return 'z.boolean()';
+		case 'literal':
+			return `z.literal(${JSON.stringify(expression.value)})`;
+		case 'reference':
+			return `${expression.typeName}Schema`;
+		case 'lazy':
+			return `z.lazy(() => ${renderRefinedCrossRefExpression(expression.inner)})`;
+	}
+}
+
+function renderCrossRefPropertyExpression(property: ZodPropertyDescriptor): string {
+	const baseExpression = renderRefinedCrossRefExpression(property.zodType);
+	const withArrayMin = property.zodType.kind === 'array' && typeof property.minItems === 'number'
+		? `${baseExpression}.min(${property.minItems})`
+		: baseExpression;
+
+	if (property.optional) {
+		return `${withArrayMin}.optional()`;
+	}
+
+	return withArrayMin;
+}
+
+function propertyLine(property: ZodPropertyDescriptor, ownerTypeName: string, recursiveTypes: Set<string>, lazyNames: ReadonlySet<string> = new Set()): string {
+	const expression = renderPropertyExpression(property, lazyNames);
 	const shouldUseGetter = recursiveTypes.has(ownerTypeName) && propertyReferencesAnyCycleMember(property.zodType, recursiveTypes);
 
 	if (shouldUseGetter) {
-		return `\tget ${property.name}() { return ${withOptional}; }`;
+		return `\tget ${property.name}() { return ${expression}; }`;
 	}
 
-	return `\t${property.name}: ${withOptional}`;
+	return `\t${property.name}: ${expression}`;
 }
 
 /**
@@ -163,18 +217,32 @@ function collectReferenceTypeNames(expression: ZodTypeExpression): string[] {
 	}
 }
 
-export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes: Set<string>): string {
+export function generateZodCode(
+	descriptors: ZodTypeDescriptor[],
+	recursiveTypes: Set<string>,
+	options: GenerationOptions = {},
+): string {
+	const surfaceDescriptors = applyProjectionToDescriptors(descriptors, {
+		projection: options.projection,
+		stripInternals: options.stripInternals
+	});
+
 	const lines: string[] = [
 		'// @ts-nocheck — generated file; edit generate-zod.ts to regenerate',
-		"import { z } from 'zod';",
-		''
+		"import { z } from 'zod';"
 	];
+
+	if (options.crossRefValidation) {
+		lines.push("import { zRef } from 'langium-zod';");
+	}
+
+	lines.push('');
 
 	// Names of union descriptors — object properties that reference these must use
 	// z.lazy() because union schemas are emitted after all object schemas.
-	const unionNames = new Set(descriptors.filter((d) => d.kind === 'union').map((d) => d.name));
+	const unionNames = new Set(surfaceDescriptors.filter((d) => d.kind === 'union').map((d) => d.name));
 
-	const hasCrossReferences = descriptors.some((descriptor) => descriptor.kind === 'object' && descriptor.properties.some((property) => containsCrossReference(property.zodType)));
+	const hasCrossReferences = surfaceDescriptors.some((descriptor) => descriptor.kind === 'object' && descriptor.properties.some((property) => containsCrossReference(property.zodType)));
 
 	if (hasCrossReferences) {
 		const referenceBuilder = build
@@ -186,11 +254,12 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 
 		lines.push(`export const ReferenceSchema = ${referenceBuilder.text()};`);
 		lines.push('');
+
 	}
 
 	// 1. Keyword-enum, regex-enum, and primitive alias schemas first — they have no dependencies
 	//    and are referenced by object schemas as leaf nodes.
-	for (const descriptor of descriptors) {
+	for (const descriptor of surfaceDescriptors) {
 		if (descriptor.kind === 'keyword-enum') {
 			const { keywords } = descriptor as ZodKeywordEnumDescriptor;
 			const members = keywords.map((kw) => `z.literal(${JSON.stringify(kw)})`).join(', ');
@@ -202,7 +271,7 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 		}
 	}
 
-	for (const descriptor of descriptors) {
+	for (const descriptor of surfaceDescriptors) {
 		if (descriptor.kind === 'regex-enum') {
 			const { regex, keywords } = descriptor as ZodRegexEnumDescriptor;
 			// Strip wrapping slashes to get the raw pattern: "/foo/" → "foo"
@@ -216,7 +285,7 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 		}
 	}
 
-	for (const descriptor of descriptors) {
+	for (const descriptor of surfaceDescriptors) {
 		if (descriptor.kind !== 'primitive-alias') {
 			continue;
 		}
@@ -231,7 +300,7 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 
 	// 2. Object schemas in topological dependency order.
 	//    References to union names use z.lazy() since unions are emitted last.
-	const objectDescriptors = descriptors.filter((d): d is ZodObjectTypeDescriptor => d.kind === 'object');
+	const objectDescriptors = surfaceDescriptors.filter((d): d is ZodObjectTypeDescriptor => d.kind === 'object');
 	const sortedObjects = topoSortObjectDescriptors(objectDescriptors, recursiveTypes);
 
 	for (const descriptor of sortedObjects) {
@@ -249,11 +318,7 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 
 		const objectProperties: Record<string, BaseBuilder> = {};
 		for (const property of descriptor.properties) {
-			const builder = expressionToBuilder(property.zodType, unionNames);
-			if (property.optional) {
-				builder.optional();
-			}
-			objectProperties[property.name] = builder;
+			objectProperties[property.name] = build.raw(renderPropertyExpression(property, unionNames));
 		}
 
 		const objectBuilder = build.object(objectProperties).loose();
@@ -263,7 +328,7 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 
 	// 3. Discriminated union schemas last — all member object schemas are
 	//    already declared above.
-	for (const descriptor of descriptors) {
+	for (const descriptor of surfaceDescriptors) {
 		if (descriptor.kind !== 'union') {
 			continue;
 		}
@@ -285,6 +350,60 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 		const allTypesUnionBuilder = build.discriminatedUnion('$type', allMembers);
 		lines.push(`export const AstNodeSchema = ${allTypesUnionBuilder.text()};`);
 		lines.push('');
+	}
+
+	if (options.crossRefValidation) {
+		for (const descriptor of sortedObjects) {
+			const crossRefProperties = descriptor.properties.filter((property) => containsCrossReference(property.zodType));
+			if (crossRefProperties.length === 0) {
+				continue;
+			}
+
+			const targetTypes = new Set<string>();
+			for (const property of crossRefProperties) {
+				const stack: ZodTypeExpression[] = [property.zodType];
+				while (stack.length > 0) {
+					const current = stack.pop();
+					if (!current) {
+						continue;
+					}
+					if (current.kind === 'crossReference') {
+						targetTypes.add(current.targetType);
+						continue;
+					}
+					if (current.kind === 'array') {
+						stack.push(current.element);
+						continue;
+					}
+					if (current.kind === 'union') {
+						stack.push(...current.members);
+						continue;
+					}
+					if (current.kind === 'lazy') {
+						stack.push(current.inner);
+					}
+				}
+			}
+
+			lines.push(`export interface ${descriptor.name}SchemaRefs {`);
+			for (const targetType of targetTypes) {
+				lines.push(`	${targetType}?: string[];`);
+			}
+			lines.push('}');
+			lines.push('');
+
+			lines.push(`export function create${descriptor.name}Schema(refs: ${descriptor.name}SchemaRefs = {}) {`);
+			lines.push('	return z.looseObject({');
+			for (const property of descriptor.properties) {
+				const expression = containsCrossReference(property.zodType)
+					? renderCrossRefPropertyExpression(property)
+					: renderPropertyExpression(property, unionNames);
+				lines.push(`		"${property.name}": ${expression},`);
+			}
+			lines.push('	});');
+			lines.push('}');
+			lines.push('');
+		}
 	}
 
 	return `${lines.join('\n').trim()}\n`;

@@ -1,0 +1,11 @@
+{
+	"projectName": "test-language",
+	"languages": [
+		{
+			"id": "test",
+			"grammar": "./simple.langium",
+			"fileExtensions": [".test"]
+		}
+	],
+	"out": "src/generated"
+}

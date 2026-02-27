@@ -69,6 +69,26 @@ function resolveProperties(typeMap: Map<string, InterfaceTypeLike>, typeName: st
 	return Array.from(merged.values());
 }
 
+function resolveArrayMinItems(property: PropertyLike): number | undefined {
+	const assignmentOperator = property.assignment ?? property.operator ?? '=';
+	if (assignmentOperator !== '+=') {
+		return undefined;
+	}
+
+	const typeObj = property.type as { cardinality?: '*' | '+' | '?'; elementType?: { cardinality?: '*' | '+' | '?' } } | undefined;
+	const cardinality =
+		property.ruleCall?.cardinality ??
+		property.cardinality ??
+		typeObj?.cardinality ??
+		typeObj?.elementType?.cardinality;
+
+	if (cardinality === '+') {
+		return 1;
+	}
+
+	return undefined;
+}
+
 /**
  * Extract the string member names from a Langium union type.
  *
@@ -315,7 +335,8 @@ export function extractTypeDescriptors(astTypes: AstTypesLike, config?: FilterCo
 			properties.push({
 				name: property.name,
 				zodType,
-				optional: Boolean(property.optional)
+				optional: Boolean(property.optional),
+				minItems: resolveArrayMinItems(property)
 			});
 		}
 

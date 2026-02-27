@@ -18,3 +18,4 @@ export type {
 } from './types.js';
 export { DefaultZodSchemaGenerator, ZodSchemaGeneratorModule } from './di.js';
 export type { ZodSchemaGenerator, ZodSchemaGeneratorServices } from './di.js';
+export { zRef } from './ref-utils.js';

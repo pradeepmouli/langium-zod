@@ -1,0 +1,10 @@
+{
+	"defaults": {
+		"strip": ["$container", "$containerProperty", "$containerIndex", "$document", "$cstNode"]
+	},
+	"types": {
+		"Data": {
+			"fields": ["name", "superType"]
+		}
+	}
+}
