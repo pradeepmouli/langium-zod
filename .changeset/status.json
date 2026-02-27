@@ -1,0 +1,25 @@
+{
+  "changesets": [
+    {
+      "releases": [
+        {
+          "name": "langium-zod",
+          "type": "minor"
+        }
+      ],
+      "summary": "Improve schema generation for Langium unions and datatype aliases, add safer reference handling in generated code, and upgrade `x-to-zod` to `^0.8.0`.",
+      "id": "brave-rings-burn"
+    }
+  ],
+  "releases": [
+    {
+      "name": "langium-zod",
+      "type": "minor",
+      "oldVersion": "0.1.0",
+      "changesets": [
+        "brave-rings-burn"
+      ],
+      "newVersion": "0.2.0"
+    }
+  ]
+}
