@@ -42,7 +42,21 @@ export interface ZodKeywordEnumDescriptor {
 	keywords: string[];
 }
 
-export type ZodTypeDescriptor = ZodObjectTypeDescriptor | ZodUnionTypeDescriptor | ZodPrimitiveAliasDescriptor | ZodKeywordEnumDescriptor;
+/**
+ * Emits `export const XSchema = z.union([z.string().regex(new RegExp("...")), z.literal("kw")])` for
+ * Langium datatype rules that mix a terminal regex with keyword alternatives
+ * (e.g. `ValidID returns string: ID | 'condition' | 'source' | ...`).
+ * When `keywords` is empty, emits `z.string().regex(new RegExp("..."))` directly.
+ */
+export interface ZodRegexEnumDescriptor {
+	name: string;
+	kind: 'regex-enum';
+	/** The raw regex string from Langium, including wrapping slashes e.g. `"/[a-z]+/"`. */
+	regex: string;
+	keywords: string[];
+}
+
+export type ZodTypeDescriptor = ZodObjectTypeDescriptor | ZodUnionTypeDescriptor | ZodPrimitiveAliasDescriptor | ZodKeywordEnumDescriptor | ZodRegexEnumDescriptor;
 
 export interface InterfaceTypeLike {
 	name: string;

@@ -1,6 +1,6 @@
 import { build, type BaseBuilder } from 'x-to-zod/builders';
 import type { ZodObjectTypeDescriptor, ZodPropertyDescriptor, ZodTypeDescriptor, ZodTypeExpression } from './types.js';
-import type { ZodKeywordEnumDescriptor } from './types.js';
+import type { ZodKeywordEnumDescriptor, ZodRegexEnumDescriptor } from './types.js';
 
 /**
  * Converts a ZodTypeExpression into an x-to-zod builder.
@@ -188,7 +188,7 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 		lines.push('');
 	}
 
-	// 1. Keyword-enum and primitive alias schemas first — they have no dependencies
+	// 1. Keyword-enum, regex-enum, and primitive alias schemas first — they have no dependencies
 	//    and are referenced by object schemas as leaf nodes.
 	for (const descriptor of descriptors) {
 		if (descriptor.kind === 'keyword-enum') {
@@ -197,6 +197,20 @@ export function generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes
 			const zodExpr = keywords.length === 1
 				? `z.literal(${JSON.stringify(keywords[0])})`
 				: `z.union([${members}])`;
+			lines.push(`export const ${descriptor.name}Schema = ${zodExpr};`);
+			lines.push('');
+		}
+	}
+
+	for (const descriptor of descriptors) {
+		if (descriptor.kind === 'regex-enum') {
+			const { regex, keywords } = descriptor as ZodRegexEnumDescriptor;
+			// Strip wrapping slashes to get the raw pattern: "/foo/" → "foo"
+			const pattern = regex.startsWith('/') && regex.endsWith('/') ? regex.slice(1, -1) : regex;
+			const regexPart = `z.string().regex(new RegExp(${JSON.stringify(pattern)}))`;
+			const zodExpr = keywords.length === 0
+				? regexPart
+				: `z.union([${regexPart}, ${keywords.map((kw) => `z.literal(${JSON.stringify(kw)})`).join(', ')}])`;
 			lines.push(`export const ${descriptor.name}Schema = ${zodExpr};`);
 			lines.push('');
 		}

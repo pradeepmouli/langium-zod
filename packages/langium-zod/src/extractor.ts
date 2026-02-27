@@ -7,7 +7,7 @@ import type {
 	ZodTypeDescriptor,
 	ZodTypeExpression
 } from './types.js';
-import type { ZodKeywordEnumDescriptor } from './types.js';
+import type { ZodKeywordEnumDescriptor, ZodRegexEnumDescriptor } from './types.js';
 import type { FilterConfig } from './config.js';
 import { ZodGeneratorError } from './errors.js';
 import { mapPropertyType } from './type-mapper.js';
@@ -156,6 +156,68 @@ function resolveKeywordEnum(unionType: UnionTypeLike): string[] | undefined {
 }
 
 /**
+ * Resolve a mixed regex + keyword union
+ * (e.g. `ValidID returns string: ID | 'condition' | 'source' | ...`).
+ *
+ * Matches when the union consists exclusively of:
+ *   - Zero or one `{ primitive: 'string', regex: '/.../' }` entries (from terminal rules)
+ *   - Zero or more `{ string: 'kw' }` keyword entries
+ *   AND there is at least one regex entry.
+ *
+ * Returns `{ regex, keywords }` on match, `undefined` otherwise.
+ */
+function resolveRegexEnum(unionType: UnionTypeLike): { regex: string; keywords: string[] } | undefined {
+	const source = unionType.type as Record<string, unknown> | undefined;
+	if (!source) {
+		return undefined;
+	}
+
+	// Only handle PropertyUnion shape
+	if (!Array.isArray(source['types'])) {
+		// Top-level single PrimitiveType with regex: { primitive: 'string', regex: '/.../' }
+		if (typeof source['primitive'] === 'string' && source['primitive'] === 'string' && typeof source['regex'] === 'string') {
+			return { regex: source['regex'], keywords: [] };
+		}
+		return undefined;
+	}
+
+	let regex: string | undefined;
+	const keywords: string[] = [];
+
+	for (const item of source['types'] as unknown[]) {
+		if (!item || typeof item !== 'object') {
+			return undefined;
+		}
+		const t = item as Record<string, unknown>;
+
+		// { primitive: 'string', regex: '/.../' } — regex-bearing terminal reference
+		if (typeof t['primitive'] === 'string' && t['primitive'] === 'string' && typeof t['regex'] === 'string') {
+			if (regex !== undefined) {
+				return undefined; // multiple regex entries — too complex
+			}
+			regex = t['regex'];
+			continue;
+		}
+
+		// { string: 'kw' } — keyword literal
+		if (typeof t['string'] === 'string') {
+			keywords.push(t['string']);
+			continue;
+		}
+
+		// Any other kind of member means this isn't a simple regex-enum
+		return undefined;
+	}
+
+	// Must have at least one regex to distinguish from keyword-enum
+	if (regex === undefined) {
+		return undefined;
+	}
+
+	return { regex, keywords };
+}
+
+/**
  * Resolve the primitive kind for a Langium union that aliases a single primitive type
  * (e.g. `type ValidID = ID` → 'string', `type Integer = INT` → 'number').
  * Returns undefined when the union is not a simple primitive alias.
@@ -294,16 +356,26 @@ export function extractTypeDescriptors(astTypes: AstTypesLike, config?: FilterCo
 					keywords
 				} satisfies ZodKeywordEnumDescriptor);
 			} else {
-				// Check if this is a primitive alias (e.g. ValidID = string)
-				const primitive = resolvePrimitiveAlias(entry);
-				if (primitive) {
+				// Check if this is a regex-enum (terminal regex + optional keyword literals)
+				const regexEnum = resolveRegexEnum(entry);
+				if (regexEnum) {
 					unionDescriptors.push({
 						name: entry.name,
-						kind: 'primitive-alias',
-						primitive
-					});
+						kind: 'regex-enum',
+						...regexEnum
+					} satisfies ZodRegexEnumDescriptor);
+				} else {
+					// Check if this is a primitive alias (e.g. BigDecimal = string)
+					const primitive = resolvePrimitiveAlias(entry);
+					if (primitive) {
+						unionDescriptors.push({
+							name: entry.name,
+							kind: 'primitive-alias',
+							primitive
+						});
+					}
+					// Otherwise silently skip (e.g. unions whose members are other unions, handled below)
 				}
-				// Otherwise silently skip (e.g. unions whose members are other unions, handled below)
 			}
 		}
 	}
@@ -351,12 +423,21 @@ export function extractTypeDescriptors(astTypes: AstTypesLike, config?: FilterCo
 				keywords
 			} satisfies ZodKeywordEnumDescriptor);
 		} else {
-			const primitive = unionEntry ? resolvePrimitiveAlias(unionEntry) : undefined;
-			stubDescriptors.push({
-				name: refName,
-				kind: 'primitive-alias',
-				primitive: primitive ?? 'string' // default to string for unknown datatype rules
-			});
+			const regexEnum = unionEntry ? resolveRegexEnum(unionEntry) : undefined;
+			if (regexEnum) {
+				stubDescriptors.push({
+					name: refName,
+					kind: 'regex-enum',
+					...regexEnum
+				} satisfies ZodRegexEnumDescriptor);
+			} else {
+				const primitive = unionEntry ? resolvePrimitiveAlias(unionEntry) : undefined;
+				stubDescriptors.push({
+					name: refName,
+					kind: 'primitive-alias',
+					primitive: primitive ?? 'string' // default to string for unknown datatype rules
+				});
+			}
 		}
 	}
 
