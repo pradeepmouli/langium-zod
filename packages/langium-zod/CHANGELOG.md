@@ -1,5 +1,11 @@
 # langium-zod
 
+## 0.3.2
+
+### Patch Changes
+
+- 6c27687: handle literal types
+
 ## 0.3.1
 
 ### Patch Changes
