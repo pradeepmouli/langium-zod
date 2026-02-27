@@ -227,12 +227,14 @@ export function generateZodCode(
 		stripInternals: options.stripInternals
 	});
 
+	const hasCrossReferences = surfaceDescriptors.some((descriptor) => descriptor.kind === 'object' && descriptor.properties.some((property) => containsCrossReference(property.zodType)));
+
 	const lines: string[] = [
 		'// @ts-nocheck — generated file; edit generate-zod.ts to regenerate',
 		"import { z } from 'zod';"
 	];
 
-	if (options.crossRefValidation) {
+	if (options.crossRefValidation && hasCrossReferences) {
 		lines.push("import { zRef } from 'langium-zod';");
 	}
 
@@ -241,8 +243,6 @@ export function generateZodCode(
 	// Names of union descriptors — object properties that reference these must use
 	// z.lazy() because union schemas are emitted after all object schemas.
 	const unionNames = new Set(surfaceDescriptors.filter((d) => d.kind === 'union').map((d) => d.name));
-
-	const hasCrossReferences = surfaceDescriptors.some((descriptor) => descriptor.kind === 'object' && descriptor.properties.some((property) => containsCrossReference(property.zodType)));
 
 	if (hasCrossReferences) {
 		const referenceBuilder = build

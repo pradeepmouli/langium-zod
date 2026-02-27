@@ -427,6 +427,7 @@ describe('generation integration', () => {
 		});
 
 		expect(source).not.toContain('createVariableRefSchema');
+		expect(source).not.toContain("import { zRef } from 'langium-zod';");
 		expect(source).toContain('export const VariableRefSchema = z.looseObject({');
 		expect(source).toContain('"$type": z.literal("VariableRef")');
 		expect(source).not.toContain('"variable": ReferenceSchema');

@@ -1,5 +1,6 @@
 import { dirname, extname, relative, resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
+import type { ProjectionConfig } from './projection.js';
 
 export interface ConformanceGenerationOptions {
 	schemaOutputPath: string;
@@ -7,6 +8,7 @@ export interface ConformanceGenerationOptions {
 	astTypesPath: string;
 	schemaTypeNames: string[];
 	stripFields: string[];
+	projection?: ProjectionConfig;
 }
 
 function toPosixPath(path: string): string {
@@ -105,8 +107,16 @@ export function generateConformanceSource(
 	lines.push('');
 
 	for (const typeName of matchedSchemaNames) {
-		lines.push(`type _Fwd_${typeName} = z.infer<typeof ${typeName}Schema> extends _Surface<AST.${typeName}> ? true : never;`);
-		lines.push(`type _Rev_${typeName} = _Surface<AST.${typeName}> extends z.infer<typeof ${typeName}Schema> ? true : never;`);
+		const projectedFields = options.projection?.types?.[typeName]?.fields;
+		let surfaceType: string;
+		if (Array.isArray(projectedFields)) {
+			const allowlist = ['$type', ...projectedFields].map((f) => JSON.stringify(f)).join(' | ');
+			surfaceType = `Pick<_Surface<AST.${typeName}>, ${allowlist}>`;
+		} else {
+			surfaceType = `_Surface<AST.${typeName}>`;
+		}
+		lines.push(`type _Fwd_${typeName} = z.infer<typeof ${typeName}Schema> extends ${surfaceType} ? true : never;`);
+		lines.push(`type _Rev_${typeName} = ${surfaceType} extends z.infer<typeof ${typeName}Schema> ? true : never;`);
 		lines.push('');
 	}
 

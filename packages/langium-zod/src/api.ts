@@ -100,7 +100,8 @@ export function generateZodSchemas(config: ZodGeneratorConfig): string {
 			stripFields: resolveEffectiveStripFields({
 				projection: config.projection,
 				stripInternals: config.stripInternals
-			})
+			}),
+			projection: config.projection
 		});
 
 		for (const missingType of conformance.missingAstTypes) {
