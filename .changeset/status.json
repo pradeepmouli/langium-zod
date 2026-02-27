@@ -7,19 +7,19 @@
           "type": "minor"
         }
       ],
-      "summary": "Improve schema generation for Langium unions and datatype aliases, add safer reference handling in generated code, and upgrade `x-to-zod` to `^0.8.0`.",
-      "id": "brave-rings-burn"
+      "summary": "Improve AST schema generation and mapping behavior:\n\n- Add a generated master discriminated union export named `AstNodeSchema` keyed by `$type`\n- Improve extractor handling for primitive aliases and filtered fallback stubs\n- Improve cross-reference mapping in the type mapper and expand test coverage",
+      "id": "calm-pumas-ski"
     }
   ],
   "releases": [
     {
       "name": "langium-zod",
       "type": "minor",
-      "oldVersion": "0.1.0",
+      "oldVersion": "0.2.0",
       "changesets": [
-        "brave-rings-burn"
+        "calm-pumas-ski"
       ],
-      "newVersion": "0.2.0"
+      "newVersion": "0.3.0"
     }
   ]
 }
