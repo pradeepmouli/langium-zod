@@ -19,7 +19,8 @@ export class DefaultZodSchemaGenerator implements ZodSchemaGenerator {
 			services: this.#services,
 			include: config?.include,
 			exclude: config?.exclude,
-			outputPath: config?.outputPath
+			outputPath: config?.outputPath,
+			regexOverrides: config?.regexOverrides
 		});
 	}
 }
