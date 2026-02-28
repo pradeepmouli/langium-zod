@@ -7,19 +7,19 @@
           "type": "minor"
         }
       ],
-      "summary": "Add `langium-zod generate` CLI command\n\nConsumers can now run `langium-zod generate` instead of maintaining a custom\n`generate-zod.ts` script. The CLI reads `langium-config.json` to locate the\ngrammar file and optionally loads a `langium-zod.config.js` (or `.mjs`) for\n`regexOverrides`, `outputPath`, `include`, and `exclude` options.\n\nUsage:\n```sh\nlangium-zod generate [--config langium-config.json] [--out src/generated/zod-schemas.ts]\n```\n\nExample `langium-zod.config.js`:\n```js\nexport default {\n  outputPath: 'src/generated/zod-schemas.ts',\n  regexOverrides: {\n    BigDecimal: String.raw`^[+-]?(\\.[0-9]+|[0-9]+(\\.[0-9]*)?)([eE][+-]?[0-9]+)?$`,\n  },\n};\n```\n\nAlso exports `LangiumZodConfig` and `GenerateOptions` types and the `generate()`\nfunction from the package root for programmatic use.",
-      "id": "add-langium-zod-cli"
+      "summary": "Add Rune DSL schema generation enhancements:\n\n- preserve one-or-more cardinality (`+= Rule+`) as `z.array(...).min(1)`\n- add CLI include/exclude filters with deterministic overlap handling and warnings for unknown types\n- add projection and strip-internals schema surface controls\n- add optional conformance artifact generation with AST path resolution\n- add optional cross-reference validation factories and export reusable `zRef`",
+      "id": "002-rune-dsl-enhancements"
     }
   ],
   "releases": [
     {
       "name": "langium-zod",
       "type": "minor",
-      "oldVersion": "0.3.3",
+      "oldVersion": "0.4.0",
       "changesets": [
-        "add-langium-zod-cli"
+        "002-rune-dsl-enhancements"
       ],
-      "newVersion": "0.4.0"
+      "newVersion": "0.5.0"
     }
   ]
 }
