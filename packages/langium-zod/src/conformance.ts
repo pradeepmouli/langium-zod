@@ -111,12 +111,12 @@ export function generateConformanceSource(
 		let surfaceType: string;
 		if (Array.isArray(projectedFields)) {
 			const allowlist = ['$type', ...projectedFields].map((f) => JSON.stringify(f)).join(' | ');
-			surfaceType = `Pick<_Surface<AST.${typeName}>, ${allowlist}>`;
+			surfaceType = `Pick<_Surface<AST.${typeName}>, Extract<keyof _Surface<AST.${typeName}>, ${allowlist}>>`;
 		} else {
 			surfaceType = `_Surface<AST.${typeName}>`;
 		}
 		lines.push(`type _Fwd_${typeName} = z.infer<typeof ${typeName}Schema> extends ${surfaceType} ? true : never;`);
-		lines.push(`type _Rev_${typeName} = ${surfaceType} extends z.infer<typeof ${typeName}Schema> ? true : never;`);
+		lines.push(`type _Rev_${typeName} = ${surfaceType} extends z.infer<typeof ${typeName}Schema} ? true : never;`);
 		lines.push('');
 	}
 
