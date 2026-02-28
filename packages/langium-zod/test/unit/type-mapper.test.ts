@@ -6,6 +6,8 @@ describe('type-mapper', () => {
 		expect(mapTerminalToZod('ID')).toEqual({ kind: 'primitive', primitive: 'string' });
 		expect(mapTerminalToZod('STRING')).toEqual({ kind: 'primitive', primitive: 'string' });
 		expect(mapTerminalToZod('INT')).toEqual({ kind: 'primitive', primitive: 'number' });
+		expect(mapTerminalToZod('boolean')).toEqual({ kind: 'primitive', primitive: 'boolean' });
+		expect(mapTerminalToZod('UNKNOWN')).toBeUndefined();
 	});
 
 	it('maps boolean assignment for ?=', () => {
@@ -101,5 +103,46 @@ describe('type-mapper', () => {
 				{ kind: 'literal', value: '-' }
 			]
 		});
+	});
+
+	it('maps langium PrimitiveType bigint and unknown primitive fallback', () => {
+		expect(
+			mapPropertyType({
+				name: 'big',
+				type: { primitive: 'bigint' }
+			})
+		).toEqual({ kind: 'primitive', primitive: 'bigint' });
+
+		expect(
+			mapPropertyType({
+				name: 'fallback',
+				type: { primitive: 'custom-primitive' }
+			})
+		).toEqual({ kind: 'primitive', primitive: 'string' });
+	});
+
+	it('maps langium ValueType and ArrayType layouts', () => {
+		expect(
+			mapPropertyType({
+				name: 'singleRef',
+				type: { value: { name: 'DataType' } }
+			})
+		).toEqual({ kind: 'reference', typeName: 'DataType' });
+
+		expect(
+			mapPropertyType({
+				name: 'refs',
+				type: { elementType: { value: { name: 'DataType' } } }
+			})
+		).toEqual({ kind: 'array', element: { kind: 'reference', typeName: 'DataType' } });
+	});
+
+	it('falls back to unknown reference when no type information is available', () => {
+		expect(
+			mapPropertyType({
+				name: 'mystery',
+				type: undefined
+			})
+		).toEqual({ kind: 'reference', typeName: 'unknown' });
 	});
 });

@@ -13,6 +13,7 @@ export interface ZodPropertyDescriptor {
 	name: string;
 	zodType: ZodTypeExpression;
 	optional: boolean;
+	minItems?: number;
 }
 
 export interface ZodObjectTypeDescriptor {
@@ -76,6 +77,8 @@ export interface PropertyLike {
 	optional?: boolean;
 	operator?: '=' | '+=' | '?=';
 	assignment?: '=' | '+=' | '?=';
+	cardinality?: '*' | '+' | '?' | undefined;
+	ruleCall?: { cardinality?: '*' | '+' | '?' | undefined };
 	isCrossRef?: boolean;
 	referenceType?: string;
 }

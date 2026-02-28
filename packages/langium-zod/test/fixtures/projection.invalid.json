@@ -1,0 +1,9 @@
+{
+	"defaults": {
+		"strip": ["$container", "$document"]
+	},
+	"types": {
+		"Data": {
+			"fields": ["name", "superType"]
+		}
+	}

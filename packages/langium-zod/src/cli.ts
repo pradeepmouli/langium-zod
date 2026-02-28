@@ -13,7 +13,9 @@ import { URI } from 'langium';
 import { createLangiumGrammarServices, resolveImportUri } from 'langium/grammar';
 import { NodeFileSystem } from 'langium/node';
 import { generateZodSchemas } from './api.js';
+import { resolveAstTypesPath } from './conformance.js';
 import type { ZodGeneratorConfig } from './config.js';
+import { loadProjectionConfig } from './projection.js';
 import type { Grammar, LangiumDocument } from 'langium';
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -35,7 +37,88 @@ export interface LangiumZodConfig
 interface LangiumConfigJson {
 	projectName?: string;
 	out?: string;
+	astTypes?: string;
 	languages?: Array<{ grammar: string }>;
+}
+
+function parseCsvList(value: string): string[] {
+	const seen = new Set<string>();
+	const parsed: string[] = [];
+
+	for (const entry of value.split(',')) {
+		const normalized = entry.trim();
+		if (!normalized || seen.has(normalized)) {
+			continue;
+		}
+		seen.add(normalized);
+		parsed.push(normalized);
+	}
+
+	return parsed;
+}
+
+function getArgValue(args: string[], flag: string): string | undefined {
+	const idx = args.indexOf(flag);
+	if (idx < 0) {
+		return undefined;
+	}
+
+	const value = args[idx + 1];
+	if (value == null || value.startsWith('--')) {
+		throw new Error(`Missing value for ${flag}`);
+	}
+
+	return value;
+}
+
+export function resolveFilterOverrides(
+	base: Pick<LangiumZodConfig, 'include' | 'exclude'>,
+	includeArg?: string,
+	excludeArg?: string,
+): Pick<LangiumZodConfig, 'include' | 'exclude'> {
+	const includeFromCli = includeArg === undefined ? undefined : parseCsvList(includeArg);
+	const excludeFromCli = excludeArg === undefined ? undefined : parseCsvList(excludeArg);
+
+	const includeSource = includeFromCli ?? base.include ?? [];
+	const excludeSource = excludeFromCli ?? base.exclude ?? [];
+
+	const excludeSet = new Set(excludeSource);
+	const include = includeSource.filter((name) => !excludeSet.has(name));
+
+	return {
+		include,
+		exclude: excludeSource
+	};
+}
+
+function warnUnknownFilterNames(
+	filterName: 'include' | 'exclude',
+	requested: string[] | undefined,
+	availableTypeNames: string[],
+): void {
+	const unknown = getUnknownFilterNames(requested, availableTypeNames);
+	if (unknown.length === 0) {
+		return;
+	}
+
+	const availableList = availableTypeNames.length > 0
+		? availableTypeNames.join(', ')
+		: '(none)';
+	console.warn(
+		`Warning: Unknown ${filterName} type name(s): ${unknown.join(', ')}. Available types: ${availableList}`,
+	);
+}
+
+export function getUnknownFilterNames(
+	requested: string[] | undefined,
+	availableTypeNames: string[],
+): string[] {
+	if (!requested || requested.length === 0) {
+		return [];
+	}
+
+	const available = new Set(availableTypeNames);
+	return requested.filter((name) => !available.has(name));
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -52,6 +135,14 @@ USAGE
 OPTIONS
   --config <path>   Path to langium-config.json  (default: langium-config.json)
   --out    <path>   Output file path              (default: <out>/zod-schemas.ts)
+	--include <csv>   Comma-separated type allowlist
+	--exclude <csv>   Comma-separated type blocklist
+	--projection <file> Projection config JSON file
+	--strip-internals  Strip internal Langium metadata fields
+	--conformance     Generate conformance artifact
+	--ast-types <path> Path to generated AST declarations (ast.ts)
+	--conformance-out <path> Output path for conformance artifact
+	--cross-ref-validation Emit runtime cross-reference schema factories
   --help            Show this help message
 
 CONFIGURATION
@@ -141,6 +232,24 @@ export async function generate(opts: GenerateOptions): Promise<void> {
 	const outputPath: string =
 		userConfig.outputPath ?? join(outDir, 'zod-schemas.ts');
 
+	const conformanceConfig = userConfig.conformance;
+	if (conformanceConfig) {
+		const resolvedAstTypesPath = conformanceConfig.astTypesPath
+			? resolve(configDir, conformanceConfig.astTypesPath)
+			: langiumConfig.astTypes
+				? resolve(configDir, langiumConfig.astTypes)
+				: resolveAstTypesPath(configDir, outDir);
+
+		if (!existsSync(resolvedAstTypesPath)) {
+			throw new Error(`Unable to resolve ast types path for conformance: ${resolvedAstTypesPath}`);
+		}
+
+		userConfig.conformance = {
+			astTypesPath: resolvedAstTypesPath,
+			outputPath: conformanceConfig.outputPath
+		};
+	}
+
 	// ── 3. Parse grammar using Langium services ──────────────────────────────
 	const { shared, grammar: grammarServices } = createLangiumGrammarServices(NodeFileSystem);
 	void grammarServices; // used only for type-checking if needed later
@@ -160,6 +269,15 @@ export async function generate(opts: GenerateOptions): Promise<void> {
 	});
 
 	const grammar = entryDocument.parseResult.value as Grammar;
+	const availableTypeNames = [
+		...(grammar.interfaces ?? []).map((entry) => entry.name),
+		...(grammar.types ?? []).map((entry) => entry.name)
+	]
+		.filter((name): name is string => typeof name === 'string')
+		.sort((left, right) => left.localeCompare(right));
+
+	warnUnknownFilterNames('include', userConfig.include, availableTypeNames);
+	warnUnknownFilterNames('exclude', userConfig.exclude, availableTypeNames);
 
 	// ── 4. Generate schemas ──────────────────────────────────────────────────
 	const { langiumConfig: _ignored, outputPath: _op, ...restConfig } = userConfig;
@@ -177,7 +295,7 @@ export async function generate(opts: GenerateOptions): Promise<void> {
 // CLI entry point
 // ────────────────────────────────────────────────────────────────────────────
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
 	const args = process.argv.slice(2);
 
 	if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
@@ -198,6 +316,14 @@ async function main(): Promise<void> {
 		configFlagIdx >= 0 ? args[configFlagIdx + 1] : undefined;
 	const outFlagIdx = args.indexOf('--out');
 	const outFlagValue = outFlagIdx >= 0 ? args[outFlagIdx + 1] : undefined;
+	const includeFlagValue = getArgValue(args, '--include');
+	const excludeFlagValue = getArgValue(args, '--exclude');
+	const projectionFlagValue = getArgValue(args, '--projection');
+	const astTypesFlagValue = getArgValue(args, '--ast-types');
+	const conformanceOutFlagValue = getArgValue(args, '--conformance-out');
+	const stripInternalsEnabled = args.includes('--strip-internals');
+	const conformanceEnabled = args.includes('--conformance');
+	const crossRefValidationEnabled = args.includes('--cross-ref-validation');
 
 	// ── Locate langium-config.json ───────────────────────────────────────────
 	const configFileName = configFlagValue ?? 'langium-config.json';
@@ -222,6 +348,44 @@ async function main(): Promise<void> {
 	// CLI --out flag overrides config file outputPath
 	if (outFlagValue) {
 		userConfig = { ...userConfig, outputPath: resolve(process.cwd(), outFlagValue) };
+	}
+
+	const filterOverrides = resolveFilterOverrides(userConfig, includeFlagValue, excludeFlagValue);
+	userConfig = {
+		...userConfig,
+		...filterOverrides
+	};
+
+	if (projectionFlagValue) {
+		const projectionPath = resolve(process.cwd(), projectionFlagValue);
+		userConfig = {
+			...userConfig,
+			projection: loadProjectionConfig(projectionPath)
+		};
+	}
+
+	if (stripInternalsEnabled) {
+		userConfig = {
+			...userConfig,
+			stripInternals: true
+		};
+	}
+
+	if (conformanceEnabled) {
+		userConfig = {
+			...userConfig,
+			conformance: {
+				astTypesPath: astTypesFlagValue ? resolve(process.cwd(), astTypesFlagValue) : undefined,
+				outputPath: conformanceOutFlagValue ? resolve(process.cwd(), conformanceOutFlagValue) : undefined
+			}
+		};
+	}
+
+	if (crossRefValidationEnabled) {
+		userConfig = {
+			...userConfig,
+			crossRefValidation: true
+		};
 	}
 
 	try {

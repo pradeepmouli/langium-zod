@@ -104,4 +104,65 @@ describe('extractor', () => {
 
 		expect(descriptors.some((entry) => entry.name === 'MissingType')).toBe(false);
 	});
+
+	it('sets minItems=1 only for += properties with + cardinality', () => {
+		const descriptors = extractTypeDescriptors({
+			interfaces: [
+				{
+					name: 'Container',
+					properties: [
+						{ name: 'requiredItems', type: 'Item', assignment: '+=', cardinality: '+', optional: false },
+						{ name: 'optionalItems', type: 'Item', assignment: '+=', cardinality: '*', optional: false },
+						{ name: 'plainItems', type: 'Item', assignment: '+=', optional: false }
+					]
+				},
+				{ name: 'Item', properties: [{ name: 'name', type: 'ID', optional: false }] }
+			],
+			unions: []
+		});
+
+		const container = descriptors.find((entry) => entry.name === 'Container' && entry.kind === 'object');
+		if (!container || container.kind !== 'object') {
+			throw new Error('Container descriptor not found');
+		}
+
+		expect(container.properties.find((property) => property.name === 'requiredItems')?.minItems).toBe(1);
+		expect(container.properties.find((property) => property.name === 'optionalItems')?.minItems).toBeUndefined();
+		expect(container.properties.find((property) => property.name === 'plainItems')?.minItems).toBeUndefined();
+	});
+
+	it('creates keyword-enum and regex-enum descriptors from union layouts', () => {
+		const descriptors = extractTypeDescriptors({
+			interfaces: [],
+			unions: [
+				{
+					name: 'CardinalityModifier',
+					type: {
+						types: [{ string: 'any' }, { string: 'all' }]
+					}
+				},
+				{
+					name: 'ValidID',
+					type: {
+						types: [
+							{ primitive: 'string', regex: '/[a-z]+/' },
+							{ string: 'condition' }
+						]
+					}
+				}
+			]
+		});
+
+		expect(descriptors).toContainEqual({
+			name: 'CardinalityModifier',
+			kind: 'keyword-enum',
+			keywords: ['any', 'all']
+		});
+		expect(descriptors).toContainEqual({
+			name: 'ValidID',
+			kind: 'regex-enum',
+			regex: '/[a-z]+/',
+			keywords: ['condition']
+		});
+	});
 });

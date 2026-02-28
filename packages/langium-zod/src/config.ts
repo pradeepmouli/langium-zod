@@ -1,5 +1,6 @@
 import type { Grammar, LangiumCoreServices } from 'langium';
 import type { AstTypesLike } from './types.js';
+import type { ProjectionConfig } from './projection.js';
 
 export interface FilterConfig {
 	include?: string[];
@@ -11,6 +12,13 @@ export interface ZodGeneratorConfig extends FilterConfig {
 	services?: LangiumCoreServices;
 	outputPath?: string;
 	astTypes?: AstTypesLike;
+	projection?: ProjectionConfig;
+	stripInternals?: boolean;
+	crossRefValidation?: boolean;
+	conformance?: {
+		astTypesPath?: string;
+		outputPath?: string;
+	};
 	/**
 	 * Override the generated schema for specific type names.
 	 *
