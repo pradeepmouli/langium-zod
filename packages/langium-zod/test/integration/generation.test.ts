@@ -413,6 +413,90 @@ describe('generation integration', () => {
 		expect(optionalRef.safeParse('   ').success).toBe(true);
 	});
 
+	it('emits z.object when objectStyle is strict', () => {
+		const source = generateZodSchemas({
+			astTypes: simpleAstTypes,
+			objectStyle: 'strict'
+		});
+
+		expect(source).toContain('export const TagSchema = z.object({');
+		expect(source).toContain('export const GreetingSchema = z.object({');
+		expect(source).not.toContain('z.looseObject');
+	});
+
+	it('emits z.looseObject by default', () => {
+		const source = generateZodSchemas({
+			astTypes: simpleAstTypes
+		});
+
+		expect(source).toContain('export const TagSchema = z.looseObject({');
+		expect(source).toContain('export const GreetingSchema = z.looseObject({');
+	});
+
+	it('deduplicates union members and collapses single-member unions to literal', () => {
+		const source = generateZodSchemas({
+			astTypes: {
+				interfaces: [
+					{
+						name: 'Operation',
+						properties: [
+							{
+								name: 'operator',
+								optional: false,
+								type: {
+									types: [
+										{ string: 'one-of' },
+										{ string: 'one-of' }
+									]
+								}
+							}
+						]
+					}
+				],
+				unions: []
+			}
+		});
+
+		expect(source).toContain('"operator": z.literal("one-of")');
+		expect(source).not.toContain('z.union');
+	});
+
+	it('deduplicates multi-value unions preserving unique members', () => {
+		const source = generateZodSchemas({
+			astTypes: {
+				interfaces: [
+					{
+						name: 'Comparison',
+						properties: [
+							{
+								name: 'operator',
+								optional: false,
+								type: {
+									types: [
+										{ string: '>=' },
+										{ string: '<=' },
+										{ string: '>' },
+										{ string: '<' },
+										{ string: '>=' },
+										{ string: '<=' },
+										{ string: '>' },
+										{ string: '<' }
+									]
+								}
+							}
+						]
+					}
+				],
+				unions: []
+			}
+		});
+
+		expect(source).toContain('z.union([z.literal(">="), z.literal("<="), z.literal(">"), z.literal("<")])');
+		// Should NOT contain duplicate entries
+		const matches = source.match(/z\.literal\(">="\)/g);
+		expect(matches).toHaveLength(1);
+	});
+
 	it('does not emit cross-reference refinements for projection-stripped fields', () => {
 		const source = generateZodSchemas({
 			astTypes: crossRefAstTypes,

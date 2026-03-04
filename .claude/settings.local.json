@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm test)",
+      "Bash(npm view x-to-zod versions --json)",
+      "Bash(npm view x-to-zod@0.9.0 --json)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\(''description'',''''\\)\\)\")",
+      "Bash(npm pack x-to-zod@0.9.0 --dry-run)",
+      "WebFetch(domain:registry.npmjs.org)",
+      "Bash(pnpm --filter langium-zod update x-to-zod@0.9.0)",
+      "Bash(node -e \"const { build } = require\\(''x-to-zod/builders''\\); console.log\\(build.array\\(build.string\\(\\)\\).nonempty\\(\\).text\\(\\)\\)\")",
+      "Bash(npx tsx -e \"import { build } from ''x-to-zod/builders''; console.log\\(build.array\\(build.string\\(\\)\\).nonempty\\(\\).text\\(\\)\\)\")"
+    ]
+  }
+}

@@ -165,4 +165,29 @@ describe('extractor', () => {
 			keywords: ['condition']
 		});
 	});
+
+	it('deduplicates keyword-enum values', () => {
+		const descriptors = extractTypeDescriptors({
+			interfaces: [],
+			unions: [
+				{
+					name: 'Operator',
+					type: {
+						types: [
+							{ string: 'choice' },
+							{ string: 'choice' },
+							{ string: 'choice' },
+							{ string: 'choice' }
+						]
+					}
+				}
+			]
+		});
+
+		expect(descriptors).toContainEqual({
+			name: 'Operator',
+			kind: 'keyword-enum',
+			keywords: ['choice']
+		});
+	});
 });

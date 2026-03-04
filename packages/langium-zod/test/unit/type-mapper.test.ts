@@ -145,4 +145,46 @@ describe('type-mapper', () => {
 			})
 		).toEqual({ kind: 'reference', typeName: 'unknown' });
 	});
+
+	it('deduplicates union members with identical literals', () => {
+		const actual = mapPropertyType({
+			name: 'operator',
+			type: {
+				types: [
+					{ string: 'one-of' },
+					{ string: 'one-of' }
+				]
+			}
+		});
+
+		expect(actual).toEqual({ kind: 'literal', value: 'one-of' });
+	});
+
+	it('deduplicates union members preserving unique values', () => {
+		const actual = mapPropertyType({
+			name: 'operator',
+			type: {
+				types: [
+					{ string: '>=' },
+					{ string: '<=' },
+					{ string: '>' },
+					{ string: '<' },
+					{ string: '>=' },
+					{ string: '<=' },
+					{ string: '>' },
+					{ string: '<' }
+				]
+			}
+		});
+
+		expect(actual).toEqual({
+			kind: 'union',
+			members: [
+				{ kind: 'literal', value: '>=' },
+				{ kind: 'literal', value: '<=' },
+				{ kind: 'literal', value: '>' },
+				{ kind: 'literal', value: '<' }
+			]
+		});
+	});
 });
