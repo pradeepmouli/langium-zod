@@ -9,7 +9,10 @@
       "WebFetch(domain:registry.npmjs.org)",
       "Bash(pnpm --filter langium-zod update x-to-zod@0.9.0)",
       "Bash(node -e \"const { build } = require\\(''x-to-zod/builders''\\); console.log\\(build.array\\(build.string\\(\\)\\).nonempty\\(\\).text\\(\\)\\)\")",
-      "Bash(npx tsx -e \"import { build } from ''x-to-zod/builders''; console.log\\(build.array\\(build.string\\(\\)\\).nonempty\\(\\).text\\(\\)\\)\")"
+      "Bash(npx tsx -e \"import { build } from ''x-to-zod/builders''; console.log\\(build.array\\(build.string\\(\\)\\).nonempty\\(\\).text\\(\\)\\)\")",
+      "Bash(npx skills find zod)",
+      "Bash(npx skills add jezweb/claude-skills@react-hook-form-zod -g -y)",
+      "Bash(npx skills:*)"
     ]
   }
 }
