@@ -12,7 +12,19 @@
       "Bash(npx tsx -e \"import { build } from ''x-to-zod/builders''; console.log\\(build.array\\(build.string\\(\\)\\).nonempty\\(\\).text\\(\\)\\)\")",
       "Bash(npx skills find zod)",
       "Bash(npx skills add jezweb/claude-skills@react-hook-form-zod -g -y)",
-      "Bash(npx skills:*)"
+      "Bash(npx skills:*)",
+      "WebSearch",
+      "Bash(pnpm add:*)",
+      "Bash(git stash:*)",
+      "Bash(pnpm run:*)",
+      "Bash(git status:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh api:*)",
+      "Bash(gh run:*)"
     ]
   }
 }
