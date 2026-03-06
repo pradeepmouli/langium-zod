@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "zod-to-form-cli": {
+      "source": "pradeepmouli/zod-to-form",
+      "sourceType": "github",
+      "computedHash": "7d9d65ef65f60d374a679d09403d2291f682233d47c71b1dfa21feadd9d779f5"
+    },
+    "zod-to-form-runtime": {
+      "source": "pradeepmouli/zod-to-form",
+      "sourceType": "github",
+      "computedHash": "b667f67548f0f7aa4b858b6b9335c25c5caeefdb0fcba3e89604a763fbba3bb2"
+    }
+  }
+}
