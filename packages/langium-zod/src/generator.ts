@@ -146,17 +146,21 @@ function renderRefinedCrossRefExpression(expression: ZodTypeExpression): string 
 	}
 }
 
-function renderCrossRefPropertyExpression(property: ZodPropertyDescriptor): string {
+function renderCrossRefPropertyExpression(property: ZodPropertyDescriptor, formMetadata?: boolean): string {
 	const baseExpression = renderRefinedCrossRefExpression(property.zodType);
 	const withArrayMin = property.zodType.kind === 'array' && typeof property.minItems === 'number'
 		? `${baseExpression}.min(${property.minItems})`
 		: baseExpression;
 
-	if (property.optional) {
-		return `${withArrayMin}.optional()`;
+	const withOptional = property.optional
+		? `${withArrayMin}.optional()`
+		: withArrayMin;
+
+	if (formMetadata && property.name !== '$type') {
+		return `${withOptional}${renderMetaSuffix(property.name, property.comment)}`;
 	}
 
-	return withArrayMin;
+	return withOptional;
 }
 
 function propertyLine(property: ZodPropertyDescriptor, ownerTypeName: string, recursiveTypes: Set<string>, lazyNames: ReadonlySet<string> = new Set(), formMetadata?: boolean): string {
@@ -411,7 +415,7 @@ export function generateZodCode(
 			lines.push(`export function create${descriptor.name}Schema(refs: ${descriptor.name}SchemaRefs = {}) {`);
 			lines.push(`	return ${descriptor.name}Schema.extend({`);
 			for (const property of crossRefProperties) {
-				const expression = renderCrossRefPropertyExpression(property);
+				const expression = renderCrossRefPropertyExpression(property, options.formMetadata);
 				lines.push(`		"${property.name}": ${expression},`);
 			}
 			lines.push('	});');

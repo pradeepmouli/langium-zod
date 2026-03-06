@@ -566,4 +566,24 @@ describe('generation integration', () => {
 
 		expect(source).not.toContain('.meta(');
 	});
+
+	it('emits .meta() on cross-ref properties in createXSchema factories', () => {
+		const source = generateZodSchemas({
+			astTypes: {
+				interfaces: [
+					{ name: 'Variable', properties: [{ name: 'name', type: 'ID', optional: false }] },
+					{
+						name: 'VariableRef',
+						properties: [{ name: 'target', type: 'Variable', optional: false, isCrossRef: true, comment: 'Referenced variable' }]
+					}
+				],
+				unions: []
+			},
+			formMetadata: true,
+			crossRefValidation: true
+		});
+
+		// Cross-ref property in createXSchema factory should also have .meta()
+		expect(source).toContain('.meta({ title: "Target", description: "Referenced variable" })');
+	});
 });

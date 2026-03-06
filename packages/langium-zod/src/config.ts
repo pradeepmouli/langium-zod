@@ -37,9 +37,11 @@ export interface ZodGeneratorConfig extends FilterConfig {
 	 */
 	regexOverrides?: Record<string, string>;
 	/**
-	 * When `true`, emit `.meta({ title, description })` on generated Zod schemas
-	 * using humanized property/type names and JSDoc comments from the grammar.
-	 * Useful for zod-to-forms integrations that derive field labels from metadata.
+	 * When `true`, emit `.meta({ title, description? })` on generated Zod schemas
+	 * using humanized property/type names as `title` and JSDoc comments from the grammar
+	 * as `description`. The `description` field is only included when a JSDoc/grammar
+	 * comment exists for the corresponding type or property. Useful for zod-to-forms
+	 * integrations that derive field labels from metadata.
 	 */
 	formMetadata?: boolean;
 }
