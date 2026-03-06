@@ -516,4 +516,54 @@ describe('generation integration', () => {
 		expect(source).toContain('"$type": z.literal("VariableRef")');
 		expect(source).not.toContain('"variable": ReferenceSchema');
 	});
+
+	it('emits .meta() with title and description when formMetadata is enabled', () => {
+		const source = generateZodSchemas({
+			astTypes: {
+				interfaces: [
+					{
+						name: 'Person',
+						comment: 'A person record',
+						properties: [
+							{ name: 'firstName', type: 'ID', optional: false, comment: 'Given name' },
+							{ name: 'lastName', type: 'ID', optional: false },
+							{ name: 'age', type: 'INT', optional: true, comment: 'Age in years' }
+						]
+					}
+				],
+				unions: []
+			},
+			formMetadata: true
+		});
+
+		// Property with comment → title + description
+		expect(source).toContain('.meta({ title: "First name", description: "Given name" })');
+		// Property without comment → title only
+		expect(source).toContain('.meta({ title: "Last name" })');
+		// Optional property with comment → .optional() then .meta()
+		expect(source).toContain('.optional().meta({ title: "Age", description: "Age in years" })');
+		// Object-level meta with comment
+		expect(source).toContain('.meta({ title: "Person", description: "A person record" })');
+		// $type should NOT get meta
+		expect(source).not.toContain('z.literal("Person").meta');
+	});
+
+	it('does not emit .meta() when formMetadata is not set', () => {
+		const source = generateZodSchemas({
+			astTypes: {
+				interfaces: [
+					{
+						name: 'Item',
+						comment: 'An item',
+						properties: [
+							{ name: 'name', type: 'ID', optional: false, comment: 'Item name' }
+						]
+					}
+				],
+				unions: []
+			}
+		});
+
+		expect(source).not.toContain('.meta(');
+	});
 });

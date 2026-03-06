@@ -36,6 +36,12 @@ export interface ZodGeneratorConfig extends FilterConfig {
 	 * ```
 	 */
 	regexOverrides?: Record<string, string>;
+	/**
+	 * When `true`, emit `.meta({ title, description })` on generated Zod schemas
+	 * using humanized property/type names and JSDoc comments from the grammar.
+	 * Useful for zod-to-forms integrations that derive field labels from metadata.
+	 */
+	formMetadata?: boolean;
 }
 
 export const DEFAULT_OUTPUT_PATH = 'src/generated/zod-schemas.ts';

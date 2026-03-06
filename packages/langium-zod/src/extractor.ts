@@ -336,14 +336,16 @@ export function extractTypeDescriptors(astTypes: AstTypesLike, config?: FilterCo
 				name: property.name,
 				zodType,
 				optional: Boolean(property.optional),
-				minItems: resolveArrayMinItems(property)
+				minItems: resolveArrayMinItems(property),
+				...(property.comment ? { comment: property.comment } : {})
 			});
 		}
 
 		objectDescriptors.push({
 			name: entry.name,
 			kind: 'object',
-			properties
+			properties,
+			...(entry.comment ? { comment: entry.comment } : {})
 		});
 	}
 
