@@ -44,6 +44,12 @@ export interface ZodGeneratorConfig extends FilterConfig {
 	 * integrations that derive field labels from metadata.
 	 */
 	formMetadata?: boolean;
+	/**
+	 * Controls how object schemas are emitted.
+	 * - `'loose'` (default): emits `z.looseObject(...)` which allows extra properties.
+	 * - `'strict'`: emits `z.object(...)` which rejects unknown properties.
+	 */
+	objectStyle?: 'loose' | 'strict';
 }
 
 export const DEFAULT_OUTPUT_PATH = 'src/generated/zod-schemas.ts';

@@ -152,13 +152,17 @@ function resolveKeywordEnum(unionType: UnionTypeLike): string[] | undefined {
 	// PropertyUnion where every member is a StringType: { types: [ { string: 'any' }, ... ] }
 	if (Array.isArray(source['types'])) {
 		const keywords: string[] = [];
+		const seen = new Set<string>();
 		for (const item of source['types'] as unknown[]) {
 			if (!item || typeof item !== 'object') {
 				return undefined;
 			}
 			const t = item as Record<string, unknown>;
 			if (typeof t['string'] === 'string') {
-				keywords.push(t['string']);
+				if (!seen.has(t['string'])) {
+					seen.add(t['string']);
+					keywords.push(t['string']);
+				}
 			} else {
 				// Mixed with non-string-literal members — not a keyword enum
 				return undefined;

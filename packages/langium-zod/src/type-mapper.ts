@@ -90,11 +90,21 @@ function mapLangiumPropertyType(type: unknown): ZodTypeExpression | undefined {
 		const members = (t['types'] as unknown[])
 			.map((item) => mapLangiumPropertyType(item))
 			.filter((m): m is ZodTypeExpression => m !== undefined);
-		if (members.length === 1) {
-			return members[0];
+
+		// Deduplicate members by their serialized form
+		const seen = new Set<string>();
+		const unique = members.filter((m) => {
+			const key = JSON.stringify(m);
+			if (seen.has(key)) return false;
+			seen.add(key);
+			return true;
+		});
+
+		if (unique.length === 1) {
+			return unique[0];
 		}
-		if (members.length > 1) {
-			return { kind: 'union', members };
+		if (unique.length > 1) {
+			return { kind: 'union', members: unique };
 		}
 	}
 

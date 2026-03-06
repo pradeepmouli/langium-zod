@@ -9,6 +9,7 @@ export interface GenerationOptions {
 	stripInternals?: boolean;
 	crossRefValidation?: boolean;
 	formMetadata?: boolean;
+	objectStyle?: 'loose' | 'strict';
 }
 
 /**
@@ -322,12 +323,15 @@ export function generateZodCode(
 	const objectDescriptors = surfaceDescriptors.filter((d): d is ZodObjectTypeDescriptor => d.kind === 'object');
 	const sortedObjects = topoSortObjectDescriptors(objectDescriptors, recursiveTypes);
 
+	const useLoose = options.objectStyle !== 'strict';
+	const objectMethodName = useLoose ? 'looseObject' : 'object';
+
 	for (const descriptor of sortedObjects) {
 		const hasRecursiveGetter = recursiveTypes.has(descriptor.name) && descriptor.properties.some((property) => propertyReferencesAnyCycleMember(property.zodType, recursiveTypes));
 		const objectMetaSuffix = options.formMetadata ? renderMetaSuffix(descriptor.name, descriptor.comment) : '';
 
 		if (hasRecursiveGetter) {
-			lines.push(`export const ${descriptor.name}Schema = z.looseObject({`);
+			lines.push(`export const ${descriptor.name}Schema = z.${objectMethodName}({`);
 			for (const property of descriptor.properties) {
 				lines.push(`${propertyLine(property, descriptor.name, recursiveTypes, unionNames, options.formMetadata)},`);
 			}
@@ -341,7 +345,9 @@ export function generateZodCode(
 			objectProperties[property.name] = build.raw(renderPropertyExpression(property, unionNames, options.formMetadata));
 		}
 
-		const objectBuilder = build.object(objectProperties).loose();
+		const objectBuilder = useLoose
+			? build.object(objectProperties).loose()
+			: build.object(objectProperties);
 		lines.push(`export const ${descriptor.name}Schema = ${objectBuilder.text()}${objectMetaSuffix};`);
 		lines.push('');
 	}

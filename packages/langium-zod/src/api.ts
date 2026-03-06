@@ -59,7 +59,8 @@ export function generateZodSchemas(config: ZodGeneratorConfig): string {
 		projection: config.projection,
 		stripInternals: config.stripInternals,
 		crossRefValidation: config.crossRefValidation,
-		formMetadata: config.formMetadata
+		formMetadata: config.formMetadata,
+		objectStyle: config.objectStyle
 	});
 
 	if (config.outputPath) {
