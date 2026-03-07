@@ -1,5 +1,11 @@
 # langium-zod
 
+## 0.3.4
+
+### Patch Changes
+
+- 22e2203: ### Changes\n\n• \n
+
 ## 0.5.0
 
 ### Minor Changes

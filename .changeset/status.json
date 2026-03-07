@@ -4,22 +4,22 @@
       "releases": [
         {
           "name": "langium-zod",
-          "type": "minor"
+          "type": "patch"
         }
       ],
-      "summary": "Add Rune DSL schema generation enhancements:\n\n- preserve one-or-more cardinality (`+= Rule+`) as `z.array(...).min(1)`\n- add CLI include/exclude filters with deterministic overlap handling and warnings for unknown types\n- add projection and strip-internals schema surface controls\n- add optional conformance artifact generation with AST path resolution\n- add optional cross-reference validation factories and export reusable `zRef`",
-      "id": "002-rune-dsl-enhancements"
+      "summary": "### Changes\\n\\n• \\n",
+      "id": "1772855182"
     }
   ],
   "releases": [
     {
       "name": "langium-zod",
-      "type": "minor",
-      "oldVersion": "0.4.0",
+      "type": "patch",
+      "oldVersion": "0.3.3",
       "changesets": [
-        "002-rune-dsl-enhancements"
+        "1772855182"
       ],
-      "newVersion": "0.5.0"
+      "newVersion": "0.3.4"
     }
   ]
 }
