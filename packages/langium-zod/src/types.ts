@@ -14,12 +14,14 @@ export interface ZodPropertyDescriptor {
 	zodType: ZodTypeExpression;
 	optional: boolean;
 	minItems?: number;
+	comment?: string;
 }
 
 export interface ZodObjectTypeDescriptor {
 	name: string;
 	kind: 'object';
 	properties: ZodPropertyDescriptor[];
+	comment?: string;
 }
 
 export interface ZodUnionTypeDescriptor {
@@ -63,6 +65,7 @@ export interface InterfaceTypeLike {
 	name: string;
 	properties?: PropertyLike[];
 	superTypes?: Set<string> | string[];
+	comment?: string;
 }
 
 export interface UnionTypeLike {
@@ -81,6 +84,7 @@ export interface PropertyLike {
 	ruleCall?: { cardinality?: '*' | '+' | '?' | undefined };
 	isCrossRef?: boolean;
 	referenceType?: string;
+	comment?: string;
 }
 
 export interface AstTypesLike {

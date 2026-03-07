@@ -36,6 +36,24 @@ export interface ZodGeneratorConfig extends FilterConfig {
 	 * ```
 	 */
 	regexOverrides?: Record<string, string>;
+	/**
+	 * When `true`, emit `.meta({ title, description? })` on generated Zod schemas
+	 * using humanized property/type names as `title` and JSDoc comments from the grammar
+	 * as `description`. The `description` field is only included when a JSDoc/grammar
+	 * comment exists for the corresponding type or property. Useful for zod-to-forms
+	 * integrations that derive field labels from metadata.
+	 */
+	formMetadata?: boolean;
+	/**
+	 * Controls how object schemas are emitted.
+	 * - `'loose'` (default): emits `z.looseObject(...)` which allows extra properties to
+	 *   pass through unchanged.
+	 * - `'strict'`: emits `z.object(...)` (the standard Zod object). This strips unknown
+	 *   properties by default instead of rejecting them with a validation error. Consumers
+	 *   can call `.strict()` on the emitted schema if they need hard rejection of unknown
+	 *   properties.
+	 */
+	objectStyle?: 'loose' | 'strict';
 }
 
 export const DEFAULT_OUTPUT_PATH = 'src/generated/zod-schemas.ts';

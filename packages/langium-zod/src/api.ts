@@ -58,7 +58,9 @@ export function generateZodSchemas(config: ZodGeneratorConfig): string {
 	const source = generateZodCode(descriptors, recursiveTypes, {
 		projection: config.projection,
 		stripInternals: config.stripInternals,
-		crossRefValidation: config.crossRefValidation
+		crossRefValidation: config.crossRefValidation,
+		formMetadata: config.formMetadata,
+		objectStyle: config.objectStyle
 	});
 
 	if (config.outputPath) {

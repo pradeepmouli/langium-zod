@@ -166,6 +166,31 @@ describe('extractor', () => {
 		});
 	});
 
+	it('preserves comment metadata on interface and property descriptors', () => {
+		const descriptors = extractTypeDescriptors({
+			interfaces: [
+				{
+					name: 'Person',
+					comment: 'Represents a person',
+					properties: [
+						{ name: 'firstName', type: 'ID', optional: false, comment: 'Given name' },
+						{ name: 'age', type: 'INT', optional: true }
+					]
+				}
+			],
+			unions: []
+		});
+
+		const person = descriptors.find((entry) => entry.name === 'Person' && entry.kind === 'object');
+		if (!person || person.kind !== 'object') {
+			throw new Error('Person descriptor not found');
+		}
+
+		expect(person.comment).toBe('Represents a person');
+		expect(person.properties.find((p) => p.name === 'firstName')?.comment).toBe('Given name');
+		expect(person.properties.find((p) => p.name === 'age')?.comment).toBeUndefined();
+	});
+
 	it('deduplicates keyword-enum values', () => {
 		const descriptors = extractTypeDescriptors({
 			interfaces: [],

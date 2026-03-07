@@ -1,0 +1,48 @@
+version: "1"
+
+# LLM settings (optional - defaults to github-copilot)
+# llm:
+#   provider: github-copilot  # github-copilot | claude | openai
+#   model: gpt-4              # optional model override
+#   temperature: 0.3
+
+# Monitoring schedule
+schedule:
+  interval: daily
+  time: "02:00"
+  timezone: "UTC"
+
+# Issue creation and AI agent assignment
+issues:
+  labels:
+    - dependabit
+    - dependency-update
+  aiAgentAssignment:
+    enabled: true
+    breaking: "copilot"
+    major: "copilot"
+    minor: "copilot"
+
+# Monitoring behavior
+monitoring:
+  enabled: true
+  autoUpdate: true
+
+# Per-dependency overrides (uncomment and customize as needed)
+# dependencies:
+#   - url: "https://github.com/important/repo"
+#     schedule:
+#       interval: hourly
+#   - url: "https://stable-docs.example.com"
+#     schedule:
+#       interval: weekly
+
+# Exclusion rules (uncomment and customize as needed)
+# ignore:
+#   urls:
+#     - "https://example.com/ignored"
+#   types:
+#     - research-paper
+#   patterns:
+#     - ".*beta.*"
+#   useGitExcludes: true

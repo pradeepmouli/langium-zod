@@ -1,4 +1,5 @@
 import { build, type BaseBuilder } from 'x-to-zod/builders';
+import humanizeString from 'humanize-string';
 import type { ZodObjectTypeDescriptor, ZodPropertyDescriptor, ZodTypeDescriptor, ZodTypeExpression } from './types.js';
 import type { ZodKeywordEnumDescriptor, ZodRegexEnumDescriptor } from './types.js';
 import { applyProjectionToDescriptors, type ProjectionConfig } from './projection.js';
@@ -7,6 +8,8 @@ export interface GenerationOptions {
 	projection?: ProjectionConfig;
 	stripInternals?: boolean;
 	crossRefValidation?: boolean;
+	formMetadata?: boolean;
+	objectStyle?: 'loose' | 'strict';
 }
 
 /**
@@ -92,17 +95,30 @@ function propertyReferencesAnyCycleMember(zodType: ZodTypeExpression, recursiveT
 	return false;
 }
 
-function renderPropertyExpression(property: ZodPropertyDescriptor, lazyNames: ReadonlySet<string>): string {
+function renderMetaSuffix(name: string, comment?: string): string {
+	const title = humanizeString(name);
+	const entries: string[] = [`title: ${JSON.stringify(title)}`];
+	if (comment) {
+		entries.push(`description: ${JSON.stringify(comment)}`);
+	}
+	return `.meta({ ${entries.join(', ')} })`;
+}
+
+function renderPropertyExpression(property: ZodPropertyDescriptor, lazyNames: ReadonlySet<string>, formMetadata?: boolean): string {
 	const baseExpression = expressionToBuilder(property.zodType, lazyNames).text();
 	const withArrayMin = property.zodType.kind === 'array' && typeof property.minItems === 'number'
 		? `${baseExpression}.min(${property.minItems})`
 		: baseExpression;
 
-	if (property.optional) {
-		return `${withArrayMin}.optional()`;
+	const withOptional = property.optional
+		? `${withArrayMin}.optional()`
+		: withArrayMin;
+
+	if (formMetadata && property.name !== '$type') {
+		return `${withOptional}${renderMetaSuffix(property.name, property.comment)}`;
 	}
 
-	return withArrayMin;
+	return withOptional;
 }
 
 function renderRefinedCrossRefExpression(expression: ZodTypeExpression): string {
@@ -131,21 +147,25 @@ function renderRefinedCrossRefExpression(expression: ZodTypeExpression): string 
 	}
 }
 
-function renderCrossRefPropertyExpression(property: ZodPropertyDescriptor): string {
+function renderCrossRefPropertyExpression(property: ZodPropertyDescriptor, formMetadata?: boolean): string {
 	const baseExpression = renderRefinedCrossRefExpression(property.zodType);
 	const withArrayMin = property.zodType.kind === 'array' && typeof property.minItems === 'number'
 		? `${baseExpression}.min(${property.minItems})`
 		: baseExpression;
 
-	if (property.optional) {
-		return `${withArrayMin}.optional()`;
+	const withOptional = property.optional
+		? `${withArrayMin}.optional()`
+		: withArrayMin;
+
+	if (formMetadata && property.name !== '$type') {
+		return `${withOptional}${renderMetaSuffix(property.name, property.comment)}`;
 	}
 
-	return withArrayMin;
+	return withOptional;
 }
 
-function propertyLine(property: ZodPropertyDescriptor, ownerTypeName: string, recursiveTypes: Set<string>, lazyNames: ReadonlySet<string> = new Set()): string {
-	const expression = renderPropertyExpression(property, lazyNames);
+function propertyLine(property: ZodPropertyDescriptor, ownerTypeName: string, recursiveTypes: Set<string>, lazyNames: ReadonlySet<string> = new Set(), formMetadata?: boolean): string {
+	const expression = renderPropertyExpression(property, lazyNames, formMetadata);
 	const shouldUseGetter = recursiveTypes.has(ownerTypeName) && propertyReferencesAnyCycleMember(property.zodType, recursiveTypes);
 
 	if (shouldUseGetter) {
@@ -303,26 +323,32 @@ export function generateZodCode(
 	const objectDescriptors = surfaceDescriptors.filter((d): d is ZodObjectTypeDescriptor => d.kind === 'object');
 	const sortedObjects = topoSortObjectDescriptors(objectDescriptors, recursiveTypes);
 
+	const useLoose = options.objectStyle !== 'strict';
+	const objectMethodName = useLoose ? 'looseObject' : 'object';
+
 	for (const descriptor of sortedObjects) {
 		const hasRecursiveGetter = recursiveTypes.has(descriptor.name) && descriptor.properties.some((property) => propertyReferencesAnyCycleMember(property.zodType, recursiveTypes));
+		const objectMetaSuffix = options.formMetadata ? renderMetaSuffix(descriptor.name, descriptor.comment) : '';
 
 		if (hasRecursiveGetter) {
-			lines.push(`export const ${descriptor.name}Schema = z.looseObject({`);
+			lines.push(`export const ${descriptor.name}Schema = z.${objectMethodName}({`);
 			for (const property of descriptor.properties) {
-				lines.push(`${propertyLine(property, descriptor.name, recursiveTypes, unionNames)},`);
+				lines.push(`${propertyLine(property, descriptor.name, recursiveTypes, unionNames, options.formMetadata)},`);
 			}
-			lines.push('});');
+			lines.push(`})${objectMetaSuffix};`);
 			lines.push('');
 			continue;
 		}
 
 		const objectProperties: Record<string, BaseBuilder> = {};
 		for (const property of descriptor.properties) {
-			objectProperties[property.name] = build.raw(renderPropertyExpression(property, unionNames));
+			objectProperties[property.name] = build.raw(renderPropertyExpression(property, unionNames, options.formMetadata));
 		}
 
-		const objectBuilder = build.object(objectProperties).loose();
-		lines.push(`export const ${descriptor.name}Schema = ${objectBuilder.text()};`);
+		const objectBuilder = useLoose
+			? build.object(objectProperties).loose()
+			: build.object(objectProperties);
+		lines.push(`export const ${descriptor.name}Schema = ${objectBuilder.text()}${objectMetaSuffix};`);
 		lines.push('');
 	}
 
@@ -395,7 +421,7 @@ export function generateZodCode(
 			lines.push(`export function create${descriptor.name}Schema(refs: ${descriptor.name}SchemaRefs = {}) {`);
 			lines.push(`	return ${descriptor.name}Schema.extend({`);
 			for (const property of crossRefProperties) {
-				const expression = renderCrossRefPropertyExpression(property);
+				const expression = renderCrossRefPropertyExpression(property, options.formMetadata);
 				lines.push(`		"${property.name}": ${expression},`);
 			}
 			lines.push('	});');

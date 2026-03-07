@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "dependabit-bootstrap": {
+      "source": "pradeepmouli/dependabit",
+      "sourceType": "github",
+      "computedHash": "8b5fdca8597133c183160d7893de084bd62fc5690b2bf284fe9ce68218da7b9a"
+    },
     "zod-to-form-cli": {
       "source": "pradeepmouli/zod-to-form",
       "sourceType": "github",
