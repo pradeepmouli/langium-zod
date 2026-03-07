@@ -433,6 +433,29 @@ describe('generation integration', () => {
 		expect(source).toContain('export const GreetingSchema = z.looseObject({');
 	});
 
+	it('applies objectStyle to recursive-object getter path', () => {
+		const source = generateZodSchemas({
+			astTypes: {
+				interfaces: [
+					{
+						name: 'ExprNode',
+						properties: [{ name: 'term', type: 'TermNode', optional: false }]
+					},
+					{
+						name: 'TermNode',
+						properties: [{ name: 'expr', type: 'ExprNode', optional: false }]
+					}
+				],
+				unions: []
+			},
+			objectStyle: 'strict'
+		});
+
+		expect(source).toContain('export const ExprNodeSchema = z.object({');
+		expect(source).toContain('export const TermNodeSchema = z.object({');
+		expect(source).not.toContain('z.looseObject');
+	});
+
 	it('deduplicates union members and collapses single-member unions to literal', () => {
 		const source = generateZodSchemas({
 			astTypes: {

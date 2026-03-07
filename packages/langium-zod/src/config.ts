@@ -46,8 +46,12 @@ export interface ZodGeneratorConfig extends FilterConfig {
 	formMetadata?: boolean;
 	/**
 	 * Controls how object schemas are emitted.
-	 * - `'loose'` (default): emits `z.looseObject(...)` which allows extra properties.
-	 * - `'strict'`: emits `z.object(...)` which rejects unknown properties.
+	 * - `'loose'` (default): emits `z.looseObject(...)` which allows extra properties to
+	 *   pass through unchanged.
+	 * - `'strict'`: emits `z.object(...)` (the standard Zod object). This strips unknown
+	 *   properties by default instead of rejecting them with a validation error. Consumers
+	 *   can call `.strict()` on the emitted schema if they need hard rejection of unknown
+	 *   properties.
 	 */
 	objectStyle?: 'loose' | 'strict';
 }
