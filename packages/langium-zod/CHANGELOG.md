@@ -1,5 +1,11 @@
 # langium-zod
 
+## 0.3.5
+
+### Patch Changes
+
+- - chore: standardize CI/CD with changesets/action@v1 and OIDC publishing
+
 ## 0.3.4
 
 ### Patch Changes
