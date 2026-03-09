@@ -1,5 +1,11 @@
 # langium-zod
 
+## 0.5.2
+
+### Patch Changes
+
+- [#20](https://github.com/pradeepmouli/langium-zod/pull/20) [`596b2e2`](https://github.com/pradeepmouli/langium-zod/commit/596b2e2ad9772d741c77aa9ee7e7ec5ce2b4befb) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - - chore: test CI/CD automation pipeline
+
 ## 0.5.1
 
 ### Patch Changes
