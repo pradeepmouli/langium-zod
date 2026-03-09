@@ -83,9 +83,9 @@ jobs:
           FRONTMATTER=""
           for pkg_json in packages/*/package.json; do
             [ -f "$pkg_json" ] || continue
-            PRIVATE=$(node -p "try{String(require('./${pkg_json}').private||false)}catch{e}{'false'}")
-            NAME=$(node -p "try{require('./${pkg_json}').name||''}catch{e}{''}")
-            if [ "$PRIVATE" != "true" ] && [ -n "$NAME" ] && [ "$NAME" != "undefined" ]; then
+            PRIVATE=$(jq -r '.private // false' "$pkg_json" 2>/dev/null || echo 'false')
+            NAME=$(jq -r '.name // ""' "$pkg_json" 2>/dev/null || echo '')
+            if [ "$PRIVATE" != "true" ] && [ -n "$NAME" ] && [ "$NAME" != "null" ]; then
               FRONTMATTER="${FRONTMATTER}  \"${NAME}\": ${TYPE}\n"
             fi
           done
