@@ -63,3 +63,4 @@ Generated output uses Zod 4 and exports named schemas like `<TypeName>Schema`.
 - Node.js >= 20
 - Langium 4.x
 - Zod 4.x
+
