@@ -3,9 +3,9 @@ name: CI
 # TEMPLATE: Customize branches and workflow triggers for your project
 on:
   push:
-    branches: [master, develop]
+    branches: [master]
   pull_request:
-    branches: [master, develop]
+    branches: [master]
 
 jobs:
   lint-and-test:
@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x, 24.x]
+        node-version: [20.x, 22.x]
 
     steps:
       - uses: actions/checkout@v6

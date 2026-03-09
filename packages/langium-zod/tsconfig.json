@@ -4,7 +4,7 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "module": "nodenext",
-    "moduleResolution": "node16",
+    "moduleResolution": "nodenext",
     "composite": true,
     "declaration": true,
     "declarationMap": true,

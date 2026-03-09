@@ -32,7 +32,16 @@
     "test:watch": "vitest",
     "type-check": "pnpm -r run type-check"
   },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged",
+    "pre-push": "pnpm run type-check"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": ["oxlint --fix", "oxfmt"],
+    "*.{js,mjs,cjs,json,md}": ["oxfmt"]
+  },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "^2.29.8",
     "@types/node": "^25.3.0",
     "@vitest/coverage-v8": "^4.0.18",
