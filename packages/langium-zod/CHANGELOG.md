@@ -1,5 +1,12 @@
 # langium-zod
 
+## 0.5.1
+
+### Patch Changes
+
+- [#18](https://github.com/pradeepmouli/langium-zod/pull/18) [`10ad7de`](https://github.com/pradeepmouli/langium-zod/commit/10ad7deca4a0b46b558b20b9727d449b1778a9f9) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - - fix: use jq instead of node -p to read package.json in changeset workflow
+  - chore: test automation pipeline
+
 ## 0.3.5
 
 ### Patch Changes
