@@ -1,5 +1,11 @@
 # langium-zod
 
+## 0.5.3
+
+### Patch Changes
+
+- [`835c5e5`](https://github.com/pradeepmouli/langium-zod/commit/835c5e53534da899304d3e9aea47caa2d4f92185) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - chore: verify release pipeline
+
 ## 0.5.2
 
 ### Patch Changes
