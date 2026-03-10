@@ -8,12 +8,13 @@ on:
     branches: [master]
 
 jobs:
-  lint-and-test:
+  CI:
+    name: CI
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [20.x, 22.x]
+        node-version: [20.x, 24.x]
 
     steps:
       - uses: actions/checkout@v6
