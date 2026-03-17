@@ -3,7 +3,7 @@ name: CI
 # TEMPLATE: Customize branches and workflow triggers for your project
 on:
   push:
-    branches: [master, "changeset-release/**"]
+    branches-ignore: ["sub**"]
   pull_request:
     branches-ignore: ["sub**"]
 
