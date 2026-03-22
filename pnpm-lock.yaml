@@ -60,8 +60,8 @@ importers:
         specifier: ^4.2.1
         version: 4.2.1
       x-to-zod:
-        specifier: ^0.9.0
-        version: 0.9.0
+        specifier: ^0.10.2
+        version: 0.10.2
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -1215,8 +1215,8 @@ packages:
     resolution: {integrity: sha512-CQ+bEO+Tva/qlmw24dCejulK5pMzVnUOFOijVogd3KQs07HnRIgp8TGipvCCRT06xeYEbpbgwaCxglFyiuIcmA==}
     engines: {node: '>=18'}
 
-  get-tsconfig@4.13.6:
-    resolution: {integrity: sha512-shZT/QMiSHc/YBLxxOkMtgSid5HFoauqCE3/exfsEcwg1WkeqjG+V40yBbBrsD+jW2HDXcs28xOfcbm2jI8Ddw==}
+  get-tsconfig@4.13.7:
+    resolution: {integrity: sha512-7tN6rFgBlMgpBML5j8typ92BKFi2sFQvIdpAqLA2beia5avZDrMs0FLZiM5etShWq5irVyGcGMEA1jcDaK7A/Q==}
 
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
@@ -1829,8 +1829,8 @@ packages:
     resolution: {integrity: sha512-42AtmgqjV+X1VpdOfyTGOYRi0/zsoLqtXQckTmqTeybT+BDIbM/Guxo7x3pE2vtpr1ok6xRqM9OpBe+Jyoqyww==}
     engines: {node: '>=18'}
 
-  x-to-zod@0.9.0:
-    resolution: {integrity: sha512-ucnFpBt8P7OAzlFMmImMzoHwUmQPpYStHjXdNT6molZLth7IMBfEfQ800TTxZr377mmswX6FNdNRU1uTx/JQKg==}
+  x-to-zod@0.10.2:
+    resolution: {integrity: sha512-mZUDvL2fW2fWxkqP8FRBR6uZapmDqNgJwJI4DCm51RkxXK9Q0VNzvpSQxhRawmbRg8opwC+/5TlD1G+f5Mc2gg==}
     hasBin: true
 
   yaml@2.8.2:
@@ -2780,7 +2780,7 @@ snapshots:
 
   get-east-asian-width@1.5.0: {}
 
-  get-tsconfig@4.13.6:
+  get-tsconfig@4.13.7:
     dependencies:
       resolve-pkg-maps: 1.0.0
     optional: true
@@ -3252,7 +3252,7 @@ snapshots:
   tsx@4.21.0:
     dependencies:
       esbuild: 0.27.4
-      get-tsconfig: 4.13.6
+      get-tsconfig: 4.13.7
     optionalDependencies:
       fsevents: 2.3.3
     optional: true
@@ -3377,7 +3377,7 @@ snapshots:
       string-width: 7.2.0
       strip-ansi: 7.1.2
 
-  x-to-zod@0.9.0:
+  x-to-zod@0.10.2:
     dependencies:
       json-schema-typed: 8.0.2
 
