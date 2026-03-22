@@ -55,6 +55,8 @@
     "oxfmt": "^0.34.0",
     "oxlint": "^1.49.0",
     "simple-git-hooks": "^2.13.1",
+    "typedoc": "^0.28.17",
+    "typedoc-plugin-to-skills": "^0.3.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },
@@ -62,5 +64,5 @@
     "node": ">=20.0.0",
     "pnpm": ">=10.0.0"
   },
-  "packageManager": "pnpm@10.27.0"
+  "packageManager": "pnpm@10.32.0"
 }
