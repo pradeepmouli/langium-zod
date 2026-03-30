@@ -42,8 +42,8 @@ importers:
         specifier: ^4.11.0
         version: 4.11.0(typedoc@0.28.17(typescript@5.9.3))
       typedoc-plugin-to-skills:
-        specifier: ^0.3.2
-        version: 0.3.2(typedoc@0.28.17(typescript@5.9.3))
+        specifier: ^0.4.1
+        version: 0.4.1(typedoc@0.28.17(typescript@5.9.3))
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -778,11 +778,11 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  '@to-skills/core@0.4.1':
-    resolution: {integrity: sha512-u7Lb+mtfcDot+cWzMUKFz6Iu/KemdFAtQgSolR4oiPCkVVLl4y6K5kStWjZUhkVbgnXAPzPanmB6Y6e1QT5N7A==}
+  '@to-skills/core@0.4.2':
+    resolution: {integrity: sha512-Hn1d/YlG/MHRbf3wqafVNyJmjh82/h1y53h69/LMvD39MMzJ0zYgtonSYU/Af7z8Pv1ypOvrc5gvpqxHFkJylg==}
 
-  '@to-skills/typedoc@0.4.2':
-    resolution: {integrity: sha512-tAG1VJgBKo8Vu7pkWShbdr1X5+ERDLBJYJvVjx/Ti6YEsquS9yt0Ifc3t8HLzHEgkHj4k2j1SS5dwuTVqZ1INg==}
+  '@to-skills/typedoc@0.5.1':
+    resolution: {integrity: sha512-qykIs5YEvyS/2TqAMbuXfZ01sQtdCdAh2IMILxBEU7IL8Ys/+nqbG+tVhzGjbwdA6NthuHcPjnfMkM8kqziBqw==}
     peerDependencies:
       typedoc: '>=0.28.0'
 
@@ -1333,6 +1333,10 @@ packages:
     resolution: {integrity: sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==}
     engines: {node: '>=12'}
 
+  picomatch@4.0.4:
+    resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
+    engines: {node: '>=12'}
+
   pidtree@0.6.0:
     resolution: {integrity: sha512-eG2dWTVw5bzqGRztnHExczNxt5VGsE6OwTeCG3fdUf9KBsZzO3R5OIIIzWR+iZA0NtZ+RDVdaoE2dK1cn6jH4g==}
     engines: {node: '>=0.10'}
@@ -1526,8 +1530,8 @@ packages:
     peerDependencies:
       typedoc: 0.28.x
 
-  typedoc-plugin-to-skills@0.3.2:
-    resolution: {integrity: sha512-9ShpiBj7W2IM+XnSaZL/RDIDZmlgsngu01l/kE9LE/V4eTPzd0RCDuSCNCxlXIhTZ3cftf5DYynxGrLBDII9QQ==}
+  typedoc-plugin-to-skills@0.4.1:
+    resolution: {integrity: sha512-LSgTGoytJIm7fzDAy/c9ZW7rFqGFfdyzndd2u75UapR9kgwbKS1gW/yrdrP6ztkV9AWryuh81nzJkiErLbftyA==}
     peerDependencies:
       typedoc: '>=0.28.0'
 
@@ -2221,11 +2225,11 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@to-skills/core@0.4.1': {}
+  '@to-skills/core@0.4.2': {}
 
-  '@to-skills/typedoc@0.4.2(typedoc@0.28.17(typescript@5.9.3))':
+  '@to-skills/typedoc@0.5.1(typedoc@0.28.17(typescript@5.9.3))':
     dependencies:
-      '@to-skills/core': 0.4.1
+      '@to-skills/core': 0.4.2
       typedoc: 0.28.17(typescript@5.9.3)
 
   '@types/chai@5.2.3':
@@ -2479,6 +2483,10 @@ snapshots:
   fdir@6.5.0(picomatch@4.0.3):
     optionalDependencies:
       picomatch: 4.0.3
+
+  fdir@6.5.0(picomatch@4.0.4):
+    optionalDependencies:
+      picomatch: 4.0.4
 
   fflate@0.8.2: {}
 
@@ -2817,6 +2825,8 @@ snapshots:
 
   picomatch@4.0.3: {}
 
+  picomatch@4.0.4: {}
+
   pidtree@0.6.0: {}
 
   pify@4.0.1: {}
@@ -3001,9 +3011,9 @@ snapshots:
     dependencies:
       typedoc: 0.28.17(typescript@5.9.3)
 
-  typedoc-plugin-to-skills@0.3.2(typedoc@0.28.17(typescript@5.9.3)):
+  typedoc-plugin-to-skills@0.4.1(typedoc@0.28.17(typescript@5.9.3)):
     dependencies:
-      '@to-skills/typedoc': 0.4.2(typedoc@0.28.17(typescript@5.9.3))
+      '@to-skills/typedoc': 0.5.1(typedoc@0.28.17(typescript@5.9.3))
       typedoc: 0.28.17(typescript@5.9.3)
 
   typedoc@0.28.17(typescript@5.9.3):
@@ -3028,8 +3038,8 @@ snapshots:
   vite@7.3.1(@types/node@25.3.0)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2):
     dependencies:
       esbuild: 0.27.4
-      fdir: 6.5.0(picomatch@4.0.3)
-      picomatch: 4.0.3
+      fdir: 6.5.0(picomatch@4.0.4)
+      picomatch: 4.0.4
       postcss: 8.5.8
       rollup: 4.60.0
       tinyglobby: 0.2.15
