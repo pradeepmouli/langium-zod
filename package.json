@@ -69,7 +69,7 @@
     "oxfmt": "^0.34.0",
     "oxlint": "^1.49.0",
     "simple-git-hooks": "^2.13.1",
-    "typedoc": "^0.28.17",
+    "typedoc": "^0.28.18",
     "typedoc-plugin-markdown": "^4.11.0",
     "typedoc-plugin-to-skills": "^0.6.0",
     "typescript": "^5.9.3",
