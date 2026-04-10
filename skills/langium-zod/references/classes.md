@@ -1,6 +1,8 @@
 # Classes
 
-## `ZodGeneratorError`
+## errors
+
+### `ZodGeneratorError`
 *extends `Error`*
 ```ts
 constructor(message: string, options?: ZodGeneratorErrorOptions): ZodGeneratorError
@@ -15,13 +17,13 @@ will affect any stack trace captured _after_ the value has been changed.
 
 If set to a non-number value, or set to a negative number, stack traces will
 not capture any frames.
-- `grammarElement: string` (optional) — 
-- `typeName: string` (optional) — 
-- `suggestion: string` (optional) — 
-- `name: string` — 
-- `message: string` — 
-- `stack: string` (optional) — 
-- `cause: unknown` (optional) — 
+- `grammarElement: string` (optional)
+- `typeName: string` (optional)
+- `suggestion: string` (optional)
+- `name: string`
+- `message: string`
+- `stack: string` (optional)
+- `cause: unknown` (optional)
 **Methods:**
 - `isError(error: unknown): error is Error` — Indicates whether the argument provided is a built-in Error instance or not.
 - `captureStackTrace(targetObject: object, constructorOpt?: Function): void` — Creates a `.stack` property on `targetObject`, which when accessed returns
@@ -67,12 +69,14 @@ function c() {
 
 a();
 ```
-- `prepareStackTrace(err: Error, stackTraces: CallSite[]): any` — 
+- `prepareStackTrace(err: Error, stackTraces: CallSite[]): any`
 
-## `DefaultZodSchemaGenerator`
+## di
+
+### `DefaultZodSchemaGenerator`
 *implements `ZodSchemaGenerator`*
 ```ts
 constructor(services: LangiumCoreServices): DefaultZodSchemaGenerator
 ```
 **Methods:**
-- `generate(grammar: Grammar, config?: Partial<ZodGeneratorConfig>): string` — 
+- `generate(grammar: Grammar, config?: Partial<ZodGeneratorConfig>): string`

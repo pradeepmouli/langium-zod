@@ -1,24 +1,29 @@
 ---
 name: langium-zod
-description: "API reference for langium-zod Use when working with generateZodSchemas, extractTypeDescriptors, generateZodCode, detectRecursiveTypes, zRef, ZodGeneratorError, DefaultZodSchemaGenerator."
+description: "A Langium generator plugin that derives Zod validation schemas from grammar definitions, enabling runtime validation of AST nodes in Langium-based language tools"
 license: MIT
 ---
 
 # langium-zod
 
+A Langium generator plugin that derives Zod validation schemas from grammar definitions, enabling runtime validation of AST nodes in Langium-based language tools
+
 ## When to Use
 
-- Calling `generateZodSchemas()`, `extractTypeDescriptors()`, `generateZodCode()`, `detectRecursiveTypes()`, `zRef()`, and 4 more
-- Instantiating or extending `ZodGeneratorError`, `DefaultZodSchemaGenerator`
-- Typing with `FilterConfig`, `ZodGeneratorConfig`, `AstTypesLike`, `InterfaceTypeLike`, `PropertyLike`
-- Using constants/variables `DEFAULT_OUTPUT_PATH`, `ZodSchemaGeneratorModule`
+- API surface: 9 functions, 2 classes, 13 types, 2 constants
 
 ## Quick Reference
 
-**9 functions** — `generateZodSchemas`, `extractTypeDescriptors`, `generateZodCode`, `detectRecursiveTypes`, `zRef`, `resolveFilterOverrides`, `getUnknownFilterNames`, `generate`, `main`
-**2 classes** — `ZodGeneratorError`, `DefaultZodSchemaGenerator`
-**13 types** — `FilterConfig`, `ZodGeneratorConfig`, `AstTypesLike`, `InterfaceTypeLike`, `PropertyLike`, `UnionTypeLike`, `ZodPropertyDescriptor`, `ZodTypeDescriptor`, `ZodTypeExpression`, `ZodSchemaGenerator`, `ZodSchemaGeneratorServices`, `LangiumZodConfig`, `GenerateOptions`
-**2 variables** — `DEFAULT_OUTPUT_PATH`, `ZodSchemaGeneratorModule`
+**api:** `generateZodSchemas`
+**extractor:** `extractTypeDescriptors`
+**generator:** `generateZodCode`
+**recursion-detector:** `detectRecursiveTypes`
+**ref-utils:** `zRef`
+**cli:** `resolveFilterOverrides`, `getUnknownFilterNames`, `generate`, `main`, `LangiumZodConfig`, `GenerateOptions`
+**errors:** `ZodGeneratorError`
+**di:** `DefaultZodSchemaGenerator`, `ZodSchemaGenerator`, `ZodSchemaGeneratorServices`, `ZodSchemaGeneratorModule`
+**config:** `FilterConfig`, `ZodGeneratorConfig`, `DEFAULT_OUTPUT_PATH`
+**types:** `AstTypesLike`, `InterfaceTypeLike`, `PropertyLike`, `UnionTypeLike`, `ZodPropertyDescriptor`, `ZodTypeDescriptor`, `ZodTypeExpression`
 
 ## Links
 

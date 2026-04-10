@@ -8,7 +8,7 @@
 
 > **main**(): `Promise`\<`void`\>
 
-Defined in: [packages/langium-zod/src/cli.ts:298](https://github.com/pradeepmouli/langium-zod/blob/d6718272515c07b7b78477335d2b8b752ea98756/packages/langium-zod/src/cli.ts#L298)
+Defined in: [packages/langium-zod/src/cli.ts:298](https://github.com/pradeepmouli/langium-zod/blob/8fd659df780609212971daac7b7a5219f1e3211b/packages/langium-zod/src/cli.ts#L298)
 
 ## Returns
 

@@ -6,7 +6,7 @@
 
 # Interface: FilterConfig
 
-Defined in: [packages/langium-zod/src/config.ts:5](https://github.com/pradeepmouli/langium-zod/blob/d6718272515c07b7b78477335d2b8b752ea98756/packages/langium-zod/src/config.ts#L5)
+Defined in: [packages/langium-zod/src/config.ts:5](https://github.com/pradeepmouli/langium-zod/blob/8fd659df780609212971daac7b7a5219f1e3211b/packages/langium-zod/src/config.ts#L5)
 
 ## Extended by
 
@@ -18,7 +18,7 @@ Defined in: [packages/langium-zod/src/config.ts:5](https://github.com/pradeepmou
 
 > `optional` **exclude?**: `string`[]
 
-Defined in: [packages/langium-zod/src/config.ts:7](https://github.com/pradeepmouli/langium-zod/blob/d6718272515c07b7b78477335d2b8b752ea98756/packages/langium-zod/src/config.ts#L7)
+Defined in: [packages/langium-zod/src/config.ts:7](https://github.com/pradeepmouli/langium-zod/blob/8fd659df780609212971daac7b7a5219f1e3211b/packages/langium-zod/src/config.ts#L7)
 
 ***
 
@@ -26,4 +26,4 @@ Defined in: [packages/langium-zod/src/config.ts:7](https://github.com/pradeepmou
 
 > `optional` **include?**: `string`[]
 
-Defined in: [packages/langium-zod/src/config.ts:6](https://github.com/pradeepmouli/langium-zod/blob/d6718272515c07b7b78477335d2b8b752ea98756/packages/langium-zod/src/config.ts#L6)
+Defined in: [packages/langium-zod/src/config.ts:6](https://github.com/pradeepmouli/langium-zod/blob/8fd659df780609212971daac7b7a5219f1e3211b/packages/langium-zod/src/config.ts#L6)
