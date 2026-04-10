@@ -6,7 +6,7 @@
 
 # Interface: LangiumZodConfig
 
-Defined in: [packages/langium-zod/src/cli.ts:26](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/cli.ts#L26)
+Defined in: [packages/langium-zod/src/cli.ts:26](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/cli.ts#L26)
 
 User-facing config file shape (langium-zod.config.js / .ts)
 
@@ -20,7 +20,7 @@ User-facing config file shape (langium-zod.config.js / .ts)
 
 > `optional` **conformance?**: `object`
 
-Defined in: [packages/langium-zod/src/config.ts:18](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L18)
+Defined in: [packages/langium-zod/src/config.ts:40](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L40)
 
 #### astTypesPath?
 
@@ -40,7 +40,7 @@ Defined in: [packages/langium-zod/src/config.ts:18](https://github.com/pradeepmo
 
 > `optional` **crossRefValidation?**: `boolean`
 
-Defined in: [packages/langium-zod/src/config.ts:17](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L17)
+Defined in: [packages/langium-zod/src/config.ts:39](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L39)
 
 #### Inherited from
 
@@ -52,7 +52,7 @@ Defined in: [packages/langium-zod/src/config.ts:17](https://github.com/pradeepmo
 
 > `optional` **exclude?**: `string`[]
 
-Defined in: [packages/langium-zod/src/config.ts:7](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L7)
+Defined in: [packages/langium-zod/src/config.ts:16](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L16)
 
 #### Inherited from
 
@@ -64,7 +64,7 @@ Defined in: [packages/langium-zod/src/config.ts:7](https://github.com/pradeepmou
 
 > `optional` **formMetadata?**: `boolean`
 
-Defined in: [packages/langium-zod/src/config.ts:46](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L46)
+Defined in: [packages/langium-zod/src/config.ts:68](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L68)
 
 When `true`, emit `.meta({ title, description? })` on generated Zod schemas
 using humanized property/type names as `title` and JSDoc comments from the grammar
@@ -82,7 +82,7 @@ integrations that derive field labels from metadata.
 
 > `optional` **include?**: `string`[]
 
-Defined in: [packages/langium-zod/src/config.ts:6](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L6)
+Defined in: [packages/langium-zod/src/config.ts:15](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L15)
 
 #### Inherited from
 
@@ -94,7 +94,7 @@ Defined in: [packages/langium-zod/src/config.ts:6](https://github.com/pradeepmou
 
 > `optional` **langiumConfig?**: `string`
 
-Defined in: [packages/langium-zod/src/cli.ts:32](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/cli.ts#L32)
+Defined in: [packages/langium-zod/src/cli.ts:32](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/cli.ts#L32)
 
 Path to `langium-config.json`. Defaults to `langium-config.json` in cwd.
 Only used when picked up via the CLI; programmatic API ignores it.
@@ -105,7 +105,7 @@ Only used when picked up via the CLI; programmatic API ignores it.
 
 > `optional` **objectStyle?**: `"loose"` \| `"strict"`
 
-Defined in: [packages/langium-zod/src/config.ts:56](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L56)
+Defined in: [packages/langium-zod/src/config.ts:78](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L78)
 
 Controls how object schemas are emitted.
 - `'loose'` (default): emits `z.looseObject(...)` which allows extra properties to
@@ -125,7 +125,7 @@ Controls how object schemas are emitted.
 
 > `optional` **outputPath?**: `string`
 
-Defined in: [packages/langium-zod/src/cli.ts:34](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/cli.ts#L34)
+Defined in: [packages/langium-zod/src/cli.ts:34](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/cli.ts#L34)
 
 Explicit output path. Overrides derived path from langium-config.json `out` field.
 
@@ -139,7 +139,7 @@ Explicit output path. Overrides derived path from langium-config.json `out` fiel
 
 > `optional` **projection?**: `ProjectionConfig`
 
-Defined in: [packages/langium-zod/src/config.ts:15](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L15)
+Defined in: [packages/langium-zod/src/config.ts:37](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L37)
 
 #### Inherited from
 
@@ -151,7 +151,7 @@ Defined in: [packages/langium-zod/src/config.ts:15](https://github.com/pradeepmo
 
 > `optional` **regexOverrides?**: `Record`\<`string`, `string`\>
 
-Defined in: [packages/langium-zod/src/config.ts:38](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L38)
+Defined in: [packages/langium-zod/src/config.ts:60](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L60)
 
 Override the generated schema for specific type names.
 
@@ -179,7 +179,7 @@ regexOverrides: {
 
 > `optional` **stripInternals?**: `boolean`
 
-Defined in: [packages/langium-zod/src/config.ts:16](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L16)
+Defined in: [packages/langium-zod/src/config.ts:38](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L38)
 
 #### Inherited from
 

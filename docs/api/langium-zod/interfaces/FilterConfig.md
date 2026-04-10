@@ -6,7 +6,15 @@
 
 # Interface: FilterConfig
 
-Defined in: [packages/langium-zod/src/config.ts:5](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L5)
+Defined in: [packages/langium-zod/src/config.ts:14](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L14)
+
+Include/exclude filter that controls which Langium type names are emitted
+during schema generation.
+
+When `include` is non-empty, only the listed type names (and any stub types
+they reference) are generated. When `exclude` is non-empty, the listed names
+are skipped. If both are supplied, `exclude` takes precedence for names that
+appear in both lists. An empty (or omitted) `FilterConfig` emits all types.
 
 ## Extended by
 
@@ -18,7 +26,7 @@ Defined in: [packages/langium-zod/src/config.ts:5](https://github.com/pradeepmou
 
 > `optional` **exclude?**: `string`[]
 
-Defined in: [packages/langium-zod/src/config.ts:7](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L7)
+Defined in: [packages/langium-zod/src/config.ts:16](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L16)
 
 ***
 
@@ -26,4 +34,4 @@ Defined in: [packages/langium-zod/src/config.ts:7](https://github.com/pradeepmou
 
 > `optional` **include?**: `string`[]
 
-Defined in: [packages/langium-zod/src/config.ts:6](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L6)
+Defined in: [packages/langium-zod/src/config.ts:15](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L15)

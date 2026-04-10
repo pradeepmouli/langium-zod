@@ -19,6 +19,22 @@ function resolveAstTypes(astTypes: AstTypesLike): AstTypesLike {
 	};
 }
 
+/**
+ * Main entry point for programmatic Zod schema generation.
+ *
+ * Accepts a {@link ZodGeneratorConfig} that specifies either a parsed Langium
+ * {@link Grammar} object or a pre-built {@link AstTypesLike} descriptor, then runs
+ * the full extraction → projection → code-generation pipeline and returns the
+ * generated TypeScript source as a string. When `config.outputPath` is set the
+ * result is also written to disk. Conformance artifacts are generated when
+ * `config.conformance` is provided.
+ *
+ * @param config - Generator configuration including the grammar or AST types,
+ *   optional output path, include/exclude filters, and feature flags.
+ * @returns The generated TypeScript source containing all Zod schema exports.
+ * @throws {@link ZodGeneratorError} when required configuration is missing or a
+ *   grammar property type cannot be mapped to a Zod schema.
+ */
 export function generateZodSchemas(config: ZodGeneratorConfig): string {
 	let rawAstTypes: AstTypesLike;
 	if (config.astTypes) {

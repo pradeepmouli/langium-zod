@@ -6,7 +6,19 @@
 
 # Interface: ZodGeneratorConfig
 
-Defined in: [packages/langium-zod/src/config.ts:10](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L10)
+Defined in: [packages/langium-zod/src/config.ts:32](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L32)
+
+Full configuration object for [generateZodSchemas](../functions/generateZodSchemas.md).
+
+At least one of `grammar` or `astTypes` must be provided:
+- `grammar` — a parsed Langium `Grammar` AST (or array for multi-grammar
+  projects); the extractor calls Langium's `collectAst()` internally.
+- `astTypes` — a pre-built [AstTypesLike](AstTypesLike.md) descriptor, useful when the
+  caller already has the type model and wants to skip grammar parsing.
+
+All other fields are optional and control output path, include/exclude
+filtering, projection, strip-internals, cross-reference validation, conformance
+artifact generation, regex overrides, form metadata emission, and object style.
 
 ## Extends
 
@@ -18,7 +30,7 @@ Defined in: [packages/langium-zod/src/config.ts:10](https://github.com/pradeepmo
 
 > `optional` **astTypes?**: [`AstTypesLike`](AstTypesLike.md)
 
-Defined in: [packages/langium-zod/src/config.ts:14](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L14)
+Defined in: [packages/langium-zod/src/config.ts:36](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L36)
 
 ***
 
@@ -26,7 +38,7 @@ Defined in: [packages/langium-zod/src/config.ts:14](https://github.com/pradeepmo
 
 > `optional` **conformance?**: `object`
 
-Defined in: [packages/langium-zod/src/config.ts:18](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L18)
+Defined in: [packages/langium-zod/src/config.ts:40](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L40)
 
 #### astTypesPath?
 
@@ -42,7 +54,7 @@ Defined in: [packages/langium-zod/src/config.ts:18](https://github.com/pradeepmo
 
 > `optional` **crossRefValidation?**: `boolean`
 
-Defined in: [packages/langium-zod/src/config.ts:17](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L17)
+Defined in: [packages/langium-zod/src/config.ts:39](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L39)
 
 ***
 
@@ -50,7 +62,7 @@ Defined in: [packages/langium-zod/src/config.ts:17](https://github.com/pradeepmo
 
 > `optional` **exclude?**: `string`[]
 
-Defined in: [packages/langium-zod/src/config.ts:7](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L7)
+Defined in: [packages/langium-zod/src/config.ts:16](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L16)
 
 #### Inherited from
 
@@ -62,7 +74,7 @@ Defined in: [packages/langium-zod/src/config.ts:7](https://github.com/pradeepmou
 
 > `optional` **formMetadata?**: `boolean`
 
-Defined in: [packages/langium-zod/src/config.ts:46](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L46)
+Defined in: [packages/langium-zod/src/config.ts:68](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L68)
 
 When `true`, emit `.meta({ title, description? })` on generated Zod schemas
 using humanized property/type names as `title` and JSDoc comments from the grammar
@@ -76,7 +88,7 @@ integrations that derive field labels from metadata.
 
 > `optional` **grammar?**: `Grammar` \| `Grammar`[]
 
-Defined in: [packages/langium-zod/src/config.ts:11](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L11)
+Defined in: [packages/langium-zod/src/config.ts:33](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L33)
 
 ***
 
@@ -84,7 +96,7 @@ Defined in: [packages/langium-zod/src/config.ts:11](https://github.com/pradeepmo
 
 > `optional` **include?**: `string`[]
 
-Defined in: [packages/langium-zod/src/config.ts:6](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L6)
+Defined in: [packages/langium-zod/src/config.ts:15](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L15)
 
 #### Inherited from
 
@@ -96,7 +108,7 @@ Defined in: [packages/langium-zod/src/config.ts:6](https://github.com/pradeepmou
 
 > `optional` **objectStyle?**: `"loose"` \| `"strict"`
 
-Defined in: [packages/langium-zod/src/config.ts:56](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L56)
+Defined in: [packages/langium-zod/src/config.ts:78](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L78)
 
 Controls how object schemas are emitted.
 - `'loose'` (default): emits `z.looseObject(...)` which allows extra properties to
@@ -112,7 +124,7 @@ Controls how object schemas are emitted.
 
 > `optional` **outputPath?**: `string`
 
-Defined in: [packages/langium-zod/src/config.ts:13](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L13)
+Defined in: [packages/langium-zod/src/config.ts:35](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L35)
 
 ***
 
@@ -120,7 +132,7 @@ Defined in: [packages/langium-zod/src/config.ts:13](https://github.com/pradeepmo
 
 > `optional` **projection?**: `ProjectionConfig`
 
-Defined in: [packages/langium-zod/src/config.ts:15](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L15)
+Defined in: [packages/langium-zod/src/config.ts:37](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L37)
 
 ***
 
@@ -128,7 +140,7 @@ Defined in: [packages/langium-zod/src/config.ts:15](https://github.com/pradeepmo
 
 > `optional` **regexOverrides?**: `Record`\<`string`, `string`\>
 
-Defined in: [packages/langium-zod/src/config.ts:38](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L38)
+Defined in: [packages/langium-zod/src/config.ts:60](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L60)
 
 Override the generated schema for specific type names.
 
@@ -152,7 +164,7 @@ regexOverrides: {
 
 > `optional` **services?**: `LangiumCoreServices`
 
-Defined in: [packages/langium-zod/src/config.ts:12](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L12)
+Defined in: [packages/langium-zod/src/config.ts:34](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L34)
 
 ***
 
@@ -160,4 +172,4 @@ Defined in: [packages/langium-zod/src/config.ts:12](https://github.com/pradeepmo
 
 > `optional` **stripInternals?**: `boolean`
 
-Defined in: [packages/langium-zod/src/config.ts:16](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/config.ts#L16)
+Defined in: [packages/langium-zod/src/config.ts:38](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/config.ts#L38)

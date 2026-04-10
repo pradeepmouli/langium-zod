@@ -8,7 +8,20 @@
 
 > **detectRecursiveTypes**(`descriptors`): `Set`\<`string`\>
 
-Defined in: [packages/langium-zod/src/recursion-detector.ts:22](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/recursion-detector.ts#L22)
+Defined in: [packages/langium-zod/src/recursion-detector.ts:40](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/recursion-detector.ts#L40)
+
+Detects type names that participate in a reference cycle across the descriptor
+graph.
+
+Builds a directed graph where each object type descriptor is a node and each
+type reference in its properties is an edge. A depth-first search then
+identifies all nodes that belong to at least one cycle. The generator uses this
+set to emit getter-based property accessors instead of direct value expressions,
+avoiding JavaScript "used before declaration" errors for mutually-recursive Zod
+schemas.
+
+Only `'object'` kind descriptors are considered; union and primitive-alias
+descriptors are transparent to cycle detection.
 
 ## Parameters
 
@@ -16,6 +29,11 @@ Defined in: [packages/langium-zod/src/recursion-detector.ts:22](https://github.c
 
 [`ZodTypeDescriptor`](../type-aliases/ZodTypeDescriptor.md)[]
 
+The full list of type descriptors to analyse, as returned
+  by [extractTypeDescriptors](extractTypeDescriptors.md).
+
 ## Returns
 
 `Set`\<`string`\>
+
+A `Set` of type names that are involved in at least one reference cycle.

@@ -8,7 +8,13 @@
 
 > **ZodSchemaGeneratorServices** = `object`
 
-Defined in: [packages/langium-zod/src/di.ts:28](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/di.ts#L28)
+Defined in: [packages/langium-zod/src/di.ts:50](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/di.ts#L50)
+
+Langium DI service container shape for the langium-zod extension.
+
+Declares the `shared.ZodSchemaGenerator` slot so that TypeScript can type-check
+service access and module contributions without requiring a full Langium service
+registry at compile time.
 
 ## Properties
 
@@ -16,7 +22,7 @@ Defined in: [packages/langium-zod/src/di.ts:28](https://github.com/pradeepmouli/
 
 > **shared**: `object`
 
-Defined in: [packages/langium-zod/src/di.ts:29](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/di.ts#L29)
+Defined in: [packages/langium-zod/src/di.ts:51](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/di.ts#L51)
 
 #### ZodSchemaGenerator
 

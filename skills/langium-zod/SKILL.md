@@ -1,6 +1,6 @@
 ---
 name: langium-zod
-description: "A Langium generator plugin that derives Zod validation schemas from grammar definitions, enabling runtime validation of AST nodes in Langium-based language tools"
+description: "A Langium generator plugin that derives Zod validation schemas from grammar definitions, enabling runtime validation of AST nodes in Langium-based language tools Use when working with langium, zod, dsl, grammar, code-generation, validation, schema, parser, type-safe, ast."
 license: MIT
 ---
 
@@ -10,6 +10,7 @@ A Langium generator plugin that derives Zod validation schemas from grammar defi
 
 ## When to Use
 
+- Working with langium, zod, dsl, grammar, code-generation, validation, schema, parser, type-safe, ast
 - API surface: 9 functions, 2 classes, 13 types, 2 constants
 
 ## Quick Reference

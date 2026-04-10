@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "A Langium generator plugin that derives Zod validation schemas from grammar definitions, enabling runtime validation of AST nodes in Langium-based language tools",
+  "keywords": ["langium", "zod", "dsl", "grammar", "code-generation", "validation", "schema", "parser", "type-safe", "ast"],
   "type": "module",
   "author": "Pradeep Mouli <pmouli@mac.com>",
   "license": "MIT",

@@ -6,7 +6,22 @@
 
 # Class: ZodGeneratorError
 
-Defined in: [packages/langium-zod/src/errors.ts:8](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/errors.ts#L8)
+Defined in: [packages/langium-zod/src/errors.ts:24](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/errors.ts#L24)
+
+Custom error class thrown by the langium-zod code generator when it
+encounters a condition it cannot recover from.
+
+Carries optional structured context that pinpoints the source of the problem:
+- `typeName` — the Langium interface or union type being processed when the
+  error occurred.
+- `grammarElement` — the specific grammar property or rule element that
+  triggered the failure.
+- `suggestion` — a human-readable hint explaining how to fix the issue,
+  surfaced to the user in CLI output.
+
+The `name` property is always set to `'ZodGeneratorError'` so that error
+handlers can distinguish this class from generic `Error` instances without
+needing an `instanceof` check across module boundaries.
 
 ## Extends
 
@@ -18,7 +33,7 @@ Defined in: [packages/langium-zod/src/errors.ts:8](https://github.com/pradeepmou
 
 > **new ZodGeneratorError**(`message`, `options?`): `ZodGeneratorError`
 
-Defined in: [packages/langium-zod/src/errors.ts:13](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/errors.ts#L13)
+Defined in: [packages/langium-zod/src/errors.ts:29](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/errors.ts#L29)
 
 #### Parameters
 
@@ -56,7 +71,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` `optional` **grammarElement?**: `string`
 
-Defined in: [packages/langium-zod/src/errors.ts:9](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/errors.ts#L9)
+Defined in: [packages/langium-zod/src/errors.ts:25](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/errors.ts#L25)
 
 ***
 
@@ -100,7 +115,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` `optional` **suggestion?**: `string`
 
-Defined in: [packages/langium-zod/src/errors.ts:11](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/errors.ts#L11)
+Defined in: [packages/langium-zod/src/errors.ts:27](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/errors.ts#L27)
 
 ***
 
@@ -108,7 +123,7 @@ Defined in: [packages/langium-zod/src/errors.ts:11](https://github.com/pradeepmo
 
 > `readonly` `optional` **typeName?**: `string`
 
-Defined in: [packages/langium-zod/src/errors.ts:10](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/errors.ts#L10)
+Defined in: [packages/langium-zod/src/errors.ts:26](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/errors.ts#L26)
 
 ***
 

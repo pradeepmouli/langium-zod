@@ -6,7 +6,19 @@
 
 # Interface: ZodPropertyDescriptor
 
-Defined in: [packages/langium-zod/src/types.ts:12](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L12)
+Defined in: [packages/langium-zod/src/types.ts:40](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L40)
+
+Describes a single property of a Langium interface type after extraction,
+capturing all information the code generator needs to emit a Zod property
+expression.
+
+- `name` — property name as it appears in the grammar (e.g. `"elements"`).
+- `zodType` — the resolved [ZodTypeExpression](../type-aliases/ZodTypeExpression.md) for this property.
+- `optional` — `true` when the grammar uses `?=` assignment or marks the
+  property as optional.
+- `minItems` — minimum array length when the grammar uses `+=` with `+`
+  cardinality (emits `.min(1)`); `undefined` for all other cases.
+- `comment` — JSDoc/grammar comment to propagate into form metadata, if any.
 
 ## Properties
 
@@ -14,7 +26,7 @@ Defined in: [packages/langium-zod/src/types.ts:12](https://github.com/pradeepmou
 
 > `optional` **comment?**: `string`
 
-Defined in: [packages/langium-zod/src/types.ts:17](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L17)
+Defined in: [packages/langium-zod/src/types.ts:45](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L45)
 
 ***
 
@@ -22,7 +34,7 @@ Defined in: [packages/langium-zod/src/types.ts:17](https://github.com/pradeepmou
 
 > `optional` **minItems?**: `number`
 
-Defined in: [packages/langium-zod/src/types.ts:16](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L16)
+Defined in: [packages/langium-zod/src/types.ts:44](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L44)
 
 ***
 
@@ -30,7 +42,7 @@ Defined in: [packages/langium-zod/src/types.ts:16](https://github.com/pradeepmou
 
 > **name**: `string`
 
-Defined in: [packages/langium-zod/src/types.ts:13](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L13)
+Defined in: [packages/langium-zod/src/types.ts:41](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L41)
 
 ***
 
@@ -38,7 +50,7 @@ Defined in: [packages/langium-zod/src/types.ts:13](https://github.com/pradeepmou
 
 > **optional**: `boolean`
 
-Defined in: [packages/langium-zod/src/types.ts:15](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L15)
+Defined in: [packages/langium-zod/src/types.ts:43](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L43)
 
 ***
 
@@ -46,4 +58,4 @@ Defined in: [packages/langium-zod/src/types.ts:15](https://github.com/pradeepmou
 
 > **zodType**: [`ZodTypeExpression`](../type-aliases/ZodTypeExpression.md)
 
-Defined in: [packages/langium-zod/src/types.ts:14](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L14)
+Defined in: [packages/langium-zod/src/types.ts:42](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L42)

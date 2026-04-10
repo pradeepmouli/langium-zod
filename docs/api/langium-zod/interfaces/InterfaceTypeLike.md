@@ -6,7 +6,12 @@
 
 # Interface: InterfaceTypeLike
 
-Defined in: [packages/langium-zod/src/types.ts:64](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L64)
+Defined in: [packages/langium-zod/src/types.ts:103](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L103)
+
+Duck-typed representation of a Langium `InterfaceType`, carrying only the fields
+that langium-zod needs. Using this abstraction instead of Langium's concrete
+class keeps the extractor decoupled from Langium's internal AST model and makes
+unit testing easier via plain object stubs.
 
 ## Properties
 
@@ -14,7 +19,7 @@ Defined in: [packages/langium-zod/src/types.ts:64](https://github.com/pradeepmou
 
 > `optional` **comment?**: `string`
 
-Defined in: [packages/langium-zod/src/types.ts:68](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L68)
+Defined in: [packages/langium-zod/src/types.ts:107](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L107)
 
 ***
 
@@ -22,7 +27,7 @@ Defined in: [packages/langium-zod/src/types.ts:68](https://github.com/pradeepmou
 
 > **name**: `string`
 
-Defined in: [packages/langium-zod/src/types.ts:65](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L65)
+Defined in: [packages/langium-zod/src/types.ts:104](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L104)
 
 ***
 
@@ -30,7 +35,7 @@ Defined in: [packages/langium-zod/src/types.ts:65](https://github.com/pradeepmou
 
 > `optional` **properties?**: [`PropertyLike`](PropertyLike.md)[]
 
-Defined in: [packages/langium-zod/src/types.ts:66](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L66)
+Defined in: [packages/langium-zod/src/types.ts:105](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L105)
 
 ***
 
@@ -38,4 +43,4 @@ Defined in: [packages/langium-zod/src/types.ts:66](https://github.com/pradeepmou
 
 > `optional` **superTypes?**: `string`[] \| `Set`\<`string`\>
 
-Defined in: [packages/langium-zod/src/types.ts:67](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L67)
+Defined in: [packages/langium-zod/src/types.ts:106](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L106)

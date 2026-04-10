@@ -6,7 +6,14 @@
 
 # Interface: ZodSchemaGenerator
 
-Defined in: [packages/langium-zod/src/di.ts:5](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/di.ts#L5)
+Defined in: [packages/langium-zod/src/di.ts:13](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/di.ts#L13)
+
+Service interface for generating Zod schemas from a parsed Langium grammar.
+
+Implemented by [DefaultZodSchemaGenerator](../classes/DefaultZodSchemaGenerator.md) and registered in the Langium
+dependency-injection container via [ZodSchemaGeneratorModule](../variables/ZodSchemaGeneratorModule.md). Consumers
+that obtain Langium services through the standard DI mechanism can retrieve this
+service from `services.shared.ZodSchemaGenerator`.
 
 ## Methods
 
@@ -14,7 +21,7 @@ Defined in: [packages/langium-zod/src/di.ts:5](https://github.com/pradeepmouli/l
 
 > **generate**(`grammar`, `config?`): `string`
 
-Defined in: [packages/langium-zod/src/di.ts:6](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/di.ts#L6)
+Defined in: [packages/langium-zod/src/di.ts:14](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/di.ts#L14)
 
 #### Parameters
 

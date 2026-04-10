@@ -6,7 +6,13 @@
 
 # Class: DefaultZodSchemaGenerator
 
-Defined in: [packages/langium-zod/src/di.ts:9](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/di.ts#L9)
+Defined in: [packages/langium-zod/src/di.ts:24](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/di.ts#L24)
+
+Default implementation of [ZodSchemaGenerator](../interfaces/ZodSchemaGenerator.md).
+
+Wraps the top-level [generateZodSchemas](../functions/generateZodSchemas.md) function and injects the
+`LangiumCoreServices` instance provided by the DI container, so callers do not
+need to pass services manually on every invocation.
 
 ## Implements
 
@@ -18,7 +24,7 @@ Defined in: [packages/langium-zod/src/di.ts:9](https://github.com/pradeepmouli/l
 
 > **new DefaultZodSchemaGenerator**(`services`): `DefaultZodSchemaGenerator`
 
-Defined in: [packages/langium-zod/src/di.ts:12](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/di.ts#L12)
+Defined in: [packages/langium-zod/src/di.ts:27](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/di.ts#L27)
 
 #### Parameters
 
@@ -36,7 +42,7 @@ Defined in: [packages/langium-zod/src/di.ts:12](https://github.com/pradeepmouli/
 
 > **generate**(`grammar`, `config?`): `string`
 
-Defined in: [packages/langium-zod/src/di.ts:16](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/di.ts#L16)
+Defined in: [packages/langium-zod/src/di.ts:31](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/di.ts#L31)
 
 #### Parameters
 

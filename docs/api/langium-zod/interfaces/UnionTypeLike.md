@@ -6,7 +6,13 @@
 
 # Interface: UnionTypeLike
 
-Defined in: [packages/langium-zod/src/types.ts:71](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L71)
+Defined in: [packages/langium-zod/src/types.ts:117](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L117)
+
+Duck-typed representation of a Langium `UnionType` (including datatype rules
+that alias primitives or terminal regex patterns). The `type` field holds the
+raw Langium type-model node and is inspected structurally by the extractor to
+classify the union as a keyword-enum, regex-enum, discriminated-union, or
+primitive alias.
 
 ## Properties
 
@@ -14,7 +20,7 @@ Defined in: [packages/langium-zod/src/types.ts:71](https://github.com/pradeepmou
 
 > `optional` **members?**: `string`[]
 
-Defined in: [packages/langium-zod/src/types.ts:74](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L74)
+Defined in: [packages/langium-zod/src/types.ts:120](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L120)
 
 ***
 
@@ -22,7 +28,7 @@ Defined in: [packages/langium-zod/src/types.ts:74](https://github.com/pradeepmou
 
 > **name**: `string`
 
-Defined in: [packages/langium-zod/src/types.ts:72](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L72)
+Defined in: [packages/langium-zod/src/types.ts:118](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L118)
 
 ***
 
@@ -30,4 +36,4 @@ Defined in: [packages/langium-zod/src/types.ts:72](https://github.com/pradeepmou
 
 > `optional` **type?**: `unknown`
 
-Defined in: [packages/langium-zod/src/types.ts:73](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L73)
+Defined in: [packages/langium-zod/src/types.ts:119](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L119)

@@ -8,4 +8,8 @@
 
 > **ZodTypeDescriptor** = `ZodObjectTypeDescriptor` \| `ZodUnionTypeDescriptor` \| `ZodPrimitiveAliasDescriptor` \| `ZodKeywordEnumDescriptor` \| `ZodRegexEnumDescriptor`
 
-Defined in: [packages/langium-zod/src/types.ts:62](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/types.ts#L62)
+Defined in: [packages/langium-zod/src/types.ts:95](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L95)
+
+Union of all type descriptor shapes that the extractor can produce and the
+code generator can consume. Each variant carries a discriminating `kind` field:
+`'object'`, `'union'`, `'primitive-alias'`, `'keyword-enum'`, or `'regex-enum'`.

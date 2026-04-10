@@ -8,7 +8,15 @@
 
 > **generate**(`opts`): `Promise`\<`void`\>
 
-Defined in: [packages/langium-zod/src/cli.ts:202](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/cli.ts#L202)
+Defined in: [packages/langium-zod/src/cli.ts:254](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/cli.ts#L254)
+
+Programmatic entry point for the `langium-zod generate` command.
+
+Loads `langium-config.json` from `opts.langiumConfigPath`, resolves the grammar
+file path, parses the grammar with Langium services (including eager import
+loading so cross-file references link correctly), then calls
+[generateZodSchemas](../../langium-zod/functions/generateZodSchemas.md) with the merged configuration. Prints a success
+message to stdout when generation completes.
 
 ## Parameters
 
@@ -16,6 +24,14 @@ Defined in: [packages/langium-zod/src/cli.ts:202](https://github.com/pradeepmoul
 
 [`GenerateOptions`](../interfaces/GenerateOptions.md)
 
+[GenerateOptions](../interfaces/GenerateOptions.md) specifying the langium config path and
+  optional pre-merged generator config.
+
 ## Returns
 
 `Promise`\<`void`\>
+
+## Throws
+
+`Error` when the langium-config.json or grammar file cannot be found, or
+  when the config defines no languages.
