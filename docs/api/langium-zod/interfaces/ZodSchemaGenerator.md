@@ -6,7 +6,7 @@
 
 # Interface: ZodSchemaGenerator
 
-Defined in: [packages/langium-zod/src/di.ts:5](https://github.com/pradeepmouli/langium-zod/blob/8fd659df780609212971daac7b7a5219f1e3211b/packages/langium-zod/src/di.ts#L5)
+Defined in: [packages/langium-zod/src/di.ts:5](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/di.ts#L5)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [packages/langium-zod/src/di.ts:5](https://github.com/pradeepmouli/l
 
 > **generate**(`grammar`, `config?`): `string`
 
-Defined in: [packages/langium-zod/src/di.ts:6](https://github.com/pradeepmouli/langium-zod/blob/8fd659df780609212971daac7b7a5219f1e3211b/packages/langium-zod/src/di.ts#L6)
+Defined in: [packages/langium-zod/src/di.ts:6](https://github.com/pradeepmouli/langium-zod/blob/7d83c2f151cd9ce940900d6e01f9f7b8a4576b19/packages/langium-zod/src/di.ts#L6)
 
 #### Parameters
 
