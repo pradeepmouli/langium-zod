@@ -8,7 +8,7 @@
 
 > **resolveFilterOverrides**(`base`, `includeArg?`, `excludeArg?`): `Pick`\<[`LangiumZodConfig`](../interfaces/LangiumZodConfig.md), `"include"` \| `"exclude"`\>
 
-Defined in: [packages/langium-zod/src/cli.ts:91](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/cli.ts#L91)
+Defined in: [packages/langium-zod/src/cli.ts:91](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/cli.ts#L91)
 
 Merges CLI `--include` / `--exclude` flag values with the base filter from a
 user config file, producing a deduplicated, conflict-free filter pair.

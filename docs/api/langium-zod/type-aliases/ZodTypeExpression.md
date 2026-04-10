@@ -8,7 +8,7 @@
 
 > **ZodTypeExpression** = \{ `kind`: `"primitive"`; `primitive`: `ZodPrimitive`; \} \| \{ `kind`: `"literal"`; `value`: `string`; \} \| \{ `kind`: `"reference"`; `typeName`: `string`; \} \| \{ `element`: `ZodTypeExpression`; `kind`: `"array"`; \} \| \{ `kind`: `"crossReference"`; `targetType`: `string`; \} \| \{ `kind`: `"union"`; `members`: `ZodTypeExpression`[]; \} \| \{ `inner`: `ZodTypeExpression`; `kind`: `"lazy"`; \}
 
-Defined in: [packages/langium-zod/src/types.ts:18](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L18)
+Defined in: [packages/langium-zod/src/types.ts:18](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L18)
 
 A discriminated union that represents a single Zod type node in the descriptor
 tree produced by the extractor and consumed by the code generator.

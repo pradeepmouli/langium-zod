@@ -6,7 +6,7 @@
 
 # Interface: PropertyLike
 
-Defined in: [packages/langium-zod/src/types.ts:135](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L135)
+Defined in: [packages/langium-zod/src/types.ts:135](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L135)
 
 Duck-typed representation of a single property within a Langium `InterfaceType`.
 
@@ -25,7 +25,7 @@ type expression, optionality, and array cardinality for a property:
 
 > `optional` **assignment?**: `"="` \| `"+="` \| `"?="`
 
-Defined in: [packages/langium-zod/src/types.ts:140](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L140)
+Defined in: [packages/langium-zod/src/types.ts:140](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L140)
 
 ***
 
@@ -33,7 +33,7 @@ Defined in: [packages/langium-zod/src/types.ts:140](https://github.com/pradeepmo
 
 > `optional` **cardinality?**: `"*"` \| `"+"` \| `"?"`
 
-Defined in: [packages/langium-zod/src/types.ts:141](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L141)
+Defined in: [packages/langium-zod/src/types.ts:141](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L141)
 
 ***
 
@@ -41,7 +41,7 @@ Defined in: [packages/langium-zod/src/types.ts:141](https://github.com/pradeepmo
 
 > `optional` **comment?**: `string`
 
-Defined in: [packages/langium-zod/src/types.ts:145](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L145)
+Defined in: [packages/langium-zod/src/types.ts:145](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L145)
 
 ***
 
@@ -49,7 +49,7 @@ Defined in: [packages/langium-zod/src/types.ts:145](https://github.com/pradeepmo
 
 > `optional` **isCrossRef?**: `boolean`
 
-Defined in: [packages/langium-zod/src/types.ts:143](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L143)
+Defined in: [packages/langium-zod/src/types.ts:143](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L143)
 
 ***
 
@@ -57,7 +57,7 @@ Defined in: [packages/langium-zod/src/types.ts:143](https://github.com/pradeepmo
 
 > **name**: `string`
 
-Defined in: [packages/langium-zod/src/types.ts:136](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L136)
+Defined in: [packages/langium-zod/src/types.ts:136](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L136)
 
 ***
 
@@ -65,7 +65,7 @@ Defined in: [packages/langium-zod/src/types.ts:136](https://github.com/pradeepmo
 
 > `optional` **operator?**: `"="` \| `"+="` \| `"?="`
 
-Defined in: [packages/langium-zod/src/types.ts:139](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L139)
+Defined in: [packages/langium-zod/src/types.ts:139](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L139)
 
 ***
 
@@ -73,7 +73,7 @@ Defined in: [packages/langium-zod/src/types.ts:139](https://github.com/pradeepmo
 
 > `optional` **optional?**: `boolean`
 
-Defined in: [packages/langium-zod/src/types.ts:138](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L138)
+Defined in: [packages/langium-zod/src/types.ts:138](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L138)
 
 ***
 
@@ -81,7 +81,7 @@ Defined in: [packages/langium-zod/src/types.ts:138](https://github.com/pradeepmo
 
 > `optional` **referenceType?**: `string`
 
-Defined in: [packages/langium-zod/src/types.ts:144](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L144)
+Defined in: [packages/langium-zod/src/types.ts:144](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L144)
 
 ***
 
@@ -89,7 +89,7 @@ Defined in: [packages/langium-zod/src/types.ts:144](https://github.com/pradeepmo
 
 > `optional` **ruleCall?**: `object`
 
-Defined in: [packages/langium-zod/src/types.ts:142](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L142)
+Defined in: [packages/langium-zod/src/types.ts:142](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L142)
 
 #### cardinality?
 
@@ -101,4 +101,4 @@ Defined in: [packages/langium-zod/src/types.ts:142](https://github.com/pradeepmo
 
 > `optional` **type?**: `unknown`
 
-Defined in: [packages/langium-zod/src/types.ts:137](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L137)
+Defined in: [packages/langium-zod/src/types.ts:137](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L137)

@@ -6,7 +6,7 @@
 
 # Interface: InterfaceTypeLike
 
-Defined in: [packages/langium-zod/src/types.ts:103](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L103)
+Defined in: [packages/langium-zod/src/types.ts:103](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L103)
 
 Duck-typed representation of a Langium `InterfaceType`, carrying only the fields
 that langium-zod needs. Using this abstraction instead of Langium's concrete
@@ -19,7 +19,7 @@ unit testing easier via plain object stubs.
 
 > `optional` **comment?**: `string`
 
-Defined in: [packages/langium-zod/src/types.ts:107](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L107)
+Defined in: [packages/langium-zod/src/types.ts:107](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L107)
 
 ***
 
@@ -27,7 +27,7 @@ Defined in: [packages/langium-zod/src/types.ts:107](https://github.com/pradeepmo
 
 > **name**: `string`
 
-Defined in: [packages/langium-zod/src/types.ts:104](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L104)
+Defined in: [packages/langium-zod/src/types.ts:104](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L104)
 
 ***
 
@@ -35,7 +35,7 @@ Defined in: [packages/langium-zod/src/types.ts:104](https://github.com/pradeepmo
 
 > `optional` **properties?**: [`PropertyLike`](PropertyLike.md)[]
 
-Defined in: [packages/langium-zod/src/types.ts:105](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L105)
+Defined in: [packages/langium-zod/src/types.ts:105](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L105)
 
 ***
 
@@ -43,4 +43,4 @@ Defined in: [packages/langium-zod/src/types.ts:105](https://github.com/pradeepmo
 
 > `optional` **superTypes?**: `string`[] \| `Set`\<`string`\>
 
-Defined in: [packages/langium-zod/src/types.ts:106](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L106)
+Defined in: [packages/langium-zod/src/types.ts:106](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L106)

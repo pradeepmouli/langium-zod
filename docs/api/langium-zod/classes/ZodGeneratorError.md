@@ -6,7 +6,7 @@
 
 # Class: ZodGeneratorError
 
-Defined in: [packages/langium-zod/src/errors.ts:24](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/errors.ts#L24)
+Defined in: [packages/langium-zod/src/errors.ts:24](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/errors.ts#L24)
 
 Custom error class thrown by the langium-zod code generator when it
 encounters a condition it cannot recover from.
@@ -33,7 +33,7 @@ needing an `instanceof` check across module boundaries.
 
 > **new ZodGeneratorError**(`message`, `options?`): `ZodGeneratorError`
 
-Defined in: [packages/langium-zod/src/errors.ts:29](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/errors.ts#L29)
+Defined in: [packages/langium-zod/src/errors.ts:29](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/errors.ts#L29)
 
 #### Parameters
 
@@ -71,7 +71,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` `optional` **grammarElement?**: `string`
 
-Defined in: [packages/langium-zod/src/errors.ts:25](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/errors.ts#L25)
+Defined in: [packages/langium-zod/src/errors.ts:25](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/errors.ts#L25)
 
 ***
 
@@ -115,7 +115,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` `optional` **suggestion?**: `string`
 
-Defined in: [packages/langium-zod/src/errors.ts:27](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/errors.ts#L27)
+Defined in: [packages/langium-zod/src/errors.ts:27](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/errors.ts#L27)
 
 ***
 
@@ -123,7 +123,7 @@ Defined in: [packages/langium-zod/src/errors.ts:27](https://github.com/pradeepmo
 
 > `readonly` `optional` **typeName?**: `string`
 
-Defined in: [packages/langium-zod/src/errors.ts:26](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/errors.ts#L26)
+Defined in: [packages/langium-zod/src/errors.ts:26](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/errors.ts#L26)
 
 ***
 

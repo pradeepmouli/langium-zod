@@ -6,7 +6,7 @@
 
 # Interface: GenerateOptions
 
-Defined in: [packages/langium-zod/src/cli.ts:233](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/cli.ts#L233)
+Defined in: [packages/langium-zod/src/cli.ts:233](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/cli.ts#L233)
 
 Options accepted by the programmatic [generate](../functions/generate.md) function.
 
@@ -19,7 +19,7 @@ scripts without going through the CLI argument parser.
 
 > `optional` **config?**: [`LangiumZodConfig`](LangiumZodConfig.md)
 
-Defined in: [packages/langium-zod/src/cli.ts:237](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/cli.ts#L237)
+Defined in: [packages/langium-zod/src/cli.ts:237](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/cli.ts#L237)
 
 Merged generator config (from user's langium-zod.config.js + CLI flags)
 
@@ -29,6 +29,6 @@ Merged generator config (from user's langium-zod.config.js + CLI flags)
 
 > **langiumConfigPath**: `string`
 
-Defined in: [packages/langium-zod/src/cli.ts:235](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/cli.ts#L235)
+Defined in: [packages/langium-zod/src/cli.ts:235](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/cli.ts#L235)
 
 Absolute path to langium-config.json

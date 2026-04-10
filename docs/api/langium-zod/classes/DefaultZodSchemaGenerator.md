@@ -6,7 +6,7 @@
 
 # Class: DefaultZodSchemaGenerator
 
-Defined in: [packages/langium-zod/src/di.ts:24](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/di.ts#L24)
+Defined in: [packages/langium-zod/src/di.ts:24](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/di.ts#L24)
 
 Default implementation of [ZodSchemaGenerator](../interfaces/ZodSchemaGenerator.md).
 
@@ -24,7 +24,7 @@ need to pass services manually on every invocation.
 
 > **new DefaultZodSchemaGenerator**(`services`): `DefaultZodSchemaGenerator`
 
-Defined in: [packages/langium-zod/src/di.ts:27](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/di.ts#L27)
+Defined in: [packages/langium-zod/src/di.ts:27](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/di.ts#L27)
 
 #### Parameters
 
@@ -42,7 +42,7 @@ Defined in: [packages/langium-zod/src/di.ts:27](https://github.com/pradeepmouli/
 
 > **generate**(`grammar`, `config?`): `string`
 
-Defined in: [packages/langium-zod/src/di.ts:31](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/di.ts#L31)
+Defined in: [packages/langium-zod/src/di.ts:31](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/di.ts#L31)
 
 #### Parameters
 

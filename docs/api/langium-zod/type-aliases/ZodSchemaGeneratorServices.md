@@ -8,7 +8,7 @@
 
 > **ZodSchemaGeneratorServices** = `object`
 
-Defined in: [packages/langium-zod/src/di.ts:50](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/di.ts#L50)
+Defined in: [packages/langium-zod/src/di.ts:50](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/di.ts#L50)
 
 Langium DI service container shape for the langium-zod extension.
 
@@ -22,7 +22,7 @@ registry at compile time.
 
 > **shared**: `object`
 
-Defined in: [packages/langium-zod/src/di.ts:51](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/di.ts#L51)
+Defined in: [packages/langium-zod/src/di.ts:51](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/di.ts#L51)
 
 #### ZodSchemaGenerator
 

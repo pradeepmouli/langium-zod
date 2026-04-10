@@ -8,7 +8,7 @@
 
 > **detectRecursiveTypes**(`descriptors`): `Set`\<`string`\>
 
-Defined in: [packages/langium-zod/src/recursion-detector.ts:40](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/recursion-detector.ts#L40)
+Defined in: [packages/langium-zod/src/recursion-detector.ts:40](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/recursion-detector.ts#L40)
 
 Detects type names that participate in a reference cycle across the descriptor
 graph.

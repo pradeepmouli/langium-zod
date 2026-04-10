@@ -6,7 +6,7 @@
 
 # Interface: UnionTypeLike
 
-Defined in: [packages/langium-zod/src/types.ts:117](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L117)
+Defined in: [packages/langium-zod/src/types.ts:117](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L117)
 
 Duck-typed representation of a Langium `UnionType` (including datatype rules
 that alias primitives or terminal regex patterns). The `type` field holds the
@@ -20,7 +20,7 @@ primitive alias.
 
 > `optional` **members?**: `string`[]
 
-Defined in: [packages/langium-zod/src/types.ts:120](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L120)
+Defined in: [packages/langium-zod/src/types.ts:120](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L120)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [packages/langium-zod/src/types.ts:120](https://github.com/pradeepmo
 
 > **name**: `string`
 
-Defined in: [packages/langium-zod/src/types.ts:118](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L118)
+Defined in: [packages/langium-zod/src/types.ts:118](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L118)
 
 ***
 
@@ -36,4 +36,4 @@ Defined in: [packages/langium-zod/src/types.ts:118](https://github.com/pradeepmo
 
 > `optional` **type?**: `unknown`
 
-Defined in: [packages/langium-zod/src/types.ts:119](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/types.ts#L119)
+Defined in: [packages/langium-zod/src/types.ts:119](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/types.ts#L119)

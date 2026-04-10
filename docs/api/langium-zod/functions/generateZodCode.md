@@ -8,7 +8,7 @@
 
 > **generateZodCode**(`descriptors`, `recursiveTypes`, `options?`): `string`
 
-Defined in: [packages/langium-zod/src/generator.ts:265](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/generator.ts#L265)
+Defined in: [packages/langium-zod/src/generator.ts:265](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/generator.ts#L265)
 
 Generates a TypeScript source string containing Zod schema exports for all
 provided type descriptors.

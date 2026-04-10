@@ -8,7 +8,7 @@
 
 > **generate**(`opts`): `Promise`\<`void`\>
 
-Defined in: [packages/langium-zod/src/cli.ts:254](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/cli.ts#L254)
+Defined in: [packages/langium-zod/src/cli.ts:254](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/cli.ts#L254)
 
 Programmatic entry point for the `langium-zod generate` command.
 

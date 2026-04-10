@@ -8,7 +8,7 @@
 
 > **getUnknownFilterNames**(`requested`, `availableTypeNames`): `string`[]
 
-Defined in: [packages/langium-zod/src/cli.ts:144](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/cli.ts#L144)
+Defined in: [packages/langium-zod/src/cli.ts:144](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/cli.ts#L144)
 
 Returns the subset of `requested` names that are not present in
 `availableTypeNames`.

@@ -8,7 +8,7 @@
 
 > **extractTypeDescriptors**(`astTypes`, `config?`): [`ZodTypeDescriptor`](../type-aliases/ZodTypeDescriptor.md)[]
 
-Defined in: [packages/langium-zod/src/extractor.ts:328](https://github.com/pradeepmouli/langium-zod/blob/a8107a97ff90f2682446b99d409a99ea05b059dc/packages/langium-zod/src/extractor.ts#L328)
+Defined in: [packages/langium-zod/src/extractor.ts:328](https://github.com/pradeepmouli/langium-zod/blob/fd214dfbfc75ce9ead8cac3a806267879de59eb4/packages/langium-zod/src/extractor.ts#L328)
 
 Extracts [ZodTypeDescriptor](../type-aliases/ZodTypeDescriptor.md) records from a Langium grammar's type model.
 
