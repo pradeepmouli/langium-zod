@@ -19,6 +19,24 @@ function propertyReferences(property: ZodPropertyDescriptor): string[] {
 	return collectReferenceTypeNames(property.zodType);
 }
 
+/**
+ * Detects type names that participate in a reference cycle across the descriptor
+ * graph.
+ *
+ * Builds a directed graph where each object type descriptor is a node and each
+ * type reference in its properties is an edge. A depth-first search then
+ * identifies all nodes that belong to at least one cycle. The generator uses this
+ * set to emit getter-based property accessors instead of direct value expressions,
+ * avoiding JavaScript "used before declaration" errors for mutually-recursive Zod
+ * schemas.
+ *
+ * Only `'object'` kind descriptors are considered; union and primitive-alias
+ * descriptors are transparent to cycle detection.
+ *
+ * @param descriptors - The full list of type descriptors to analyse, as returned
+ *   by {@link extractTypeDescriptors}.
+ * @returns A `Set` of type names that are involved in at least one reference cycle.
+ */
 export function detectRecursiveTypes(descriptors: ZodTypeDescriptor[]): Set<string> {
 	const edges = new Map<string, Set<string>>();
 

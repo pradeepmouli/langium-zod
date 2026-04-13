@@ -237,6 +237,31 @@ function collectReferenceTypeNames(expression: ZodTypeExpression): string[] {
 	}
 }
 
+/**
+ * Generates a TypeScript source string containing Zod schema exports for all
+ * provided type descriptors.
+ *
+ * Emission order is:
+ * 1. Keyword-enum schemas (`z.literal` / `z.union([z.literal(...)])`)
+ * 2. Regex-enum schemas (`z.string().regex(...)`)
+ * 3. Primitive-alias schemas (`z.string()`, `z.number()`, etc.)
+ * 4. Object schemas in topological dependency order; properties that form
+ *    reference cycles are emitted as getter accessors to avoid forward-reference
+ *    errors.
+ * 5. Discriminated-union schemas (all member object schemas are already declared).
+ * 6. A master `AstNodeSchema` discriminated union across all object schemas.
+ * 7. Optional cross-reference schema factories when `options.crossRefValidation`
+ *    is enabled.
+ *
+ * @param descriptors - Full set of type descriptors produced by
+ *   {@link extractTypeDescriptors}. Projection / stripInternals filtering is
+ *   applied internally via `applyProjectionToDescriptors`.
+ * @param recursiveTypes - Set of type names that participate in a reference cycle,
+ *   produced by {@link detectRecursiveTypes}. These are emitted with getter syntax.
+ * @param options - Optional flags controlling output style (objectStyle, formMetadata,
+ *   crossRefValidation, projection, stripInternals).
+ * @returns The generated TypeScript source as a string (does not write to disk).
+ */
 export function generateZodCode(
 	descriptors: ZodTypeDescriptor[],
 	recursiveTypes: Set<string>,

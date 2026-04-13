@@ -301,6 +301,30 @@ function collectReferences(expr: ZodTypeExpression, out: Set<string>): void {
 	}
 }
 
+/**
+ * Extracts {@link ZodTypeDescriptor} records from a Langium grammar's type model.
+ *
+ * Runs a three-phase pipeline:
+ * 1. **Object descriptors** — converts each `InterfaceType` (with inherited
+ *    properties resolved through the super-type chain) into a `ZodObjectTypeDescriptor`.
+ * 2. **Union / enum descriptors** — converts each `UnionType` into one of:
+ *    `ZodUnionTypeDescriptor` (discriminated union of interfaces),
+ *    `ZodKeywordEnumDescriptor` (pure keyword literal union),
+ *    `ZodRegexEnumDescriptor` (terminal regex ± keyword alternatives), or
+ *    `ZodPrimitiveAliasDescriptor` (simple primitive alias such as `BigDecimal`).
+ * 3. **Stub descriptors** — synthesises primitive-alias stubs for any referenced
+ *    type name that does not appear in `astTypes` (e.g. standalone datatype rules).
+ *
+ * Include/exclude filtering from `config` is applied at each phase.
+ *
+ * @param astTypes - The interface and union types collected from a Langium grammar,
+ *   typically produced by Langium's `collectAst()`.
+ * @param config - Optional include/exclude filter controlling which type names are
+ *   emitted.
+ * @returns A flat array of type descriptors ready for code generation.
+ * @throws {@link ZodGeneratorError} when a property's type cannot be mapped to a
+ *   known Zod schema kind.
+ */
 export function extractTypeDescriptors(astTypes: AstTypesLike, config?: FilterConfig): ZodTypeDescriptor[] {
 	const interfaces = astTypes.interfaces ?? [];
 	const unions = astTypes.unions ?? [];
