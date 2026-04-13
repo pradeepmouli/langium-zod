@@ -71,6 +71,23 @@ function getArgValue(args: string[], flag: string): string | undefined {
 	return value;
 }
 
+/**
+ * Merges CLI `--include` / `--exclude` flag values with the base filter from a
+ * user config file, producing a deduplicated, conflict-free filter pair.
+ *
+ * CLI arguments take precedence over the config file values. Any name that appears
+ * in both `include` and `exclude` is removed from `include` so that the exclude
+ * list is authoritative.
+ *
+ * @param base - Baseline include/exclude arrays from the user's
+ *   `langium-zod.config.js`, used when the corresponding CLI flag is absent.
+ * @param includeArg - Raw comma-separated string from `--include`, or `undefined`
+ *   when the flag was not passed.
+ * @param excludeArg - Raw comma-separated string from `--exclude`, or `undefined`
+ *   when the flag was not passed.
+ * @returns A resolved `{ include, exclude }` pair ready to merge into the
+ *   generator config.
+ */
 export function resolveFilterOverrides(
 	base: Pick<LangiumZodConfig, 'include' | 'exclude'>,
 	includeArg?: string,
@@ -109,6 +126,21 @@ function warnUnknownFilterNames(
 	);
 }
 
+/**
+ * Returns the subset of `requested` names that are not present in
+ * `availableTypeNames`.
+ *
+ * Used to surface warnings when the user's `--include` or `--exclude` list
+ * references type names that do not exist in the parsed grammar, helping catch
+ * typos before generation runs.
+ *
+ * @param requested - The type names requested by the user (include or exclude
+ *   list). Returns an empty array immediately when this is `undefined` or empty.
+ * @param availableTypeNames - All type names present in the parsed Langium grammar
+ *   (both interface types and union/datatype rule types).
+ * @returns An array of names from `requested` that are absent from
+ *   `availableTypeNames`.
+ */
 export function getUnknownFilterNames(
 	requested: string[] | undefined,
 	availableTypeNames: string[],
@@ -192,6 +224,12 @@ async function eagerLoad(
 // Core generate logic (can be called programmatically)
 // ────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Options accepted by the programmatic {@link generate} function.
+ *
+ * Allows the core generation logic to be invoked directly from other tools or
+ * scripts without going through the CLI argument parser.
+ */
 export interface GenerateOptions {
 	/** Absolute path to langium-config.json */
 	langiumConfigPath: string;
@@ -199,6 +237,20 @@ export interface GenerateOptions {
 	config?: LangiumZodConfig;
 }
 
+/**
+ * Programmatic entry point for the `langium-zod generate` command.
+ *
+ * Loads `langium-config.json` from `opts.langiumConfigPath`, resolves the grammar
+ * file path, parses the grammar with Langium services (including eager import
+ * loading so cross-file references link correctly), then calls
+ * {@link generateZodSchemas} with the merged configuration. Prints a success
+ * message to stdout when generation completes.
+ *
+ * @param opts - {@link GenerateOptions} specifying the langium config path and
+ *   optional pre-merged generator config.
+ * @throws `Error` when the langium-config.json or grammar file cannot be found, or
+ *   when the config defines no languages.
+ */
 export async function generate(opts: GenerateOptions): Promise<void> {
 	const { langiumConfigPath } = opts;
 	const userConfig: LangiumZodConfig = opts.config ?? {};
@@ -295,6 +347,15 @@ export async function generate(opts: GenerateOptions): Promise<void> {
 // CLI entry point
 // ────────────────────────────────────────────────────────────────────────────
 
+/**
+ * CLI entry point executed when the `langium-zod` binary is invoked directly.
+ *
+ * Parses `process.argv`, resolves `langium-config.json`, loads an optional
+ * `langium-zod.config.js` from the same directory, merges all CLI flag overrides
+ * (--out, --include, --exclude, --projection, --strip-internals, --conformance,
+ * --cross-ref-validation), then delegates to {@link generate}. Exits the process
+ * with code 1 on error.
+ */
 export async function main(): Promise<void> {
 	const args = process.argv.slice(2);
 
