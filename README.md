@@ -2,6 +2,8 @@
 
 Monorepo for `langium-zod`, a Langium generator plugin that derives Zod validation schemas from grammar definitions.
 
+> **⚠️ Pre-1.0 software** — APIs are subject to change between minor versions. Pin to exact versions in production. See the [CHANGELOG](./CHANGELOG.md) for breaking changes between releases.
+
 ## Package
 
 - npm: `langium-zod`
