@@ -1,8 +1,8 @@
 export interface ZodGeneratorErrorOptions {
-	grammarElement?: string;
-	typeName?: string;
-	suggestion?: string;
-	cause?: unknown;
+  grammarElement?: string;
+  typeName?: string;
+  suggestion?: string;
+  cause?: unknown;
 }
 
 /**
@@ -22,19 +22,19 @@ export interface ZodGeneratorErrorOptions {
  * needing an `instanceof` check across module boundaries.
  */
 export class ZodGeneratorError extends Error {
-	readonly grammarElement?: string;
-	readonly typeName?: string;
-	readonly suggestion?: string;
+  readonly grammarElement?: string;
+  readonly typeName?: string;
+  readonly suggestion?: string;
 
-	constructor(message: string, options?: ZodGeneratorErrorOptions) {
-		super(message);
-		this.name = 'ZodGeneratorError';
-		this.grammarElement = options?.grammarElement;
-		this.typeName = options?.typeName;
-		this.suggestion = options?.suggestion;
+  constructor(message: string, options?: ZodGeneratorErrorOptions) {
+    super(message);
+    this.name = 'ZodGeneratorError';
+    this.grammarElement = options?.grammarElement;
+    this.typeName = options?.typeName;
+    this.suggestion = options?.suggestion;
 
-		if (options?.cause !== undefined) {
-			(this as Error & { cause?: unknown }).cause = options.cause;
-		}
-	}
+    if (options?.cause !== undefined) {
+      (this as Error & { cause?: unknown }).cause = options.cause;
+    }
+  }
 }

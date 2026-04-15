@@ -3,216 +3,233 @@ import { extractTypeDescriptors } from '../../src/extractor.js';
 import type { AstTypesLike } from '../../src/types.js';
 
 const baseAstTypes: AstTypesLike = {
-	interfaces: [
-		{
-			name: 'Element',
-			properties: [{ name: 'name', type: 'ID', optional: false }]
-		},
-		{
-			name: 'Entity',
-			superTypes: new Set(['Element']),
-			properties: [{ name: 'features', type: 'Feature', optional: false, assignment: '+=' }]
-		},
-		{
-			name: 'DataType',
-			superTypes: new Set(['Element']),
-			properties: [{ name: 'typeName', type: 'STRING', optional: false }]
-		}
-	],
-	unions: [
-		{
-			name: 'AbstractElement',
-			members: ['Entity', 'DataType']
-		}
-	]
+  interfaces: [
+    {
+      name: 'Element',
+      properties: [{ name: 'name', type: 'ID', optional: false }]
+    },
+    {
+      name: 'Entity',
+      superTypes: new Set(['Element']),
+      properties: [{ name: 'features', type: 'Feature', optional: false, assignment: '+=' }]
+    },
+    {
+      name: 'DataType',
+      superTypes: new Set(['Element']),
+      properties: [{ name: 'typeName', type: 'STRING', optional: false }]
+    }
+  ],
+  unions: [
+    {
+      name: 'AbstractElement',
+      members: ['Entity', 'DataType']
+    }
+  ]
 };
 
 describe('extractor', () => {
-	it('transforms interfaces and adds $type literal', () => {
-		const descriptors = extractTypeDescriptors(baseAstTypes);
-		const entity = descriptors.find((entry) => entry.name === 'Entity' && entry.kind === 'object');
-		if (!entity || entity.kind !== 'object') {
-			throw new Error('Entity descriptor not found');
-		}
+  it('transforms interfaces and adds $type literal', () => {
+    const descriptors = extractTypeDescriptors(baseAstTypes);
+    const entity = descriptors.find((entry) => entry.name === 'Entity' && entry.kind === 'object');
+    if (!entity || entity.kind !== 'object') {
+      throw new Error('Entity descriptor not found');
+    }
 
-		expect(entity.properties.find((property) => property.name === '$type')?.zodType).toEqual({
-			kind: 'literal',
-			value: 'Entity'
-		});
-		expect(entity.properties.some((property) => property.name === 'name')).toBe(true);
-		expect(entity.properties.some((property) => property.name === 'features')).toBe(true);
-	});
+    expect(entity.properties.find((property) => property.name === '$type')?.zodType).toEqual({
+      kind: 'literal',
+      value: 'Entity'
+    });
+    expect(entity.properties.some((property) => property.name === 'name')).toBe(true);
+    expect(entity.properties.some((property) => property.name === 'features')).toBe(true);
+  });
 
-	it('creates union descriptors with discriminator', () => {
-		const descriptors = extractTypeDescriptors(baseAstTypes);
-		const union = descriptors.find((entry) => entry.name === 'AbstractElement');
+  it('creates union descriptors with discriminator', () => {
+    const descriptors = extractTypeDescriptors(baseAstTypes);
+    const union = descriptors.find((entry) => entry.name === 'AbstractElement');
 
-		expect(union).toEqual({
-			name: 'AbstractElement',
-			kind: 'union',
-			members: ['Entity', 'DataType'],
-			discriminator: '$type'
-		});
-	});
+    expect(union).toEqual({
+      name: 'AbstractElement',
+      kind: 'union',
+      members: ['Entity', 'DataType'],
+      discriminator: '$type'
+    });
+  });
 
-	it('applies include/exclude filtering', () => {
-		const includeOnlyEntity = extractTypeDescriptors(baseAstTypes, { include: ['Entity'] });
-		expect(includeOnlyEntity.map((entry) => entry.name)).toEqual(['Entity']);
+  it('applies include/exclude filtering', () => {
+    const includeOnlyEntity = extractTypeDescriptors(baseAstTypes, { include: ['Entity'] });
+    expect(includeOnlyEntity.map((entry) => entry.name)).toEqual(['Entity']);
 
-		const excludeDataType = extractTypeDescriptors(baseAstTypes, { exclude: ['DataType'] });
-		expect(excludeDataType.some((entry) => entry.name === 'DataType')).toBe(false);
-	});
+    const excludeDataType = extractTypeDescriptors(baseAstTypes, { exclude: ['DataType'] });
+    expect(excludeDataType.some((entry) => entry.name === 'DataType')).toBe(false);
+  });
 
-	it('creates primitive-alias descriptor for datatype union aliases', () => {
-		const descriptors = extractTypeDescriptors({
-			interfaces: [
-				{
-					name: 'Node',
-					properties: [{ name: 'id', type: 'ValidID', optional: false }]
-				}
-			],
-			unions: [
-				{
-					name: 'ValidID',
-					type: {
-						primitive: 'string'
-					}
-				}
-			]
-		});
+  it('creates primitive-alias descriptor for datatype union aliases', () => {
+    const descriptors = extractTypeDescriptors({
+      interfaces: [
+        {
+          name: 'Node',
+          properties: [{ name: 'id', type: 'ValidID', optional: false }]
+        }
+      ],
+      unions: [
+        {
+          name: 'ValidID',
+          type: {
+            primitive: 'string'
+          }
+        }
+      ]
+    });
 
-		expect(descriptors).toContainEqual({
-			name: 'ValidID',
-			kind: 'primitive-alias',
-			primitive: 'string'
-		});
-	});
+    expect(descriptors).toContainEqual({
+      name: 'ValidID',
+      kind: 'primitive-alias',
+      primitive: 'string'
+    });
+  });
 
-	it('does not emit fallback stubs excluded by filter config', () => {
-		const descriptors = extractTypeDescriptors(
-			{
-				interfaces: [
-					{
-						name: 'Consumer',
-						properties: [{ name: 'value', type: 'MissingType', optional: false }]
-					}
-				],
-				unions: []
-			},
-			{ exclude: ['MissingType'] }
-		);
+  it('does not emit fallback stubs excluded by filter config', () => {
+    const descriptors = extractTypeDescriptors(
+      {
+        interfaces: [
+          {
+            name: 'Consumer',
+            properties: [{ name: 'value', type: 'MissingType', optional: false }]
+          }
+        ],
+        unions: []
+      },
+      { exclude: ['MissingType'] }
+    );
 
-		expect(descriptors.some((entry) => entry.name === 'MissingType')).toBe(false);
-	});
+    expect(descriptors.some((entry) => entry.name === 'MissingType')).toBe(false);
+  });
 
-	it('sets minItems=1 only for += properties with + cardinality', () => {
-		const descriptors = extractTypeDescriptors({
-			interfaces: [
-				{
-					name: 'Container',
-					properties: [
-						{ name: 'requiredItems', type: 'Item', assignment: '+=', cardinality: '+', optional: false },
-						{ name: 'optionalItems', type: 'Item', assignment: '+=', cardinality: '*', optional: false },
-						{ name: 'plainItems', type: 'Item', assignment: '+=', optional: false }
-					]
-				},
-				{ name: 'Item', properties: [{ name: 'name', type: 'ID', optional: false }] }
-			],
-			unions: []
-		});
+  it('sets minItems=1 only for += properties with + cardinality', () => {
+    const descriptors = extractTypeDescriptors({
+      interfaces: [
+        {
+          name: 'Container',
+          properties: [
+            {
+              name: 'requiredItems',
+              type: 'Item',
+              assignment: '+=',
+              cardinality: '+',
+              optional: false
+            },
+            {
+              name: 'optionalItems',
+              type: 'Item',
+              assignment: '+=',
+              cardinality: '*',
+              optional: false
+            },
+            { name: 'plainItems', type: 'Item', assignment: '+=', optional: false }
+          ]
+        },
+        { name: 'Item', properties: [{ name: 'name', type: 'ID', optional: false }] }
+      ],
+      unions: []
+    });
 
-		const container = descriptors.find((entry) => entry.name === 'Container' && entry.kind === 'object');
-		if (!container || container.kind !== 'object') {
-			throw new Error('Container descriptor not found');
-		}
+    const container = descriptors.find(
+      (entry) => entry.name === 'Container' && entry.kind === 'object'
+    );
+    if (!container || container.kind !== 'object') {
+      throw new Error('Container descriptor not found');
+    }
 
-		expect(container.properties.find((property) => property.name === 'requiredItems')?.minItems).toBe(1);
-		expect(container.properties.find((property) => property.name === 'optionalItems')?.minItems).toBeUndefined();
-		expect(container.properties.find((property) => property.name === 'plainItems')?.minItems).toBeUndefined();
-	});
+    expect(
+      container.properties.find((property) => property.name === 'requiredItems')?.minItems
+    ).toBe(1);
+    expect(
+      container.properties.find((property) => property.name === 'optionalItems')?.minItems
+    ).toBeUndefined();
+    expect(
+      container.properties.find((property) => property.name === 'plainItems')?.minItems
+    ).toBeUndefined();
+  });
 
-	it('creates keyword-enum and regex-enum descriptors from union layouts', () => {
-		const descriptors = extractTypeDescriptors({
-			interfaces: [],
-			unions: [
-				{
-					name: 'CardinalityModifier',
-					type: {
-						types: [{ string: 'any' }, { string: 'all' }]
-					}
-				},
-				{
-					name: 'ValidID',
-					type: {
-						types: [
-							{ primitive: 'string', regex: '/[a-z]+/' },
-							{ string: 'condition' }
-						]
-					}
-				}
-			]
-		});
+  it('creates keyword-enum and regex-enum descriptors from union layouts', () => {
+    const descriptors = extractTypeDescriptors({
+      interfaces: [],
+      unions: [
+        {
+          name: 'CardinalityModifier',
+          type: {
+            types: [{ string: 'any' }, { string: 'all' }]
+          }
+        },
+        {
+          name: 'ValidID',
+          type: {
+            types: [{ primitive: 'string', regex: '/[a-z]+/' }, { string: 'condition' }]
+          }
+        }
+      ]
+    });
 
-		expect(descriptors).toContainEqual({
-			name: 'CardinalityModifier',
-			kind: 'keyword-enum',
-			keywords: ['any', 'all']
-		});
-		expect(descriptors).toContainEqual({
-			name: 'ValidID',
-			kind: 'regex-enum',
-			regex: '/[a-z]+/',
-			keywords: ['condition']
-		});
-	});
+    expect(descriptors).toContainEqual({
+      name: 'CardinalityModifier',
+      kind: 'keyword-enum',
+      keywords: ['any', 'all']
+    });
+    expect(descriptors).toContainEqual({
+      name: 'ValidID',
+      kind: 'regex-enum',
+      regex: '/[a-z]+/',
+      keywords: ['condition']
+    });
+  });
 
-	it('preserves comment metadata on interface and property descriptors', () => {
-		const descriptors = extractTypeDescriptors({
-			interfaces: [
-				{
-					name: 'Person',
-					comment: 'Represents a person',
-					properties: [
-						{ name: 'firstName', type: 'ID', optional: false, comment: 'Given name' },
-						{ name: 'age', type: 'INT', optional: true }
-					]
-				}
-			],
-			unions: []
-		});
+  it('preserves comment metadata on interface and property descriptors', () => {
+    const descriptors = extractTypeDescriptors({
+      interfaces: [
+        {
+          name: 'Person',
+          comment: 'Represents a person',
+          properties: [
+            { name: 'firstName', type: 'ID', optional: false, comment: 'Given name' },
+            { name: 'age', type: 'INT', optional: true }
+          ]
+        }
+      ],
+      unions: []
+    });
 
-		const person = descriptors.find((entry) => entry.name === 'Person' && entry.kind === 'object');
-		if (!person || person.kind !== 'object') {
-			throw new Error('Person descriptor not found');
-		}
+    const person = descriptors.find((entry) => entry.name === 'Person' && entry.kind === 'object');
+    if (!person || person.kind !== 'object') {
+      throw new Error('Person descriptor not found');
+    }
 
-		expect(person.comment).toBe('Represents a person');
-		expect(person.properties.find((p) => p.name === 'firstName')?.comment).toBe('Given name');
-		expect(person.properties.find((p) => p.name === 'age')?.comment).toBeUndefined();
-	});
+    expect(person.comment).toBe('Represents a person');
+    expect(person.properties.find((p) => p.name === 'firstName')?.comment).toBe('Given name');
+    expect(person.properties.find((p) => p.name === 'age')?.comment).toBeUndefined();
+  });
 
-	it('deduplicates keyword-enum values', () => {
-		const descriptors = extractTypeDescriptors({
-			interfaces: [],
-			unions: [
-				{
-					name: 'Operator',
-					type: {
-						types: [
-							{ string: 'choice' },
-							{ string: 'choice' },
-							{ string: 'choice' },
-							{ string: 'choice' }
-						]
-					}
-				}
-			]
-		});
+  it('deduplicates keyword-enum values', () => {
+    const descriptors = extractTypeDescriptors({
+      interfaces: [],
+      unions: [
+        {
+          name: 'Operator',
+          type: {
+            types: [
+              { string: 'choice' },
+              { string: 'choice' },
+              { string: 'choice' },
+              { string: 'choice' }
+            ]
+          }
+        }
+      ]
+    });
 
-		expect(descriptors).toContainEqual({
-			name: 'Operator',
-			kind: 'keyword-enum',
-			keywords: ['choice']
-		});
-	});
+    expect(descriptors).toContainEqual({
+      name: 'Operator',
+      kind: 'keyword-enum',
+      keywords: ['choice']
+    });
+  });
 });

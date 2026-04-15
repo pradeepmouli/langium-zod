@@ -14,161 +14,174 @@ const runExternalLangiumTests = process.env.RUN_EXTERNAL_LANGIUM_TESTS === 'true
 const externalTimeoutMs = Number(process.env.EXTERNAL_TEST_TIMEOUT_MS ?? '120000');
 
 const describeExternal =
-	runExternalLangiumTests && runeCorePath && existsSync(runeCorePath) ? describe : describe.skip;
+  runExternalLangiumTests && runeCorePath && existsSync(runeCorePath) ? describe : describe.skip;
 
 describe('langium cli filter options', () => {
-	it('parses include/exclude overrides and applies overlap precedence (exclude wins)', () => {
-		const resolved = resolveFilterOverrides(
-			{
-				include: ['FromConfigInclude'],
-				exclude: ['FromConfigExclude']
-			},
-			' TypeA, TypeB, TypeA ',
-			' TypeB, TypeC '
-		);
+  it('parses include/exclude overrides and applies overlap precedence (exclude wins)', () => {
+    const resolved = resolveFilterOverrides(
+      {
+        include: ['FromConfigInclude'],
+        exclude: ['FromConfigExclude']
+      },
+      ' TypeA, TypeB, TypeA ',
+      ' TypeB, TypeC '
+    );
 
-		expect(resolved.include).toEqual(['TypeA']);
-		expect(resolved.exclude).toEqual(['TypeB', 'TypeC']);
-	});
+    expect(resolved.include).toEqual(['TypeA']);
+    expect(resolved.exclude).toEqual(['TypeB', 'TypeC']);
+  });
 
-	it('uses config include/exclude when CLI values are not provided', () => {
-		const resolved = resolveFilterOverrides(
-			{
-				include: ['FromConfigInclude'],
-				exclude: ['FromConfigExclude']
-			},
-			undefined,
-			undefined
-		);
+  it('uses config include/exclude when CLI values are not provided', () => {
+    const resolved = resolveFilterOverrides(
+      {
+        include: ['FromConfigInclude'],
+        exclude: ['FromConfigExclude']
+      },
+      undefined,
+      undefined
+    );
 
-		expect(resolved.include).toEqual(['FromConfigInclude']);
-		expect(resolved.exclude).toEqual(['FromConfigExclude']);
-	});
+    expect(resolved.include).toEqual(['FromConfigInclude']);
+    expect(resolved.exclude).toEqual(['FromConfigExclude']);
+  });
 
-	it('reports unknown type names and includes available type names for warnings', () => {
-		const unknownInclude = getUnknownFilterNames(
-			['KnownType', 'MissingInclude'],
-			['KnownType', 'AnotherType']
-		);
-		const unknownExclude = getUnknownFilterNames(
-			['MissingExclude'],
-			['KnownType', 'AnotherType']
-		);
+  it('reports unknown type names and includes available type names for warnings', () => {
+    const unknownInclude = getUnknownFilterNames(
+      ['KnownType', 'MissingInclude'],
+      ['KnownType', 'AnotherType']
+    );
+    const unknownExclude = getUnknownFilterNames(['MissingExclude'], ['KnownType', 'AnotherType']);
 
-		expect(unknownInclude).toEqual(['MissingInclude']);
-		expect(unknownExclude).toEqual(['MissingExclude']);
-		expect(['KnownType', 'AnotherType'].join(', ')).toBe('KnownType, AnotherType');
-	});
+    expect(unknownInclude).toEqual(['MissingInclude']);
+    expect(unknownExclude).toEqual(['MissingExclude']);
+    expect(['KnownType', 'AnotherType'].join(', ')).toBe('KnownType, AnotherType');
+  });
 
-	it('fails fast for invalid projection files', () => {
-		const invalidProjectionPath = join(
-			process.cwd(),
-			'packages/langium-zod/test/fixtures/projection.invalid.json'
-		);
+  it('fails fast for invalid projection files', () => {
+    const invalidProjectionPath = join(
+      process.cwd(),
+      'packages/langium-zod/test/fixtures/projection.invalid.json'
+    );
 
-		expect(() => loadProjectionConfig(invalidProjectionPath)).toThrow();
-	});
+    expect(() => loadProjectionConfig(invalidProjectionPath)).toThrow();
+  });
 
-	it('resolves default and explicit conformance ast paths', () => {
-		const configDir = '/workspace/config';
-		const outDir = '/workspace/config/src/generated';
+  it('resolves default and explicit conformance ast paths', () => {
+    const configDir = '/workspace/config';
+    const outDir = '/workspace/config/src/generated';
 
-		expect(resolveAstTypesPath(configDir, outDir)).toBe('/workspace/config/src/generated/ast.ts');
-		expect(resolveAstTypesPath(configDir, outDir, './custom/ast.ts')).toBe('/workspace/config/custom/ast.ts');
-	});
+    expect(resolveAstTypesPath(configDir, outDir)).toBe('/workspace/config/src/generated/ast.ts');
+    expect(resolveAstTypesPath(configDir, outDir, './custom/ast.ts')).toBe(
+      '/workspace/config/custom/ast.ts'
+    );
+  });
 
-	it('fails conformance generation when ast path cannot be resolved to an existing file', async () => {
-		const dir = join(tmpdir(), `langium-zod-cli-conformance-${crypto.randomUUID()}`);
-		mkdirSync(dir, { recursive: true });
+  it('fails conformance generation when ast path cannot be resolved to an existing file', async () => {
+    const dir = join(tmpdir(), `langium-zod-cli-conformance-${crypto.randomUUID()}`);
+    mkdirSync(dir, { recursive: true });
 
-		const grammarPath = join(dir, 'simple.langium');
-		const configPath = join(dir, 'langium-config.json');
-		const outputPath = join(dir, 'generated', 'zod-schemas.ts');
+    const grammarPath = join(dir, 'simple.langium');
+    const configPath = join(dir, 'langium-config.json');
+    const outputPath = join(dir, 'generated', 'zod-schemas.ts');
 
-		writeFileSync(grammarPath, readFileSync(join(process.cwd(), 'packages/langium-zod/test/fixtures/simple.langium'), 'utf8'), 'utf8');
-		writeFileSync(
-			configPath,
-			JSON.stringify({
-				projectName: 'tmp',
-				languages: [{ grammar: './simple.langium' }],
-				out: 'generated'
-			}),
-			'utf8'
-		);
+    writeFileSync(
+      grammarPath,
+      readFileSync(
+        join(process.cwd(), 'packages/langium-zod/test/fixtures/simple.langium'),
+        'utf8'
+      ),
+      'utf8'
+    );
+    writeFileSync(
+      configPath,
+      JSON.stringify({
+        projectName: 'tmp',
+        languages: [{ grammar: './simple.langium' }],
+        out: 'generated'
+      }),
+      'utf8'
+    );
 
-		try {
-			await expect(
-				generate({
-					langiumConfigPath: configPath,
-					config: {
-						outputPath,
-						conformance: {}
-					}
-				})
-			).rejects.toThrow('Unable to resolve ast types path for conformance');
-		} finally {
-			rmSync(dir, { recursive: true, force: true });
-		}
-	});
+    try {
+      await expect(
+        generate({
+          langiumConfigPath: configPath,
+          config: {
+            outputPath,
+            conformance: {}
+          }
+        })
+      ).rejects.toThrow('Unable to resolve ast types path for conformance');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 
-	it('auto-resolves conformance ast path from langium-config out directory', async () => {
-		const dir = join(tmpdir(), `langium-zod-cli-conformance-ok-${crypto.randomUUID()}`);
-		mkdirSync(join(dir, 'generated'), { recursive: true });
+  it('auto-resolves conformance ast path from langium-config out directory', async () => {
+    const dir = join(tmpdir(), `langium-zod-cli-conformance-ok-${crypto.randomUUID()}`);
+    mkdirSync(join(dir, 'generated'), { recursive: true });
 
-		const grammarPath = join(dir, 'simple.langium');
-		const configPath = join(dir, 'langium-config.json');
-		const outputPath = join(dir, 'generated', 'zod-schemas.ts');
-		const conformancePath = join(dir, 'generated', 'zod-schemas.conformance.ts');
+    const grammarPath = join(dir, 'simple.langium');
+    const configPath = join(dir, 'langium-config.json');
+    const outputPath = join(dir, 'generated', 'zod-schemas.ts');
+    const conformancePath = join(dir, 'generated', 'zod-schemas.conformance.ts');
 
-		writeFileSync(grammarPath, readFileSync(join(process.cwd(), 'packages/langium-zod/test/fixtures/simple.langium'), 'utf8'), 'utf8');
-		writeFileSync(
-			configPath,
-			JSON.stringify({
-				projectName: 'tmp',
-				languages: [{ grammar: './simple.langium' }],
-				out: 'generated'
-			}),
-			'utf8'
-		);
-		writeFileSync(
-			join(dir, 'generated', 'ast.ts'),
-			[
-				'export interface Greeting { $type: "Greeting"; name: string; count: number; active?: boolean; tags: Tag[]; description?: string }',
-				'export interface Tag { $type: "Tag"; name: string }'
-			].join('\n'),
-			'utf8'
-		);
+    writeFileSync(
+      grammarPath,
+      readFileSync(
+        join(process.cwd(), 'packages/langium-zod/test/fixtures/simple.langium'),
+        'utf8'
+      ),
+      'utf8'
+    );
+    writeFileSync(
+      configPath,
+      JSON.stringify({
+        projectName: 'tmp',
+        languages: [{ grammar: './simple.langium' }],
+        out: 'generated'
+      }),
+      'utf8'
+    );
+    writeFileSync(
+      join(dir, 'generated', 'ast.ts'),
+      [
+        'export interface Greeting { $type: "Greeting"; name: string; count: number; active?: boolean; tags: Tag[]; description?: string }',
+        'export interface Tag { $type: "Tag"; name: string }'
+      ].join('\n'),
+      'utf8'
+    );
 
-		try {
-			await generate({
-				langiumConfigPath: configPath,
-				config: {
-					outputPath,
-					conformance: {}
-				}
-			});
+    try {
+      await generate({
+        langiumConfigPath: configPath,
+        config: {
+          outputPath,
+          conformance: {}
+        }
+      });
 
-			expect(existsSync(conformancePath)).toBe(true);
-		} finally {
-			rmSync(dir, { recursive: true, force: true });
-		}
-	});
+      expect(existsSync(conformancePath)).toBe(true);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });
 
 function runExternalCommand(command: string, cwd: string): void {
-	execSync(command, {
-		cwd,
-		stdio: 'pipe',
-		timeout: externalTimeoutMs,
-		env: {
-			...process.env,
-			CI: 'true'
-		}
-	});
+  execSync(command, {
+    cwd,
+    stdio: 'pipe',
+    timeout: externalTimeoutMs,
+    env: {
+      ...process.env,
+      CI: 'true'
+    }
+  });
 }
 
 function collectAstTypesFromRuneCore(cwd: string): AstTypesLike {
-	const script = `
+  const script = `
 import { createRuneDslServices } from './dist/index.js';
 import { collectAst } from 'langium/grammar';
 
@@ -254,40 +267,40 @@ const normalized = {
 console.log(JSON.stringify(normalized));
 `;
 
-	const scriptPath = join(cwd, '.tmp-langium-zod-collect-ast.mjs');
-	writeFileSync(scriptPath, script, 'utf8');
+  const scriptPath = join(cwd, '.tmp-langium-zod-collect-ast.mjs');
+  writeFileSync(scriptPath, script, 'utf8');
 
-	const raw = execSync(`node ${scriptPath}`, {
-		cwd,
-		stdio: 'pipe',
-		timeout: externalTimeoutMs
-	}).toString();
+  const raw = execSync(`node ${scriptPath}`, {
+    cwd,
+    stdio: 'pipe',
+    timeout: externalTimeoutMs
+  }).toString();
 
-	rmSync(scriptPath, { force: true });
+  rmSync(scriptPath, { force: true });
 
-	return JSON.parse(raw) as AstTypesLike;
+  return JSON.parse(raw) as AstTypesLike;
 }
 
 describeExternal('langium cli external integration (rune-langium)', () => {
-	it('runs langium CLI generation and then generates zod schemas from RuneDsl grammar', () => {
-		runExternalCommand('pnpm generate', runeCorePath);
+  it('runs langium CLI generation and then generates zod schemas from RuneDsl grammar', () => {
+    runExternalCommand('pnpm generate', runeCorePath);
 
-		runExternalCommand('pnpm build', runeCorePath);
+    runExternalCommand('pnpm build', runeCorePath);
 
-		const generatedAstPath = join(runeCorePath, 'src/generated/ast.ts');
-		expect(existsSync(generatedAstPath)).toBe(true);
-		expect(readFileSync(generatedAstPath, 'utf8')).toContain('export interface');
+    const generatedAstPath = join(runeCorePath, 'src/generated/ast.ts');
+    expect(existsSync(generatedAstPath)).toBe(true);
+    expect(readFileSync(generatedAstPath, 'utf8')).toContain('export interface');
 
-		const astTypes = collectAstTypesFromRuneCore(runeCorePath);
-		expect(astTypes.interfaces.length).toBeGreaterThan(0);
+    const astTypes = collectAstTypesFromRuneCore(runeCorePath);
+    expect(astTypes.interfaces.length).toBeGreaterThan(0);
 
-		const source = generateZodSchemas({
-			grammar: {} as never,
-			astTypes
-		});
+    const source = generateZodSchemas({
+      grammar: {} as never,
+      astTypes
+    });
 
-		expect(source).toContain("import { z } from 'zod';");
-		expect(source).toContain('Schema = z.looseObject(');
-		expect(source).toContain('"$type": z.literal(');
-	});
+    expect(source).toContain("import { z } from 'zod';");
+    expect(source).toContain('Schema = z.looseObject(');
+    expect(source).toContain('"$type": z.literal(');
+  });
 });

@@ -11,7 +11,7 @@ import { generateZodSchemas } from './api.js';
  * service from `services.shared.ZodSchemaGenerator`.
  */
 export interface ZodSchemaGenerator {
-	generate(grammar: Grammar, config?: Partial<ZodGeneratorConfig>): string;
+  generate(grammar: Grammar, config?: Partial<ZodGeneratorConfig>): string;
 }
 
 /**
@@ -22,22 +22,22 @@ export interface ZodSchemaGenerator {
  * need to pass services manually on every invocation.
  */
 export class DefaultZodSchemaGenerator implements ZodSchemaGenerator {
-	#services: LangiumCoreServices;
+  #services: LangiumCoreServices;
 
-	constructor(services: LangiumCoreServices) {
-		this.#services = services;
-	}
+  constructor(services: LangiumCoreServices) {
+    this.#services = services;
+  }
 
-	generate(grammar: Grammar, config?: Partial<ZodGeneratorConfig>): string {
-		return generateZodSchemas({
-			grammar,
-			services: this.#services,
-			include: config?.include,
-			exclude: config?.exclude,
-			outputPath: config?.outputPath,
-			regexOverrides: config?.regexOverrides
-		});
-	}
+  generate(grammar: Grammar, config?: Partial<ZodGeneratorConfig>): string {
+    return generateZodSchemas({
+      grammar,
+      services: this.#services,
+      include: config?.include,
+      exclude: config?.exclude,
+      outputPath: config?.outputPath,
+      regexOverrides: config?.regexOverrides
+    });
+  }
 }
 
 /**
@@ -48,9 +48,9 @@ export class DefaultZodSchemaGenerator implements ZodSchemaGenerator {
  * registry at compile time.
  */
 export type ZodSchemaGeneratorServices = {
-	shared: {
-		ZodSchemaGenerator: ZodSchemaGenerator;
-	};
+  shared: {
+    ZodSchemaGenerator: ZodSchemaGenerator;
+  };
 };
 
 /**
@@ -66,7 +66,7 @@ export type ZodSchemaGeneratorServices = {
  * ```
  */
 export const ZodSchemaGeneratorModule = {
-	shared: {
-		ZodSchemaGenerator: (services: LangiumCoreServices) => new DefaultZodSchemaGenerator(services)
-	}
+  shared: {
+    ZodSchemaGenerator: (services: LangiumCoreServices) => new DefaultZodSchemaGenerator(services)
+  }
 } as unknown as Module<ZodSchemaGeneratorServices, Partial<ZodSchemaGeneratorServices>>;

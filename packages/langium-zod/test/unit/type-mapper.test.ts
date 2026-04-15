@@ -2,189 +2,183 @@ import { describe, expect, it } from 'vitest';
 import { mapPropertyType, mapTerminalToZod } from '../../src/type-mapper.js';
 
 describe('type-mapper', () => {
-	it('maps terminal names to primitives', () => {
-		expect(mapTerminalToZod('ID')).toEqual({ kind: 'primitive', primitive: 'string' });
-		expect(mapTerminalToZod('STRING')).toEqual({ kind: 'primitive', primitive: 'string' });
-		expect(mapTerminalToZod('INT')).toEqual({ kind: 'primitive', primitive: 'number' });
-		expect(mapTerminalToZod('boolean')).toEqual({ kind: 'primitive', primitive: 'boolean' });
-		expect(mapTerminalToZod('UNKNOWN')).toBeUndefined();
-	});
+  it('maps terminal names to primitives', () => {
+    expect(mapTerminalToZod('ID')).toEqual({ kind: 'primitive', primitive: 'string' });
+    expect(mapTerminalToZod('STRING')).toEqual({ kind: 'primitive', primitive: 'string' });
+    expect(mapTerminalToZod('INT')).toEqual({ kind: 'primitive', primitive: 'number' });
+    expect(mapTerminalToZod('boolean')).toEqual({ kind: 'primitive', primitive: 'boolean' });
+    expect(mapTerminalToZod('UNKNOWN')).toBeUndefined();
+  });
 
-	it('maps boolean assignment for ?=', () => {
-		const actual = mapPropertyType({
-			name: 'active',
-			assignment: '?='
-		});
-		expect(actual).toEqual({ kind: 'primitive', primitive: 'boolean' });
-	});
+  it('maps boolean assignment for ?=', () => {
+    const actual = mapPropertyType({
+      name: 'active',
+      assignment: '?='
+    });
+    expect(actual).toEqual({ kind: 'primitive', primitive: 'boolean' });
+  });
 
-	it('maps array assignment for +=', () => {
-		const actual = mapPropertyType({
-			name: 'tags',
-			assignment: '+=',
-			type: 'Tag'
-		});
+  it('maps array assignment for +=', () => {
+    const actual = mapPropertyType({
+      name: 'tags',
+      assignment: '+=',
+      type: 'Tag'
+    });
 
-		expect(actual).toEqual({
-			kind: 'array',
-			element: { kind: 'reference', typeName: 'Tag' }
-		});
-	});
+    expect(actual).toEqual({
+      kind: 'array',
+      element: { kind: 'reference', typeName: 'Tag' }
+    });
+  });
 
-	it('maps cross-reference property', () => {
-		const actual = mapPropertyType({
-			name: 'variable',
-			type: 'Variable',
-			isCrossRef: true
-		});
+  it('maps cross-reference property', () => {
+    const actual = mapPropertyType({
+      name: 'variable',
+      type: 'Variable',
+      isCrossRef: true
+    });
 
-		expect(actual).toEqual({
-			kind: 'crossReference',
-			targetType: 'Variable'
-		});
-	});
+    expect(actual).toEqual({
+      kind: 'crossReference',
+      targetType: 'Variable'
+    });
+  });
 
-	it('maps cross-reference arrays and preserves target type', () => {
-		const actual = mapPropertyType({
-			name: 'refs',
-			assignment: '+=',
-			isCrossRef: true,
-			type: {
-				referenceType: 'RefTarget'
-			}
-		});
+  it('maps cross-reference arrays and preserves target type', () => {
+    const actual = mapPropertyType({
+      name: 'refs',
+      assignment: '+=',
+      isCrossRef: true,
+      type: {
+        referenceType: 'RefTarget'
+      }
+    });
 
-		expect(actual).toEqual({
-			kind: 'array',
-			element: {
-				kind: 'crossReference',
-				targetType: 'RefTarget'
-			}
-		});
-	});
+    expect(actual).toEqual({
+      kind: 'array',
+      element: {
+        kind: 'crossReference',
+        targetType: 'RefTarget'
+      }
+    });
+  });
 
-	it('maps optional data-type style property to primitive', () => {
-		const actual = mapPropertyType({
-			name: 'description',
-			type: 'string'
-		});
-		expect(actual).toEqual({ kind: 'primitive', primitive: 'string' });
-	});
+  it('maps optional data-type style property to primitive', () => {
+    const actual = mapPropertyType({
+      name: 'description',
+      type: 'string'
+    });
+    expect(actual).toEqual({ kind: 'primitive', primitive: 'string' });
+  });
 
-	it('maps Langium StringType to zod literal expression', () => {
-		const actual = mapPropertyType({
-			name: 'operator',
-			type: {
-				string: 'contains'
-			}
-		});
+  it('maps Langium StringType to zod literal expression', () => {
+    const actual = mapPropertyType({
+      name: 'operator',
+      type: {
+        string: 'contains'
+      }
+    });
 
-		expect(actual).toEqual({
-			kind: 'literal',
-			value: 'contains'
-		});
-	});
+    expect(actual).toEqual({
+      kind: 'literal',
+      value: 'contains'
+    });
+  });
 
-	it('maps PropertyUnion of StringType members to union of literals', () => {
-		const actual = mapPropertyType({
-			name: 'operator',
-			type: {
-				types: [
-					{ string: '+' },
-					{ string: '-' }
-				]
-			}
-		});
+  it('maps PropertyUnion of StringType members to union of literals', () => {
+    const actual = mapPropertyType({
+      name: 'operator',
+      type: {
+        types: [{ string: '+' }, { string: '-' }]
+      }
+    });
 
-		expect(actual).toEqual({
-			kind: 'union',
-			members: [
-				{ kind: 'literal', value: '+' },
-				{ kind: 'literal', value: '-' }
-			]
-		});
-	});
+    expect(actual).toEqual({
+      kind: 'union',
+      members: [
+        { kind: 'literal', value: '+' },
+        { kind: 'literal', value: '-' }
+      ]
+    });
+  });
 
-	it('maps langium PrimitiveType bigint and unknown primitive fallback', () => {
-		expect(
-			mapPropertyType({
-				name: 'big',
-				type: { primitive: 'bigint' }
-			})
-		).toEqual({ kind: 'primitive', primitive: 'bigint' });
+  it('maps langium PrimitiveType bigint and unknown primitive fallback', () => {
+    expect(
+      mapPropertyType({
+        name: 'big',
+        type: { primitive: 'bigint' }
+      })
+    ).toEqual({ kind: 'primitive', primitive: 'bigint' });
 
-		expect(
-			mapPropertyType({
-				name: 'fallback',
-				type: { primitive: 'custom-primitive' }
-			})
-		).toEqual({ kind: 'primitive', primitive: 'string' });
-	});
+    expect(
+      mapPropertyType({
+        name: 'fallback',
+        type: { primitive: 'custom-primitive' }
+      })
+    ).toEqual({ kind: 'primitive', primitive: 'string' });
+  });
 
-	it('maps langium ValueType and ArrayType layouts', () => {
-		expect(
-			mapPropertyType({
-				name: 'singleRef',
-				type: { value: { name: 'DataType' } }
-			})
-		).toEqual({ kind: 'reference', typeName: 'DataType' });
+  it('maps langium ValueType and ArrayType layouts', () => {
+    expect(
+      mapPropertyType({
+        name: 'singleRef',
+        type: { value: { name: 'DataType' } }
+      })
+    ).toEqual({ kind: 'reference', typeName: 'DataType' });
 
-		expect(
-			mapPropertyType({
-				name: 'refs',
-				type: { elementType: { value: { name: 'DataType' } } }
-			})
-		).toEqual({ kind: 'array', element: { kind: 'reference', typeName: 'DataType' } });
-	});
+    expect(
+      mapPropertyType({
+        name: 'refs',
+        type: { elementType: { value: { name: 'DataType' } } }
+      })
+    ).toEqual({ kind: 'array', element: { kind: 'reference', typeName: 'DataType' } });
+  });
 
-	it('falls back to unknown reference when no type information is available', () => {
-		expect(
-			mapPropertyType({
-				name: 'mystery',
-				type: undefined
-			})
-		).toEqual({ kind: 'reference', typeName: 'unknown' });
-	});
+  it('falls back to unknown reference when no type information is available', () => {
+    expect(
+      mapPropertyType({
+        name: 'mystery',
+        type: undefined
+      })
+    ).toEqual({ kind: 'reference', typeName: 'unknown' });
+  });
 
-	it('deduplicates union members with identical literals', () => {
-		const actual = mapPropertyType({
-			name: 'operator',
-			type: {
-				types: [
-					{ string: 'one-of' },
-					{ string: 'one-of' }
-				]
-			}
-		});
+  it('deduplicates union members with identical literals', () => {
+    const actual = mapPropertyType({
+      name: 'operator',
+      type: {
+        types: [{ string: 'one-of' }, { string: 'one-of' }]
+      }
+    });
 
-		expect(actual).toEqual({ kind: 'literal', value: 'one-of' });
-	});
+    expect(actual).toEqual({ kind: 'literal', value: 'one-of' });
+  });
 
-	it('deduplicates union members preserving unique values', () => {
-		const actual = mapPropertyType({
-			name: 'operator',
-			type: {
-				types: [
-					{ string: '>=' },
-					{ string: '<=' },
-					{ string: '>' },
-					{ string: '<' },
-					{ string: '>=' },
-					{ string: '<=' },
-					{ string: '>' },
-					{ string: '<' }
-				]
-			}
-		});
+  it('deduplicates union members preserving unique values', () => {
+    const actual = mapPropertyType({
+      name: 'operator',
+      type: {
+        types: [
+          { string: '>=' },
+          { string: '<=' },
+          { string: '>' },
+          { string: '<' },
+          { string: '>=' },
+          { string: '<=' },
+          { string: '>' },
+          { string: '<' }
+        ]
+      }
+    });
 
-		expect(actual).toEqual({
-			kind: 'union',
-			members: [
-				{ kind: 'literal', value: '>=' },
-				{ kind: 'literal', value: '<=' },
-				{ kind: 'literal', value: '>' },
-				{ kind: 'literal', value: '<' }
-			]
-		});
-	});
+    expect(actual).toEqual({
+      kind: 'union',
+      members: [
+        { kind: 'literal', value: '>=' },
+        { kind: 'literal', value: '<=' },
+        { kind: 'literal', value: '>' },
+        { kind: 'literal', value: '<' }
+      ]
+    });
+  });
 });

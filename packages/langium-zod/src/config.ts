@@ -12,8 +12,8 @@ import type { ProjectionConfig } from './projection.js';
  * appear in both lists. An empty (or omitted) `FilterConfig` emits all types.
  */
 export interface FilterConfig {
-	include?: string[];
-	exclude?: string[];
+  include?: string[];
+  exclude?: string[];
 }
 
 /**
@@ -30,52 +30,52 @@ export interface FilterConfig {
  * artifact generation, regex overrides, form metadata emission, and object style.
  */
 export interface ZodGeneratorConfig extends FilterConfig {
-	grammar?: Grammar | Grammar[];
-	services?: LangiumCoreServices;
-	outputPath?: string;
-	astTypes?: AstTypesLike;
-	projection?: ProjectionConfig;
-	stripInternals?: boolean;
-	crossRefValidation?: boolean;
-	conformance?: {
-		astTypesPath?: string;
-		outputPath?: string;
-	};
-	/**
-	 * Override the generated schema for specific type names.
-	 *
-	 * Use this for parser-based datatype rules (e.g. `BigDecimal returns string: ... INT ...`)
-	 * whose structure cannot be expressed as a regex automatically by Langium.
-	 *
-	 * The value is a raw regex pattern string (without surrounding `/` slashes).
-	 * The named type will emit `z.string().regex(new RegExp("..."))` instead of `z.string()`.
-	 *
-	 * @example
-	 * ```ts
-	 * regexOverrides: {
-	 *   BigDecimal: String.raw`^[+-]?(\.[0-9]+|[0-9]+\.?[0-9]*)([eE][+-]?[0-9]+)?$`
-	 * }
-	 * ```
-	 */
-	regexOverrides?: Record<string, string>;
-	/**
-	 * When `true`, emit `.meta({ title, description? })` on generated Zod schemas
-	 * using humanized property/type names as `title` and JSDoc comments from the grammar
-	 * as `description`. The `description` field is only included when a JSDoc/grammar
-	 * comment exists for the corresponding type or property. Useful for zod-to-forms
-	 * integrations that derive field labels from metadata.
-	 */
-	formMetadata?: boolean;
-	/**
-	 * Controls how object schemas are emitted.
-	 * - `'loose'` (default): emits `z.looseObject(...)` which allows extra properties to
-	 *   pass through unchanged.
-	 * - `'strict'`: emits `z.object(...)` (the standard Zod object). This strips unknown
-	 *   properties by default instead of rejecting them with a validation error. Consumers
-	 *   can call `.strict()` on the emitted schema if they need hard rejection of unknown
-	 *   properties.
-	 */
-	objectStyle?: 'loose' | 'strict';
+  grammar?: Grammar | Grammar[];
+  services?: LangiumCoreServices;
+  outputPath?: string;
+  astTypes?: AstTypesLike;
+  projection?: ProjectionConfig;
+  stripInternals?: boolean;
+  crossRefValidation?: boolean;
+  conformance?: {
+    astTypesPath?: string;
+    outputPath?: string;
+  };
+  /**
+   * Override the generated schema for specific type names.
+   *
+   * Use this for parser-based datatype rules (e.g. `BigDecimal returns string: ... INT ...`)
+   * whose structure cannot be expressed as a regex automatically by Langium.
+   *
+   * The value is a raw regex pattern string (without surrounding `/` slashes).
+   * The named type will emit `z.string().regex(new RegExp("..."))` instead of `z.string()`.
+   *
+   * @example
+   * ```ts
+   * regexOverrides: {
+   *   BigDecimal: String.raw`^[+-]?(\.[0-9]+|[0-9]+\.?[0-9]*)([eE][+-]?[0-9]+)?$`
+   * }
+   * ```
+   */
+  regexOverrides?: Record<string, string>;
+  /**
+   * When `true`, emit `.meta({ title, description? })` on generated Zod schemas
+   * using humanized property/type names as `title` and JSDoc comments from the grammar
+   * as `description`. The `description` field is only included when a JSDoc/grammar
+   * comment exists for the corresponding type or property. Useful for zod-to-forms
+   * integrations that derive field labels from metadata.
+   */
+  formMetadata?: boolean;
+  /**
+   * Controls how object schemas are emitted.
+   * - `'loose'` (default): emits `z.looseObject(...)` which allows extra properties to
+   *   pass through unchanged.
+   * - `'strict'`: emits `z.object(...)` (the standard Zod object). This strips unknown
+   *   properties by default instead of rejecting them with a validation error. Consumers
+   *   can call `.strict()` on the emitted schema if they need hard rejection of unknown
+   *   properties.
+   */
+  objectStyle?: 'loose' | 'strict';
 }
 
 /**
@@ -85,8 +85,8 @@ export interface ZodGeneratorConfig extends FilterConfig {
 export const DEFAULT_OUTPUT_PATH = 'src/generated/zod-schemas.ts';
 
 export function normalizeFilterConfig(config?: FilterConfig): Required<FilterConfig> {
-	return {
-		include: config?.include ?? [],
-		exclude: config?.exclude ?? []
-	};
+  return {
+    include: config?.include ?? [],
+    exclude: config?.exclude ?? []
+  };
 }

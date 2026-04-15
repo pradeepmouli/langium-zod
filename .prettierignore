@@ -13,3 +13,6 @@ dist/
 build/
 coverage/
 pnpm-lock.yaml
+
+# Test fixtures with intentionally invalid JSON
+**/test/fixtures/*.invalid.json

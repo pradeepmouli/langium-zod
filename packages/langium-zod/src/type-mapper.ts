@@ -1,19 +1,19 @@
 import type { PropertyLike, ZodPrimitive, ZodTypeExpression } from './types.js';
 
 export function mapTerminalToZod(terminalName: string): ZodTypeExpression | undefined {
-	if (terminalName === 'ID' || terminalName === 'STRING' || terminalName === 'string') {
-		return { kind: 'primitive', primitive: 'string' };
-	}
+  if (terminalName === 'ID' || terminalName === 'STRING' || terminalName === 'string') {
+    return { kind: 'primitive', primitive: 'string' };
+  }
 
-	if (terminalName === 'INT' || terminalName === 'number') {
-		return { kind: 'primitive', primitive: 'number' };
-	}
+  if (terminalName === 'INT' || terminalName === 'number') {
+    return { kind: 'primitive', primitive: 'number' };
+  }
 
-	if (terminalName === 'boolean') {
-		return { kind: 'primitive', primitive: 'boolean' };
-	}
+  if (terminalName === 'boolean') {
+    return { kind: 'primitive', primitive: 'boolean' };
+  }
 
-	return undefined;
+  return undefined;
 }
 
 /**
@@ -28,203 +28,207 @@ export function mapTerminalToZod(terminalName: string): ZodTypeExpression | unde
  *   PropertyUnion  { types: PropertyType[] }
  */
 function mapLangiumPropertyType(type: unknown): ZodTypeExpression | undefined {
-	if (!type || typeof type !== 'object') {
-		return undefined;
-	}
+  if (!type || typeof type !== 'object') {
+    return undefined;
+  }
 
-	const t = type as Record<string, unknown>;
+  const t = type as Record<string, unknown>;
 
-	// PrimitiveType: { primitive: 'string' | 'number' | 'boolean' | 'bigint' }
-	if ('primitive' in t && typeof t['primitive'] === 'string') {
-		const p = t['primitive'];
-		if (p === 'string' || p === 'number' || p === 'boolean') {
-			return { kind: 'primitive', primitive: p };
-		}
-		if (p === 'bigint') {
-			// Langium bigint datatype rules (e.g. `Integer returns bigint`) are
-			// surfaced as references so the caller gets a named schema (IntegerSchema).
-			// If encountered inline, emit as a literal 'bigint' primitive.
-			return { kind: 'primitive', primitive: 'bigint' as ZodPrimitive };
-		}
-		// Other unknown primitive names: default to string
-		return { kind: 'primitive', primitive: 'string' };
-	}
+  // PrimitiveType: { primitive: 'string' | 'number' | 'boolean' | 'bigint' }
+  if ('primitive' in t && typeof t['primitive'] === 'string') {
+    const p = t['primitive'];
+    if (p === 'string' || p === 'number' || p === 'boolean') {
+      return { kind: 'primitive', primitive: p };
+    }
+    if (p === 'bigint') {
+      // Langium bigint datatype rules (e.g. `Integer returns bigint`) are
+      // surfaced as references so the caller gets a named schema (IntegerSchema).
+      // If encountered inline, emit as a literal 'bigint' primitive.
+      return { kind: 'primitive', primitive: 'bigint' as ZodPrimitive };
+    }
+    // Other unknown primitive names: default to string
+    return { kind: 'primitive', primitive: 'string' };
+  }
 
-	// StringType: { string: string } — exact keyword/token literal
-	if ('string' in t && typeof t['string'] === 'string') {
-		return { kind: 'literal', value: t['string'] };
-	}
+  // StringType: { string: string } — exact keyword/token literal
+  if ('string' in t && typeof t['string'] === 'string') {
+    return { kind: 'literal', value: t['string'] };
+  }
 
-	// ValueType: { value: { name: string } } — reference to an interface or union type
-	if ('value' in t && t['value'] && typeof t['value'] === 'object') {
-		const value = t['value'] as Record<string, unknown>;
-		if (typeof value['name'] === 'string') {
-			return { kind: 'reference', typeName: value['name'] };
-		}
-	}
+  // ValueType: { value: { name: string } } — reference to an interface or union type
+  if ('value' in t && t['value'] && typeof t['value'] === 'object') {
+    const value = t['value'] as Record<string, unknown>;
+    if (typeof value['name'] === 'string') {
+      return { kind: 'reference', typeName: value['name'] };
+    }
+  }
 
-	// ReferenceType: { referenceType: PropertyType } — cross-reference [Type]
-	// The inner referenceType is typically a ValueType { value: { name: string } }
-	if ('referenceType' in t && t['referenceType']) {
-		const innerRef = t['referenceType'] as Record<string, unknown>;
-		let targetType = 'unknown';
-		if (innerRef['value'] && typeof innerRef['value'] === 'object') {
-			const val = innerRef['value'] as Record<string, unknown>;
-			if (typeof val['name'] === 'string') {
-				targetType = val['name'];
-			}
-		}
-		return { kind: 'crossReference', targetType };
-	}
+  // ReferenceType: { referenceType: PropertyType } — cross-reference [Type]
+  // The inner referenceType is typically a ValueType { value: { name: string } }
+  if ('referenceType' in t && t['referenceType']) {
+    const innerRef = t['referenceType'] as Record<string, unknown>;
+    let targetType = 'unknown';
+    if (innerRef['value'] && typeof innerRef['value'] === 'object') {
+      const val = innerRef['value'] as Record<string, unknown>;
+      if (typeof val['name'] === 'string') {
+        targetType = val['name'];
+      }
+    }
+    return { kind: 'crossReference', targetType };
+  }
 
-	// ArrayType: { elementType: PropertyType }
-	if ('elementType' in t && t['elementType']) {
-		const inner = mapLangiumPropertyType(t['elementType']);
-		if (inner) {
-			return { kind: 'array', element: inner };
-		}
-	}
+  // ArrayType: { elementType: PropertyType }
+  if ('elementType' in t && t['elementType']) {
+    const inner = mapLangiumPropertyType(t['elementType']);
+    if (inner) {
+      return { kind: 'array', element: inner };
+    }
+  }
 
-	// PropertyUnion: { types: PropertyType[] } — union / optional branches
-	if ('types' in t && Array.isArray(t['types'])) {
-		const members = (t['types'] as unknown[])
-			.map((item) => mapLangiumPropertyType(item))
-			.filter((m): m is ZodTypeExpression => m !== undefined);
+  // PropertyUnion: { types: PropertyType[] } — union / optional branches
+  if ('types' in t && Array.isArray(t['types'])) {
+    const members = (t['types'] as unknown[])
+      .map((item) => mapLangiumPropertyType(item))
+      .filter((m): m is ZodTypeExpression => m !== undefined);
 
-		// Deduplicate members by their serialized form
-		const seen = new Set<string>();
-		const unique = members.filter((m) => {
-			const key = JSON.stringify(m);
-			if (seen.has(key)) return false;
-			seen.add(key);
-			return true;
-		});
+    // Deduplicate members by their serialized form
+    const seen = new Set<string>();
+    const unique = members.filter((m) => {
+      const key = JSON.stringify(m);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
-		if (unique.length === 1) {
-			return unique[0];
-		}
-		if (unique.length > 1) {
-			return { kind: 'union', members: unique };
-		}
-	}
+    if (unique.length === 1) {
+      return unique[0];
+    }
+    if (unique.length > 1) {
+      return { kind: 'union', members: unique };
+    }
+  }
 
-	return undefined;
+  return undefined;
 }
 
-function normalizePropertyType(propertyType: unknown): { typeName?: string; isArray: boolean; isCrossRef: boolean } {
-	if (typeof propertyType === 'string') {
-		return {
-			typeName: propertyType,
-			isArray: false,
-			isCrossRef: false
-		};
-	}
+function normalizePropertyType(propertyType: unknown): {
+  typeName?: string;
+  isArray: boolean;
+  isCrossRef: boolean;
+} {
+  if (typeof propertyType === 'string') {
+    return {
+      typeName: propertyType,
+      isArray: false,
+      isCrossRef: false
+    };
+  }
 
-	if (!propertyType || typeof propertyType !== 'object') {
-		return { isArray: false, isCrossRef: false };
-	}
+  if (!propertyType || typeof propertyType !== 'object') {
+    return { isArray: false, isCrossRef: false };
+  }
 
-	const candidate = propertyType as {
-		elementType?: unknown;
-		type?: unknown;
-		name?: string;
-		referenceType?: string;
-		isCrossRef?: boolean;
-		crossRef?: boolean;
-	};
+  const candidate = propertyType as {
+    elementType?: unknown;
+    type?: unknown;
+    name?: string;
+    referenceType?: string;
+    isCrossRef?: boolean;
+    crossRef?: boolean;
+  };
 
-	if (candidate.elementType) {
-		const nested = normalizePropertyType(candidate.elementType);
-		return {
-			typeName: nested.typeName,
-			isArray: true,
-			isCrossRef: nested.isCrossRef
-		};
-	}
+  if (candidate.elementType) {
+    const nested = normalizePropertyType(candidate.elementType);
+    return {
+      typeName: nested.typeName,
+      isArray: true,
+      isCrossRef: nested.isCrossRef
+    };
+  }
 
-	if (candidate.type) {
-		const nested = normalizePropertyType(candidate.type);
-		return {
-			typeName: nested.typeName,
-			isArray: false,
-			isCrossRef: nested.isCrossRef
-		};
-	}
+  if (candidate.type) {
+    const nested = normalizePropertyType(candidate.type);
+    return {
+      typeName: nested.typeName,
+      isArray: false,
+      isCrossRef: nested.isCrossRef
+    };
+  }
 
-	const typeName =
-		typeof candidate.referenceType === 'string'
-			? candidate.referenceType
-			: typeof candidate.name === 'string'
-				? candidate.name
-				: undefined;
+  const typeName =
+    typeof candidate.referenceType === 'string'
+      ? candidate.referenceType
+      : typeof candidate.name === 'string'
+        ? candidate.name
+        : undefined;
 
-	return {
-		typeName,
-		isArray: false,
-		isCrossRef: Boolean(candidate.isCrossRef || candidate.crossRef)
-	};
+  return {
+    typeName,
+    isArray: false,
+    isCrossRef: Boolean(candidate.isCrossRef || candidate.crossRef)
+  };
 }
 
 export function mapPropertyType(property: PropertyLike): ZodTypeExpression {
-	const assignmentOperator = property.assignment ?? property.operator ?? '=';
-	if (assignmentOperator === '?=') {
-		return { kind: 'primitive', primitive: 'boolean' };
-	}
+  const assignmentOperator = property.assignment ?? property.operator ?? '=';
+  if (assignmentOperator === '?=') {
+    return { kind: 'primitive', primitive: 'boolean' };
+  }
 
-	// Explicit cross-reference marker takes precedence over type inspection
-	if (property.isCrossRef) {
-		const normalized = normalizePropertyType(property.type);
-		const targetType = property.referenceType ?? normalized.typeName ?? 'unknown';
-		const base: ZodTypeExpression = { kind: 'crossReference', targetType };
-		if (assignmentOperator === '+=') {
-			return { kind: 'array', element: base };
-		}
-		return base;
-	}
+  // Explicit cross-reference marker takes precedence over type inspection
+  if (property.isCrossRef) {
+    const normalized = normalizePropertyType(property.type);
+    const targetType = property.referenceType ?? normalized.typeName ?? 'unknown';
+    const base: ZodTypeExpression = { kind: 'crossReference', targetType };
+    if (assignmentOperator === '+=') {
+      return { kind: 'array', element: base };
+    }
+    return base;
+  }
 
-	// Try Langium's native PropertyType discriminated union first.
-	// This handles: PrimitiveType { primitive }, StringType { string }, ValueType { value },
-	// ReferenceType { referenceType }, ArrayType { elementType }, PropertyUnion { types }.
-	const langiumResult = mapLangiumPropertyType(property.type);
-	if (langiumResult) {
-		// Don't double-wrap — mapLangiumPropertyType handles ArrayType internally
-		if (assignmentOperator === '+=' && langiumResult.kind !== 'array') {
-			return { kind: 'array', element: langiumResult };
-		}
-		return langiumResult;
-	}
+  // Try Langium's native PropertyType discriminated union first.
+  // This handles: PrimitiveType { primitive }, StringType { string }, ValueType { value },
+  // ReferenceType { referenceType }, ArrayType { elementType }, PropertyUnion { types }.
+  const langiumResult = mapLangiumPropertyType(property.type);
+  if (langiumResult) {
+    // Don't double-wrap — mapLangiumPropertyType handles ArrayType internally
+    if (assignmentOperator === '+=' && langiumResult.kind !== 'array') {
+      return { kind: 'array', element: langiumResult };
+    }
+    return langiumResult;
+  }
 
-	// Legacy fallback: simple string type names and duck-typed wrapper shapes
-	const normalized = normalizePropertyType(property.type);
-	const sourceTypeName = property.referenceType ?? normalized.typeName ?? '';
-	const primitive = mapTerminalToZod(sourceTypeName);
+  // Legacy fallback: simple string type names and duck-typed wrapper shapes
+  const normalized = normalizePropertyType(property.type);
+  const sourceTypeName = property.referenceType ?? normalized.typeName ?? '';
+  const primitive = mapTerminalToZod(sourceTypeName);
 
-	let base: ZodTypeExpression;
-	if (normalized.isCrossRef) {
-		base = {
-			kind: 'crossReference',
-			targetType: sourceTypeName || 'unknown'
-		};
-	} else if (primitive) {
-		base = primitive;
-	} else if (sourceTypeName) {
-		base = {
-			kind: 'reference',
-			typeName: sourceTypeName
-		};
-	} else {
-		base = {
-			kind: 'reference',
-			typeName: 'unknown'
-		};
-	}
+  let base: ZodTypeExpression;
+  if (normalized.isCrossRef) {
+    base = {
+      kind: 'crossReference',
+      targetType: sourceTypeName || 'unknown'
+    };
+  } else if (primitive) {
+    base = primitive;
+  } else if (sourceTypeName) {
+    base = {
+      kind: 'reference',
+      typeName: sourceTypeName
+    };
+  } else {
+    base = {
+      kind: 'reference',
+      typeName: 'unknown'
+    };
+  }
 
-	if (assignmentOperator === '+=' || normalized.isArray) {
-		return {
-			kind: 'array',
-			element: base
-		};
-	}
+  if (assignmentOperator === '+=' || normalized.isArray) {
+    return {
+      kind: 'array',
+      element: base
+    };
+  }
 
-	return base;
+  return base;
 }
