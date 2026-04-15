@@ -4,17 +4,6 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug Main",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/src/index.ts",
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-      "runtimeExecutable": "tsx",
-      "runtimeArgs": ["--inspect-brk"],
-      "console": "integratedTerminal"
-    },
-    {
-      "type": "node",
-      "request": "launch",
       "name": "Debug Tests",
       "skipFiles": ["<node_internals>/**"],
       "runtimeExecutable": "pnpm",
