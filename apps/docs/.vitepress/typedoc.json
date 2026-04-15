@@ -1,0 +1,17 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["../../../packages/langium-zod/src/index.ts"],
+  "tsconfig": "../../../packages/langium-zod/tsconfig.json",
+  "out": "../api",
+  "plugin": ["typedoc-plugin-markdown", "typedoc-vitepress-theme"],
+  "excludeInternal": true,
+  "excludePrivate": true,
+  "readme": "none",
+  "hideBreadcrumbs": false,
+  "useCodeBlocks": true,
+  "expandObjects": true,
+  "indexFormat": "table",
+  "parametersFormat": "table",
+  "propertiesFormat": "table",
+  "typeDeclarationFormat": "table"
+}

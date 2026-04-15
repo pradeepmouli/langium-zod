@@ -44,6 +44,8 @@
     "test:watch": "vitest",
     "type-check": "pnpm -r run type-check",
     "docs": "typedoc --out docs/html --plugin typedoc-plugin-to-skills",
+    "docs:build": "pnpm --filter langium-zod-docs build",
+    "docs:dev": "pnpm --filter langium-zod-docs dev",
     "docs:md": "typedoc"
   },
   "simple-git-hooks": {
