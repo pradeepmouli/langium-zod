@@ -4,6 +4,13 @@
 
 > **⚠️ Pre-1.0 software** — APIs are subject to change between minor versions. Pin to exact versions in production. See the [CHANGELOG](./CHANGELOG.md) for breaking changes between releases.
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/langium-zod"><img src="https://img.shields.io/npm/v/langium-zod?style=flat-square&label=langium-zod" alt="npm version" /></a>
+  <a href="https://github.com/pradeepmouli/langium-zod/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/pradeepmouli/langium-zod/ci.yml?style=flat-square" alt="ci" /></a>
+  <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="license" />
+  <img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen?style=flat-square" alt="node" />
+</p>
+
 📚 **Documentation:** <https://pradeepmouli.github.io/langium-zod/>
 
 ## Overview
@@ -74,10 +81,9 @@ Automated release is configured in `.github/workflows/release.yml`.
 
 ## Documentation
 
-- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
-- [docs/TESTING.md](docs/TESTING.md)
-- [docs/EXAMPLES.md](docs/EXAMPLES.md)
-- [CONTRIBUTING.md](CONTRIBUTING.md)
+- Full docs site: <https://pradeepmouli.github.io/langium-zod/>
+- [CONTRIBUTING.md](./CONTRIBUTING.md)
+- [CHANGELOG.md](./CHANGELOG.md)
 
 ## License
 
