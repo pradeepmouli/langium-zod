@@ -1,0 +1,480 @@
+# langium-zod-docs
+
+> Documentation site for langium-zod
+
+### generateZodSchemas
+
+Main entry point for programmatic Zod schema generation from a Langium grammar.
+
+Accepts a ZodGeneratorConfig that specifies either a parsed Langium
+`Grammar` object or a pre-built AstTypesLike descriptor, then runs the
+full extraction → projection → code-generation pipeline and returns the
+generated TypeScript source as a string. When `config.outputPath` is set the
+result is also written to disk. Conformance artifacts are generated when
+`config.conformance` is provided.
+
+```ts
+generateZodSchemas(config: ZodGeneratorConfig): string
+```
+
+**Parameters:**
+- `config: ZodGeneratorConfig` — Generator configuration including the grammar or AST types,
+  optional output path, include/exclude filters, projection, and feature flags.
+
+**Returns:** `string`
+
+```ts
+import { createLangiumGrammarServices } from 'langium/grammar';
+import { NodeFileSystem } from 'langium/node';
+import { generateZodSchemas } from 'langium-zod';
+
+const { grammar } = createLangiumGrammarServices(NodeFileSystem);
+// assume `parsedGrammar` is a Grammar node obtained from Langium
+const source = generateZodSchemas({
+  grammar: parsedGrammar,
+  outputPath: 'src/generated/zod-schemas.ts',
+  stripInternals: true,
+});
+console.log(source); // TypeScript source with Zod schema exports
+```
+```ts
+// Using a pre-built AstTypesLike descriptor (skips grammar parsing)
+import { generateZodSchemas } from 'langium-zod';
+import { collectAst } from 'langium/grammar';
+
+const astTypes = collectAst(myGrammar);
+const source = generateZodSchemas({ astTypes });
+```
+
+### extractTypeDescriptors
+
+Extracts ZodTypeDescriptor records from a Langium grammar's type model.
+
+Runs a three-phase pipeline:
+1. **Object descriptors** — converts each `InterfaceType` (with inherited
+   properties resolved through the super-type chain) into a `ZodObjectTypeDescriptor`.
+2. **Union / enum descriptors** — converts each `UnionType` into one of:
+   `ZodUnionTypeDescriptor` (discriminated union of interfaces),
+   `ZodKeywordEnumDescriptor` (pure keyword literal union),
+   `ZodRegexEnumDescriptor` (terminal regex ± keyword alternatives), or
+   `ZodPrimitiveAliasDescriptor` (simple primitive alias such as `BigDecimal`).
+3. **Stub descriptors** — synthesises primitive-alias stubs for any referenced
+   type name that does not appear in `astTypes` (e.g. standalone datatype rules).
+
+Include/exclude filtering from `config` is applied at each phase.
+
+```ts
+extractTypeDescriptors(astTypes: AstTypesLike, config?: FilterConfig): ZodTypeDescriptor[]
+```
+
+**Parameters:**
+- `astTypes: AstTypesLike` — The interface and union types collected from a Langium grammar,
+  typically produced by Langium's `collectAst()`.
+- `config: FilterConfig` (optional) — Optional include/exclude filter controlling which type names are
+  emitted.
+
+**Returns:** `ZodTypeDescriptor[]`
+
+```ts
+import { extractTypeDescriptors } from 'langium-zod';
+import { collectAst } from 'langium/grammar';
+
+const astTypes = collectAst(myGrammar);
+const descriptors = extractTypeDescriptors(astTypes, { exclude: ['InternalNode'] });
+console.log(descriptors.map(d => d.name));
+```
+
+### generateZodCode
+
+Generates a TypeScript source string containing Zod schema exports for all
+provided type descriptors.
+
+Emission order is:
+1. Keyword-enum schemas (`z.literal` / `z.union([z.literal(...)])`)
+2. Regex-enum schemas (`z.string().regex(...)`)
+3. Primitive-alias schemas (`z.string()`, `z.number()`, etc.)
+4. Object schemas in topological dependency order; properties that form
+   reference cycles are emitted as getter accessors to avoid forward-reference
+   errors.
+5. Discriminated-union schemas (all member object schemas are already declared).
+6. A master `AstNodeSchema` discriminated union across all object schemas.
+7. Optional cross-reference schema factories when `options.crossRefValidation`
+   is enabled.
+
+```ts
+generateZodCode(descriptors: ZodTypeDescriptor[], recursiveTypes: Set<string>, options: GenerationOptions): string
+```
+
+**Parameters:**
+- `descriptors: ZodTypeDescriptor[]` — Full set of type descriptors produced by
+  extractTypeDescriptors. Projection / stripInternals filtering is
+  applied internally via `applyProjectionToDescriptors`.
+- `recursiveTypes: Set<string>` — Set of type names that participate in a reference cycle,
+  produced by detectRecursiveTypes. These are emitted with getter syntax.
+- `options: GenerationOptions` — Optional flags controlling output style (`objectStyle`,
+  `formMetadata`, `crossRefValidation`, `projection`, `stripInternals`).
+
+**Returns:** `string`
+
+```ts
+import { extractTypeDescriptors, detectRecursiveTypes, generateZodCode } from 'langium-zod';
+import { collectAst } from 'langium/grammar';
+
+const astTypes = collectAst(myGrammar);
+const descriptors = extractTypeDescriptors(astTypes);
+const recursiveTypes = detectRecursiveTypes(descriptors);
+const source = generateZodCode(descriptors, recursiveTypes, { objectStyle: 'strict' });
+```
+
+### detectRecursiveTypes
+
+Detects type names that participate in a reference cycle across the descriptor
+graph.
+
+Builds a directed graph where each object type descriptor is a node and each
+type reference in its properties is an edge. A depth-first search then
+identifies all nodes that belong to at least one cycle. The generator uses this
+set to emit getter-based property accessors instead of direct value expressions,
+avoiding JavaScript "used before declaration" errors for mutually-recursive Zod
+schemas.
+
+Only `'object'` kind descriptors are considered; union and primitive-alias
+descriptors are transparent to cycle detection.
+
+```ts
+detectRecursiveTypes(descriptors: ZodTypeDescriptor[]): Set<string>
+```
+
+**Parameters:**
+- `descriptors: ZodTypeDescriptor[]` — The full list of type descriptors to analyse, as returned
+  by extractTypeDescriptors.
+
+**Returns:** `Set<string>`
+
+```ts
+import { extractTypeDescriptors, detectRecursiveTypes } from 'langium-zod';
+import { collectAst } from 'langium/grammar';
+
+const descriptors = extractTypeDescriptors(collectAst(myGrammar));
+const recursive = detectRecursiveTypes(descriptors);
+console.log([...recursive]); // e.g. ['Expression', 'Statement']
+```
+
+### generate
+
+Programmatic entry point for the `langium-zod generate` command.
+
+Loads `langium-config.json` from `opts.langiumConfigPath`, resolves the grammar
+file path, parses the grammar with Langium services (including eager import
+loading so cross-file references link correctly), then calls
+generateZodSchemas with the merged configuration. Prints a success
+message to stdout when generation completes.
+
+```ts
+generate(opts: GenerateOptions): Promise<void>
+```
+
+**Parameters:**
+- `opts: GenerateOptions` — GenerateOptions specifying the langium config path and
+  optional pre-merged generator config.
+
+**Returns:** `Promise<void>`
+
+### zRef
+
+Creates a Zod string schema that validates a cross-reference value against an
+allowlist of known identifiers, evaluated lazily at parse time.
+
+This is used in generated cross-reference schema factories (emitted when
+`crossRefValidation` is enabled in ZodGeneratorConfig) to validate that
+a `$refText` string resolves to an identifier that actually exists in the current
+document model. The collection is resolved lazily via a getter function so that it
+can reference the live state of the Langium document at validation time rather than
+a snapshot captured at schema construction.
+
+Empty strings and whitespace-only values always pass (they represent
+unresolved/placeholder references). When the collection is empty or not yet
+populated, validation also passes to avoid false negatives during incremental
+parsing.
+
+```ts
+zRef(collection: string[] | (() => string[]), message: string): ZodString
+```
+
+**Parameters:**
+- `collection: string[] | (() => string[])` — Either a static `string[]` or a zero-argument function that
+  returns the current list of valid reference target names.
+- `message: string` — Custom validation error message returned when the value is not
+  found in the collection. Defaults to `'Unknown reference value'`.
+
+**Returns:** `ZodString`
+
+```ts
+import { zRef } from 'langium-zod';
+
+// Static allowlist
+const schema = zRef(['Alice', 'Bob', 'Carol']);
+schema.parse('Alice');  // ok
+schema.parse('Dave');   // throws ZodError: Unknown reference value
+
+// Lazy getter — collection is resolved at parse time
+const liveRefs: string[] = [];
+const lazySchema = zRef(() => liveRefs);
+liveRefs.push('Alice');
+lazySchema.parse('Alice'); // ok — picked up the live state
+```
+
+### ZodGeneratorError
+
+Custom error class thrown by the langium-zod code generator when it
+encounters a condition it cannot recover from.
+
+Carries optional structured context that pinpoints the source of the problem:
+- `typeName` — the Langium interface or union type being processed when the
+  error occurred.
+- `grammarElement` — the specific grammar property or rule element that
+  triggered the failure.
+- `suggestion` — a human-readable hint explaining how to fix the issue,
+  surfaced to the user in CLI output.
+
+The `name` property is always set to `'ZodGeneratorError'` so that error
+handlers can distinguish this class from generic `Error` instances without
+needing an `instanceof` check across module boundaries.
+
+```ts
+constructor(message: string, options?: ZodGeneratorErrorOptions): ZodGeneratorError
+```
+
+**Properties:**
+- `stackTraceLimit: number` — The `Error.stackTraceLimit` property specifies the number of stack frames
+collected by a stack trace (whether generated by `new Error().stack` or
+`Error.captureStackTrace(obj)`).
+
+The default value is `10` but may be set to any valid JavaScript number. Changes
+will affect any stack trace captured _after_ the value has been changed.
+
+If set to a non-number value, or set to a negative number, stack traces will
+not capture any frames.
+- `grammarElement: string` — 
+- `typeName: string` — 
+- `suggestion: string` — 
+- `name: string` — 
+- `message: string` — 
+- `stack: string` — 
+- `cause: unknown` — 
+
+**Methods:**
+- `isError(error: unknown): error is Error` — Indicates whether the argument provided is a built-in Error instance or not.
+- `captureStackTrace(targetObject: object, constructorOpt?: Function): void` — Creates a `.stack` property on `targetObject`, which when accessed returns
+a string representing the location in the code at which
+`Error.captureStackTrace()` was called.
+
+```js
+const myObject = {};
+Error.captureStackTrace(myObject);
+myObject.stack;  // Similar to `new Error().stack`
+```
+
+The first line of the trace will be prefixed with
+`${myObject.name}: ${myObject.message}`.
+
+The optional `constructorOpt` argument accepts a function. If given, all frames
+above `constructorOpt`, including `constructorOpt`, will be omitted from the
+generated stack trace.
+
+The `constructorOpt` argument is useful for hiding implementation
+details of error generation from the user. For instance:
+
+```js
+function a() {
+  b();
+}
+
+function b() {
+  c();
+}
+
+function c() {
+  // Create an error without stack trace to avoid calculating the stack trace twice.
+  const { stackTraceLimit } = Error;
+  Error.stackTraceLimit = 0;
+  const error = new Error();
+  Error.stackTraceLimit = stackTraceLimit;
+
+  // Capture the stack trace above function b
+  Error.captureStackTrace(error, b); // Neither function c, nor b is included in the stack trace
+  throw error;
+}
+
+a();
+```
+- `prepareStackTrace(err: Error, stackTraces: CallSite[]): any` — 
+
+### DefaultZodSchemaGenerator
+
+Default implementation of ZodSchemaGenerator.
+
+Wraps the top-level generateZodSchemas function and injects the
+`LangiumCoreServices` instance provided by the DI container, so callers do not
+need to pass services manually on every invocation.
+
+```ts
+constructor(services: LangiumCoreServices): DefaultZodSchemaGenerator
+```
+
+**Methods:**
+- `generate(grammar: Grammar, config?: Partial<ZodGeneratorConfig>): string` — 
+
+### FilterConfig
+
+Include/exclude filter that controls which Langium type names are emitted
+during schema generation.
+
+When `include` is non-empty, only the listed type names (and any stub types
+they reference) are generated. When `exclude` is non-empty, the listed names
+are skipped. If both are supplied, `exclude` takes precedence for names that
+appear in both lists. An empty (or omitted) `FilterConfig` emits all types.
+
+### ZodGeneratorConfig
+
+Full configuration object for generateZodSchemas.
+
+At least one of `grammar` or `astTypes` must be provided:
+- `grammar` — a parsed Langium `Grammar` AST (or array for multi-grammar
+  projects); the extractor calls Langium's `collectAst()` internally.
+- `astTypes` — a pre-built AstTypesLike descriptor, useful when the
+  caller already has the type model and wants to skip grammar parsing.
+
+All other fields are optional and control output path, include/exclude
+filtering, projection, strip-internals, cross-reference validation, conformance
+artifact generation, regex overrides, form metadata emission, and object style.
+
+### GenerateOptions
+
+Options accepted by the programmatic generate function.
+
+Allows the core generation logic to be invoked directly from other tools or
+scripts without going through the CLI argument parser.
+
+### LangiumZodConfig
+
+User-facing config file shape (langium-zod.config.js / .ts)
+
+### AstTypesLike
+
+Duck-typed representation of the type model returned by Langium's `collectAst()`
+function. Holds the full set of interface types and union/datatype-rule types
+that the extractor analyses to produce ZodTypeDescriptor records.
+
+Using this interface rather than Langium's concrete `AstTypes` class means the
+extractor and tests can supply plain object literals without importing from
+Langium's grammar internals.
+
+### InterfaceTypeLike
+
+Duck-typed representation of a Langium `InterfaceType`, carrying only the fields
+that langium-zod needs. Using this abstraction instead of Langium's concrete
+class keeps the extractor decoupled from Langium's internal AST model and makes
+unit testing easier via plain object stubs.
+
+### PropertyLike
+
+Duck-typed representation of a single property within a Langium `InterfaceType`.
+
+Captures the grammar-level attributes the extractor uses to determine the Zod
+type expression, optionality, and array cardinality for a property:
+- `operator` / `assignment` — grammar assignment operators (`=`, `+=`, `?=`).
+- `cardinality` — cardinality suffix on the property's type node.
+- `ruleCall.cardinality` — cardinality on the rule call inside the type node
+  (Langium 4.x shape).
+- `isCrossRef` / `referenceType` — signals that the property holds a Langium
+  cross-reference rather than an inline value.
+
+### UnionTypeLike
+
+Duck-typed representation of a Langium `UnionType` (including datatype rules
+that alias primitives or terminal regex patterns). The `type` field holds the
+raw Langium type-model node and is inspected structurally by the extractor to
+classify the union as a keyword-enum, regex-enum, discriminated-union, or
+primitive alias.
+
+### ZodPropertyDescriptor
+
+Describes a single property of a Langium interface type after extraction,
+capturing all information the code generator needs to emit a Zod property
+expression.
+
+- `name` — property name as it appears in the grammar (e.g. `"elements"`).
+- `zodType` — the resolved ZodTypeExpression for this property.
+- `optional` — `true` when the grammar uses `?=` assignment or marks the
+  property as optional.
+- `minItems` — minimum array length when the grammar uses `+=` with `+`
+  cardinality (emits `.min(1)`); `undefined` for all other cases.
+- `comment` — JSDoc/grammar comment to propagate into form metadata, if any.
+
+### ZodTypeDescriptor
+
+Union of all type descriptor shapes that the extractor can produce and the
+code generator can consume. Each variant carries a discriminating `kind` field:
+`'object'`, `'union'`, `'primitive-alias'`, `'keyword-enum'`, or `'regex-enum'`.
+
+```ts
+type ZodTypeDescriptor = ZodObjectTypeDescriptor | ZodUnionTypeDescriptor | ZodPrimitiveAliasDescriptor | ZodKeywordEnumDescriptor | ZodRegexEnumDescriptor
+```
+
+### ZodTypeExpression
+
+A discriminated union that represents a single Zod type node in the descriptor
+tree produced by the extractor and consumed by the code generator.
+
+Each variant maps to a specific Zod combinator:
+- `primitive` → `z.string()` / `z.number()` / `z.boolean()` / `z.bigint()`
+- `literal` → `z.literal(value)`
+- `reference` → `<TypeName>Schema` (a reference to another generated schema)
+- `array` → `z.array(element)`
+- `crossReference` → `ReferenceSchema` (Langium cross-reference, optionally
+  refined with zRef when cross-reference validation is enabled)
+- `union` → `z.union([...members])`
+- `lazy` → `z.lazy(() => inner)` (used for self-referential types)
+
+```ts
+type ZodTypeExpression = { kind: "primitive"; primitive: ZodPrimitive } | { kind: "literal"; value: string } | { kind: "reference"; typeName: string } | { kind: "array"; element: ZodTypeExpression } | { kind: "crossReference"; targetType: string } | { kind: "union"; members: ZodTypeExpression[] } | { kind: "lazy"; inner: ZodTypeExpression }
+```
+
+### ZodSchemaGenerator
+
+Service interface for generating Zod schemas from a parsed Langium grammar.
+
+Implemented by DefaultZodSchemaGenerator and registered in the Langium
+dependency-injection container via ZodSchemaGeneratorModule. Consumers
+that obtain Langium services through the standard DI mechanism can retrieve this
+service from `services.shared.ZodSchemaGenerator`.
+
+### ZodSchemaGeneratorServices
+
+Langium DI service container shape for the langium-zod extension.
+
+Declares the `shared.ZodSchemaGenerator` slot so that TypeScript can type-check
+service access and module contributions without requiring a full Langium service
+registry at compile time.
+
+### DEFAULT_OUTPUT_PATH
+
+Default output path used when no explicit `outputPath` is provided and the
+project's `langium-config.json` does not declare an `out` directory.
+
+```ts
+const DEFAULT_OUTPUT_PATH: "src/generated/zod-schemas.ts"
+```
+
+### ZodSchemaGeneratorModule
+
+Langium `Module` definition that registers DefaultZodSchemaGenerator
+under `shared.ZodSchemaGenerator` in the Langium DI container.
+
+Pass this module to `inject()` alongside your language's own module to make the
+Zod schema generator available as a shared service.
+
+```ts
+const ZodSchemaGeneratorModule: Module<ZodSchemaGeneratorServices, Partial<ZodSchemaGeneratorServices>>
+```
