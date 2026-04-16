@@ -282,14 +282,70 @@ function collectReferenceTypeNames(expression: ZodTypeExpression): string[] {
  * 7. Optional cross-reference schema factories when `options.crossRefValidation`
  *    is enabled.
  *
+ * @remarks
+ * The generated file includes a `// @ts-nocheck` comment at the top because the
+ * getter-based cycle-breaking syntax is not always accepted by TypeScript's strict
+ * object literal type checker. Do not remove it from generated output.
+ *
+ * Union schemas are always emitted **after** all object schemas. Properties that
+ * reference a union type use `z.lazy()` wrappers automatically (tracked via
+ * `unionNames`), so the output is always valid even when object schemas reference
+ * unions that are defined later in the file.
+ *
+ * This function does not write to disk; call {@link generateZodSchemas} to write
+ * to `config.outputPath`.
+ *
  * @param descriptors - Full set of type descriptors produced by
  *   {@link extractTypeDescriptors}. Projection / stripInternals filtering is
  *   applied internally via `applyProjectionToDescriptors`.
  * @param recursiveTypes - Set of type names that participate in a reference cycle,
  *   produced by {@link detectRecursiveTypes}. These are emitted with getter syntax.
- * @param options - Optional flags controlling output style (objectStyle, formMetadata,
- *   crossRefValidation, projection, stripInternals).
+ * @param options - Optional flags controlling output style (`objectStyle`,
+ *   `formMetadata`, `crossRefValidation`, `projection`, `stripInternals`).
  * @returns The generated TypeScript source as a string (does not write to disk).
+ *
+ * @example
+ * ```ts
+ * import { extractTypeDescriptors, detectRecursiveTypes, generateZodCode } from 'langium-zod';
+ * import { collectAst } from 'langium/grammar';
+ *
+ * const astTypes = collectAst(myGrammar);
+ * const descriptors = extractTypeDescriptors(astTypes);
+ * const recursiveTypes = detectRecursiveTypes(descriptors);
+ * const source = generateZodCode(descriptors, recursiveTypes, { objectStyle: 'strict' });
+ * ```
+ *
+ * @useWhen
+ * - You already have descriptors and a recursion set and want to run code generation
+ *   in isolation (e.g. for testing the emitter with synthetic descriptors).
+ * - You need to generate code multiple times with different `options` from the same
+ *   descriptor set without re-running extraction.
+ * - You are building a custom pipeline that inserts descriptor transformations between
+ *   extraction and code generation.
+ *
+ * @avoidWhen
+ * - You are doing a standard end-to-end generation — use {@link generateZodSchemas}
+ *   instead, which orchestrates all pipeline stages and handles disk writes.
+ * - You need `regexOverrides` applied — those are applied by {@link generateZodSchemas}
+ *   before this function is called.
+ *
+ * @pitfalls
+ * - NEVER pass a `recursiveTypes` set that was computed from a different descriptor set
+ *   than `descriptors`. BECAUSE the generator uses the set to decide which properties
+ *   need getter syntax; a stale set will produce `const` declarations that reference
+ *   variables before they are initialised, causing runtime errors.
+ * - NEVER rely on emission order outside the documented phases. BECAUSE topological
+ *   sort is applied only to object descriptors; union and enum schemas appear in
+ *   their extraction order. Post-processing the string is fragile — transform descriptors
+ *   before calling this function instead.
+ * - NEVER assume `formMetadata: true` adds `description` to every property. BECAUSE
+ *   `description` is only included when the grammar comment for that property/type is
+ *   non-empty; title is always emitted via `humanize-string`.
+ *
+ * @category Generation
+ * @see {@link extractTypeDescriptors}
+ * @see {@link detectRecursiveTypes}
+ * @see {@link generateZodSchemas}
  */
 export function generateZodCode(
   descriptors: ZodTypeDescriptor[],

@@ -338,13 +338,72 @@ function collectReferences(expr: ZodTypeExpression, out: Set<string>): void {
  *
  * Include/exclude filtering from `config` is applied at each phase.
  *
+ * @remarks
+ * This function operates on the duck-typed {@link AstTypesLike} shape rather than
+ * Langium's concrete `AstTypes` class. You can pass plain object literals in tests
+ * without importing from Langium internals.
+ *
+ * Properties whose names start with `$` (other than `$type`) are silently skipped —
+ * these are Langium bookkeeping fields (`$container`, `$document`, etc.) that should
+ * not appear in user-facing Zod schemas. Use `stripInternals` in
+ * {@link ZodGeneratorConfig} (via {@link generateZodSchemas}) to also strip `$type`
+ * from the projection surface.
+ *
+ * Each object descriptor always includes a synthetic `$type` literal property set to
+ * the interface's name. This property is the discriminator key for generated
+ * discriminated-union schemas.
+ *
  * @param astTypes - The interface and union types collected from a Langium grammar,
  *   typically produced by Langium's `collectAst()`.
  * @param config - Optional include/exclude filter controlling which type names are
  *   emitted.
  * @returns A flat array of type descriptors ready for code generation.
  * @throws {@link ZodGeneratorError} when a property's type cannot be mapped to a
- *   known Zod schema kind.
+ *   known Zod schema kind (e.g. an unresolvable terminal reference).
+ *
+ * @example
+ * ```ts
+ * import { extractTypeDescriptors } from 'langium-zod';
+ * import { collectAst } from 'langium/grammar';
+ *
+ * const astTypes = collectAst(myGrammar);
+ * const descriptors = extractTypeDescriptors(astTypes, { exclude: ['InternalNode'] });
+ * console.log(descriptors.map(d => d.name));
+ * ```
+ *
+ * @useWhen
+ * - You want to inspect or transform the intermediate descriptor representation before
+ *   generating code (e.g. to add custom properties or change types).
+ * - You are caching descriptors across multiple calls to {@link generateZodCode} with
+ *   different options, so you only want to pay the extraction cost once.
+ * - You are writing tests against the descriptor model rather than the generated source.
+ *
+ * @avoidWhen
+ * - You just want generated Zod schemas — use {@link generateZodSchemas} instead, which
+ *   calls this function internally.
+ * - You want to apply `regexOverrides` — those are applied in {@link generateZodSchemas}
+ *   after extraction and are not visible in the raw descriptor array.
+ *
+ * @pitfalls
+ * - NEVER filter by `include` without including stub types that are transitively
+ *   referenced (e.g. `ValidID`). BECAUSE phase 3 only emits stubs for names that
+ *   `shouldInclude()` passes; missing stubs produce `undefined` schema references at
+ *   code-gen time.
+ * - NEVER assume the returned array order matches the grammar declaration order.
+ *   BECAUSE the array is grouped by phase (object, then union, then stub); use
+ *   {@link generateZodCode} which topologically sorts object schemas.
+ * - NEVER mutate the returned descriptors and re-pass them to extraction — descriptors
+ *   are consumed by the generator as values, but the super-type resolution cache lives
+ *   inside a single `extractTypeDescriptors` call; mutations do not propagate.
+ * - NEVER pass a grammar with a union type whose only member is itself filtered out by
+ *   `include`. BECAUSE the union will have zero members and produce a broken
+ *   discriminated union schema.
+ *
+ * @category Analysis
+ * @see {@link generateZodCode}
+ * @see {@link detectRecursiveTypes}
+ * @see {@link AstTypesLike}
+ * @see {@link ZodTypeDescriptor}
  */
 export function extractTypeDescriptors(
   astTypes: AstTypesLike,

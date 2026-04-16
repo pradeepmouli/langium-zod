@@ -14,6 +14,16 @@ export type ZodPrimitive = 'string' | 'number' | 'boolean' | 'bigint';
  *   refined with {@link zRef} when cross-reference validation is enabled)
  * - `union` → `z.union([...members])`
  * - `lazy` → `z.lazy(() => inner)` (used for self-referential types)
+ *
+ * @remarks
+ * This type is part of the lower-level descriptor API. Most consumers do not need to
+ * construct `ZodTypeExpression` values directly; they are produced by the extractor
+ * from Langium grammar types. Custom descriptor transformations (e.g. injecting
+ * additional validation constraints before code generation) are the primary use case.
+ *
+ * @category Analysis
+ * @see {@link ZodPropertyDescriptor}
+ * @see {@link ZodTypeDescriptor}
  */
 export type ZodTypeExpression =
   | { kind: 'primitive'; primitive: ZodPrimitive }
@@ -91,6 +101,20 @@ export interface ZodRegexEnumDescriptor {
  * Union of all type descriptor shapes that the extractor can produce and the
  * code generator can consume. Each variant carries a discriminating `kind` field:
  * `'object'`, `'union'`, `'primitive-alias'`, `'keyword-enum'`, or `'regex-enum'`.
+ *
+ * @remarks
+ * Use the `kind` discriminator to narrow to a specific variant before accessing
+ * variant-specific fields:
+ * ```ts
+ * if (descriptor.kind === 'object') {
+ *   // descriptor is ZodObjectTypeDescriptor
+ *   descriptor.properties; // available
+ * }
+ * ```
+ *
+ * @category Analysis
+ * @see {@link extractTypeDescriptors}
+ * @see {@link generateZodCode}
  */
 export type ZodTypeDescriptor =
   | ZodObjectTypeDescriptor
@@ -104,6 +128,16 @@ export type ZodTypeDescriptor =
  * that langium-zod needs. Using this abstraction instead of Langium's concrete
  * class keeps the extractor decoupled from Langium's internal AST model and makes
  * unit testing easier via plain object stubs.
+ *
+ * @remarks
+ * Use this interface when building synthetic `AstTypesLike` fixtures for unit tests
+ * or when feeding a custom grammar model into {@link extractTypeDescriptors} without
+ * going through Langium's parser. You only need to populate the fields your test
+ * exercises — `properties` and `superTypes` default to undefined and are treated as
+ * empty by the extractor.
+ *
+ * @category Analysis
+ * @see {@link AstTypesLike}
  */
 export interface InterfaceTypeLike {
   name: string;
@@ -158,6 +192,26 @@ export interface PropertyLike {
  * Using this interface rather than Langium's concrete `AstTypes` class means the
  * extractor and tests can supply plain object literals without importing from
  * Langium's grammar internals.
+ *
+ * @remarks
+ * Obtain a real `AstTypesLike` value by calling Langium's `collectAst(grammar)` and
+ * casting the result: `collectAst(grammar) as unknown as AstTypesLike`. In tests,
+ * construct plain objects conforming to this interface directly.
+ *
+ * @example
+ * ```ts
+ * import type { AstTypesLike } from 'langium-zod';
+ *
+ * const astTypes: AstTypesLike = {
+ *   interfaces: [{ name: 'Greeting', properties: [{ name: 'message', type: 'STRING', optional: false }] }],
+ *   unions: []
+ * };
+ * ```
+ *
+ * @category Analysis
+ * @see {@link extractTypeDescriptors}
+ * @see {@link InterfaceTypeLike}
+ * @see {@link UnionTypeLike}
  */
 export interface AstTypesLike {
   interfaces: InterfaceTypeLike[];
