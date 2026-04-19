@@ -85,6 +85,14 @@ Automated release is configured in `.github/workflows/release.yml`.
 - [CONTRIBUTING.md](./CONTRIBUTING.md)
 - [CHANGELOG.md](./CHANGELOG.md)
 
+## Related Projects
+
+| Library | Relationship | npm |
+|---|---|---|
+| [x-to-zod](https://github.com/pradeepmouli/x-to-zod) | JSON Schema → Zod conversion (used internally for schema bridging) | [![npm](https://img.shields.io/npm/v/x-to-zod?style=flat-square)](https://www.npmjs.com/package/x-to-zod) |
+| [rune-langium](https://github.com/pradeepmouli/rune-langium) | DSL toolchain that uses langium-zod for schema generation | [![npm](https://img.shields.io/npm/v/@rune-langium/core?style=flat-square)](https://www.npmjs.com/package/@rune-langium/core) |
+| [zod-to-form](https://github.com/pradeepmouli/zod-to-form) | Takes the Zod schemas langium-zod generates and produces React forms | [![npm](https://img.shields.io/npm/v/@zod-to-form/core?style=flat-square)](https://www.npmjs.com/package/@zod-to-form/core) |
+
 ## License
 
 MIT — see [LICENSE](./LICENSE).
