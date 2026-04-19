@@ -7,6 +7,18 @@ export default defineConfig({
   base: '/langium-zod/',
   lastUpdated: true,
   cleanUrls: true,
+  head: [
+    ['meta', { property: 'og:title', content: 'langium-zod' }],
+    ['meta', { property: 'og:description', content: 'Zod v4 schema generation from Langium grammars' }],
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:url', content: 'https://pradeepmouli.github.io/langium-zod/' }],
+    ['meta', { name: 'twitter:card', content: 'summary' }],
+    ['meta', { name: 'twitter:title', content: 'langium-zod' }],
+    ['meta', { name: 'twitter:description', content: 'Zod v4 schema generation from Langium grammars' }],
+  ],
+  sitemap: {
+    hostname: 'https://pradeepmouli.github.io/langium-zod'
+  },
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/guide/getting-started' },
