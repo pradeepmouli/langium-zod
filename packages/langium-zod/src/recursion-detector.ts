@@ -70,7 +70,7 @@ function propertyReferences(property: ZodPropertyDescriptor): string[] {
  *   {@link generateZodCode} call this function internally; you do not need to
  *   call it yourself.
  *
- * @pitfalls
+ * @never
  * - NEVER pass descriptors that have already had projection applied (via
  *   `applyProjectionToDescriptors`) to this function if the projection strips
  *   properties that close cycles. BECAUSE the cycle detection graph will miss the

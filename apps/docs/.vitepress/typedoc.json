@@ -8,6 +8,7 @@
   "llmsTxtOutDir": "../../public",
   "excludeInternal": true,
   "excludePrivate": true,
+  "excludeExternals": true,
   "readme": "none",
   "hideBreadcrumbs": false,
   "useCodeBlocks": true,
@@ -17,7 +18,7 @@
   "propertiesFormat": "table",
   "typeDeclarationFormat": "table",
   "blockTags": [
-    "@useWhen", "@avoidWhen", "@pitfalls", "@config",
+    "@useWhen", "@avoidWhen", "@never", "@config",
     "@param", "@returns", "@example", "@remarks", "@category",
     "@throws", "@see", "@deprecated", "@since", "@defaultValue",
     "@typeParam", "@template", "@public", "@alpha", "@beta",
