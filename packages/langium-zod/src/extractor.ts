@@ -384,7 +384,7 @@ function collectReferences(expr: ZodTypeExpression, out: Set<string>): void {
  * - You want to apply `regexOverrides` — those are applied in {@link generateZodSchemas}
  *   after extraction and are not visible in the raw descriptor array.
  *
- * @pitfalls
+ * @never
  * - NEVER filter by `include` without including stub types that are transitively
  *   referenced (e.g. `ValidID`). BECAUSE phase 3 only emits stubs for names that
  *   `shouldInclude()` passes; missing stubs produce `undefined` schema references at

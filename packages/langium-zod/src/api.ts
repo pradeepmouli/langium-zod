@@ -39,6 +39,25 @@ function resolveAstTypes(astTypes: AstTypesLike): AstTypesLike {
  * The function is synchronous and writes to disk only when `config.outputPath` is set.
  * It does not shell out or spawn child processes.
  *
+ * **Config option decision tree:**
+ * - Does your grammar have recursive rules (e.g. `Expression: ... | left=Expression`)? →
+ *   no action needed; cycle detection is automatic. If you run a custom pipeline, pass the
+ *   *full* (unprojected) descriptor set to `detectRecursiveTypes` first.
+ * - Does your grammar have cross-references (`ref:` properties)? →
+ *   if you need runtime ref-text validation in a live language server, enable
+ *   `crossRefValidation: true` and use the emitted `create*Schema()` factories.
+ *   Otherwise leave it off — unconstrained `ReferenceSchema` is lighter and sufficient for
+ *   batch/offline validation.
+ * - Do you want to strip Langium internal bookkeeping fields (`$container`, `$document`,
+ *   `$cstNode`, etc.)? → set `stripInternals: true`. These fields are never meaningful
+ *   in a validation context and inflate the generated schema.
+ * - Do you need form labels and descriptions driven by the grammar? → enable `formMetadata: true`.
+ *   Only properties whose grammar rule has a JSDoc/grammar comment get a `description`; every
+ *   property gets a humanized `title` regardless.
+ * - Are you using Zod 4's `z.looseObject`? → the default `objectStyle: 'loose'` emits
+ *   `z.looseObject(...)`. Switch to `objectStyle: 'strict'` + `.strict()` on the schema only
+ *   when you need hard rejection of unknown properties (e.g. strict API request validation).
+ *
  * @param config - Generator configuration including the grammar or AST types,
  *   optional output path, include/exclude filters, projection, and feature flags.
  * @returns The generated TypeScript source containing all Zod schema exports.
@@ -86,17 +105,29 @@ function resolveAstTypes(astTypes: AstTypesLike): AstTypesLike {
  * - You want to generate schemas for only a subset of types at runtime — pass `include`/`exclude`
  *   in the config rather than post-processing the output.
  *
- * @pitfalls
+ * @never
  * - NEVER omit both `grammar` and `astTypes` — the function throws {@link ZodGeneratorError}
  *   immediately. BECAUSE there is no default grammar source and no way to recover silently.
+ *   FIX: provide at least `{ grammar: parsedGrammar }` or `{ astTypes: collectAst(grammar) }`.
  * - NEVER enable `conformance` without setting `outputPath` — the function will throw before
  *   writing any output. BECAUSE the conformance module needs to derive a sibling output path
- *   from the schema file's directory.
+ *   from the schema file's directory. FIX: always set `outputPath` when `conformance` is truthy.
  * - NEVER pass a `Grammar[]` array when grammars share type names across files without
  *   verifying that Langium's `collectAst()` merges them correctly. BECAUSE duplicate type names
  *   will silently overwrite each other in the type map, producing truncated schemas.
+ *   FIX: run `collectAst` separately and inspect the merged map before generation.
  * - NEVER call with `crossRefValidation: true` on grammars with no cross-reference properties —
  *   it emits dead `create*Schema` factory functions that add noise without benefit.
+ *   FIX: only enable `crossRefValidation` when your grammar has at least one `ref:` property.
+ * - NEVER remove the `// @ts-nocheck` comment from generated output files. BECAUSE the
+ *   getter-based recursive property syntax (emitted for self-referential types) is not always
+ *   accepted by TypeScript's strict object-literal type checker — removing the comment causes
+ *   immediate TS build failures in grammars with recursive rules. FIX: treat generated files as
+ *   opaque artifacts; place any hand-written extensions in a separate file that imports the schema.
+ * - NEVER commit generated schemas as the sole copy of your schema logic. BECAUSE any grammar
+ *   edit (new rule, renamed property, changed cardinality) produces stale schemas that pass
+ *   TypeScript but fail at Zod validation runtime. FIX: wire `langium-zod generate` as a
+ *   pre-build or CI step so schema freshness is enforced automatically.
  *
  * @category Generation
  * @see {@link extractTypeDescriptors}

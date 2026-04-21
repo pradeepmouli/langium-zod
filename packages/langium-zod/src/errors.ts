@@ -58,7 +58,7 @@ export interface ZodGeneratorErrorOptions {
  * - You do not need structured context — a plain `Error.message` check is sufficient
  *   for simple pipelines.
  *
- * @pitfalls
+ * @never
  * - NEVER use `instanceof ZodGeneratorError` in a plugin host that bundles its own
  *   copy of langium-zod. BECAUSE `instanceof` fails across module boundaries when
  *   multiple instances of the class exist; use `error.name === 'ZodGeneratorError'`
