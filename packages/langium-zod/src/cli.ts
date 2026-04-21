@@ -250,6 +250,21 @@ export interface GenerateOptions {
  *   optional pre-merged generator config.
  * @throws `Error` when the langium-config.json or grammar file cannot be found, or
  *   when the config defines no languages.
+ *
+ * @example
+ * ```ts
+ * import { generate } from 'langium-zod';
+ * import { resolve } from 'node:path';
+ *
+ * await generate({
+ *   langiumConfigPath: resolve(process.cwd(), 'langium-config.json'),
+ *   config: {
+ *     outputPath: 'src/generated/zod-schemas.ts',
+ *     stripInternals: true,
+ *   },
+ * });
+ * // Prints: ✓ Generated Zod schemas → src/generated/zod-schemas.ts
+ * ```
  */
 export async function generate(opts: GenerateOptions): Promise<void> {
   const { langiumConfigPath } = opts;

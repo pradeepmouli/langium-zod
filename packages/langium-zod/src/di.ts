@@ -73,7 +73,7 @@ export interface ZodSchemaGenerator {
  * - You need the full {@link ZodGeneratorConfig} surface (projection, conformance,
  *   formMetadata, etc.) — use {@link generateZodSchemas} directly.
  *
- * @pitfalls
+ * @never
  * - NEVER call `new DefaultZodSchemaGenerator(services)` manually in production code
  *   if you are already using the DI container. BECAUSE the container may inject a
  *   different instance (e.g. a mock), and constructing a second instance bypasses DI
@@ -91,6 +91,15 @@ export class DefaultZodSchemaGenerator implements ZodSchemaGenerator {
     this.#services = services;
   }
 
+  /**
+   * Generates Zod schemas for the given grammar and returns the TypeScript source string.
+   *
+   * @param grammar - Parsed Langium `Grammar` AST to generate schemas from.
+   * @param config - Optional subset of {@link ZodGeneratorConfig}; only `include`,
+   *   `exclude`, `outputPath`, and `regexOverrides` are forwarded. Use
+   *   {@link generateZodSchemas} directly for the full config surface.
+   * @returns The generated TypeScript source containing all Zod schema exports.
+   */
   generate(grammar: Grammar, config?: Partial<ZodGeneratorConfig>): string {
     return generateZodSchemas({
       grammar,
@@ -165,7 +174,7 @@ export type ZodSchemaGeneratorServices = {
  * - You need the full {@link ZodGeneratorConfig} surface — the `generate()` method
  *   exposed by this module only forwards a subset of config fields.
  *
- * @pitfalls
+ * @never
  * - NEVER spread `ZodSchemaGeneratorModule` into a plain object literal and pass it
  *   to `inject()` without the correct TypeScript generic — BECAUSE the `as unknown as
  *   Module<...>` cast inside the constant means TypeScript will not catch shape

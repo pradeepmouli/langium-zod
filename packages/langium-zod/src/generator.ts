@@ -329,7 +329,7 @@ function collectReferenceTypeNames(expression: ZodTypeExpression): string[] {
  * - You need `regexOverrides` applied — those are applied by {@link generateZodSchemas}
  *   before this function is called.
  *
- * @pitfalls
+ * @never
  * - NEVER pass a `recursiveTypes` set that was computed from a different descriptor set
  *   than `descriptors`. BECAUSE the generator uses the set to decide which properties
  *   need getter syntax; a stale set will produce `const` declarations that reference

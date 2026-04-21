@@ -48,10 +48,18 @@ export type ZodTypeExpression =
  * - `comment` — JSDoc/grammar comment to propagate into form metadata, if any.
  */
 export interface ZodPropertyDescriptor {
+  /** Property name as it appears in the Langium grammar (e.g. `"elements"`). */
   name: string;
+  /** Resolved Zod type expression for this property. */
   zodType: ZodTypeExpression;
+  /** `true` when the grammar uses `?=` assignment or marks the property optional. */
   optional: boolean;
+  /**
+   * Minimum array length when the grammar uses `+=` with `+` cardinality;
+   * `undefined` for all other cases. Emits `.min(1)` on the generated array schema.
+   */
   minItems?: number;
+  /** JSDoc/grammar comment to propagate into form metadata, if any. */
   comment?: string;
 }
 
@@ -140,9 +148,13 @@ export type ZodTypeDescriptor =
  * @see {@link AstTypesLike}
  */
 export interface InterfaceTypeLike {
+  /** Type name as declared in the Langium grammar (e.g. `"Expression"`). */
   name: string;
+  /** Properties declared directly on this interface type. */
   properties?: PropertyLike[];
+  /** Names of super-types this interface extends, used for property inheritance. */
   superTypes?: Set<string> | string[];
+  /** JSDoc/grammar comment attached to this interface type, if any. */
   comment?: string;
 }
 
@@ -154,8 +166,14 @@ export interface InterfaceTypeLike {
  * primitive alias.
  */
 export interface UnionTypeLike {
+  /** Union type name as declared in the Langium grammar (e.g. `"Statement"`). */
   name: string;
+  /**
+   * Raw Langium type-model node; inspected structurally by the extractor to classify
+   * the union as a keyword-enum, regex-enum, discriminated-union, or primitive alias.
+   */
   type?: unknown;
+  /** Explicit member type names, when the extractor pre-populates them. */
   members?: string[];
 }
 
@@ -172,15 +190,37 @@ export interface UnionTypeLike {
  *   cross-reference rather than an inline value.
  */
 export interface PropertyLike {
+  /** Property name as declared in the grammar (e.g. `"left"`, `"elements"`). */
   name: string;
+  /** Raw Langium type node for this property, inspected by the type mapper. */
   type?: unknown;
+  /** `true` when the grammar marks the property optional. */
   optional?: boolean;
+  /**
+   * Grammar assignment operator: `=` (single value), `+=` (array append),
+   * `?=` (boolean flag).
+   */
   operator?: '=' | '+=' | '?=';
+  /**
+   * Alternative assignment field used in some Langium 3.x AST shapes;
+   * the extractor consults both `operator` and `assignment`.
+   */
   assignment?: '=' | '+=' | '?=';
+  /** Cardinality suffix on the property's type node (`*`, `+`, `?`). */
   cardinality?: '*' | '+' | '?' | undefined;
+  /**
+   * Cardinality on the rule call inside the type node (Langium 4.x shape);
+   * the extractor checks this when `cardinality` is absent.
+   */
   ruleCall?: { cardinality?: '*' | '+' | '?' | undefined };
+  /** `true` when the property holds a Langium cross-reference (`ref:` prefix). */
   isCrossRef?: boolean;
+  /**
+   * Target type name for cross-reference properties (e.g. `"Symbol"` in `ref:Symbol`).
+   * Used by the extractor to emit `ReferenceSchema` with the correct target type name.
+   */
   referenceType?: string;
+  /** JSDoc/grammar comment for this property, propagated to form metadata. */
   comment?: string;
 }
 
@@ -214,6 +254,8 @@ export interface PropertyLike {
  * @see {@link UnionTypeLike}
  */
 export interface AstTypesLike {
+  /** All interface types defined in the grammar, including those inherited via `superTypes`. */
   interfaces: InterfaceTypeLike[];
+  /** All union and datatype-rule types defined in the grammar. */
   unions: UnionTypeLike[];
 }

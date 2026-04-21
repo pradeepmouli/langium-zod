@@ -64,7 +64,7 @@ import { z } from 'zod';
  * - You are validating Langium's `$container` / `$document` metadata fields — those
  *   are not cross-references and should not be validated with `zRef`.
  *
- * @pitfalls
+ * @never
  * - NEVER pass a static snapshot of the reference array when calling `zRef` inside a
  *   Langium validator that runs repeatedly. BECAUSE the snapshot will not reflect
  *   document edits; pass a getter `() => myLiveList` instead.

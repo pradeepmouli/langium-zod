@@ -36,7 +36,7 @@ import type { ProjectionConfig } from './projection.js';
  * - You need to exclude fields within a type (not the whole type) — use `projection` in
  *   {@link ZodGeneratorConfig} instead.
  *
- * @pitfalls
+ * @never
  * - NEVER include a union type in `include` without also including all of its member interface
  *   types. BECAUSE the union descriptor references its members by name; absent members produce
  *   a discriminated union with zero branches, which Zod rejects at runtime.
@@ -102,7 +102,7 @@ export interface FilterConfig {
  * - You are using the CLI — the `langium-zod.config.js` file maps to {@link LangiumZodConfig},
  *   not directly to `ZodGeneratorConfig`.
  *
- * @pitfalls
+ * @never
  * - NEVER set `conformance` without `outputPath`. BECAUSE the conformance module derives
  *   the conformance output path from the schema file's directory; without `outputPath` the
  *   function throws before writing any output.
