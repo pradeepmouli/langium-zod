@@ -65,24 +65,29 @@
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.6.0",
-    "@changesets/cli": "^2.30.0",
-    "@to-skills/vitepress": "^0.2.0",
+    "@changesets/cli": "^2.31.0",
+    "@to-skills/vitepress": "^0.2.18",
     "@types/node": "^25.6.0",
-    "@vitest/coverage-v8": "^4.1.4",
-    "@vitest/ui": "^4.1.4",
+    "@vitest/coverage-v8": "^4.1.5",
+    "@vitest/ui": "^4.1.5",
     "lint-staged": "^16.4.0",
     "oxfmt": "^0.46.0",
-    "oxlint": "^1.59.0",
+    "oxlint": "^1.61.0",
     "simple-git-hooks": "^2.13.1",
     "typedoc": "^0.28.19",
     "typedoc-plugin-markdown": "^4.11.0",
     "typedoc-plugin-to-skills": "^1.0.2",
-    "typescript": "^5.9.3",
-    "vitest": "^4.1.4"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
   },
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=10.0.0"
   },
-  "packageManager": "pnpm@10.32.0"
+  "packageManager": "pnpm@10.32.0",
+  "pnpm": {
+    "overrides": {
+      "typescript": "5.9.3"
+    }
+  }
 }
