@@ -39,14 +39,14 @@ importers:
         specifier: ^2.13.1
         version: 2.13.1
       typedoc:
-        specifier: ^0.28.18
-        version: 0.28.18(typescript@5.9.3)
+        specifier: ^0.28.19
+        version: 0.28.19(typescript@5.9.3)
       typedoc-plugin-markdown:
         specifier: ^4.11.0
-        version: 4.11.0(typedoc@0.28.18(typescript@5.9.3))
+        version: 4.11.0(typedoc@0.28.19(typescript@5.9.3))
       typedoc-plugin-to-skills:
         specifier: ^1.0.2
-        version: 1.0.2(typedoc@0.28.18(typescript@5.9.3))
+        version: 1.0.2(typedoc@0.28.19(typescript@5.9.3))
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -57,17 +57,17 @@ importers:
   apps/docs:
     devDependencies:
       typedoc:
-        specifier: 0.28.18
-        version: 0.28.18(typescript@5.9.3)
+        specifier: 0.28.19
+        version: 0.28.19(typescript@5.9.3)
       typedoc-plugin-markdown:
         specifier: ^4.11.0
-        version: 4.11.0(typedoc@0.28.18(typescript@5.9.3))
+        version: 4.11.0(typedoc@0.28.19(typescript@5.9.3))
       typedoc-plugin-to-skills:
         specifier: ^1.0.2
-        version: 1.0.2(typedoc@0.28.18(typescript@5.9.3))
+        version: 1.0.2(typedoc@0.28.19(typescript@5.9.3))
       typedoc-vitepress-theme:
         specifier: ^1.1.2
-        version: 1.1.2(typedoc-plugin-markdown@4.11.0(typedoc@0.28.18(typescript@5.9.3)))
+        version: 1.1.2(typedoc-plugin-markdown@4.11.0(typedoc@0.28.19(typescript@5.9.3)))
       vitepress:
         specifier: 2.0.0-alpha.17
         version: 2.0.0-alpha.17(@types/node@25.6.0)(jiti@2.6.1)(postcss@8.5.10)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
@@ -1817,8 +1817,8 @@ packages:
     peerDependencies:
       typedoc-plugin-markdown: '>=4.4.0'
 
-  typedoc@0.28.18:
-    resolution: {integrity: sha512-NTWTUOFRQ9+SGKKTuWKUioUkjxNwtS3JDRPVKZAXGHZy2wCA8bdv2iJiyeePn0xkmK+TCCqZFT0X7+2+FLjngA==}
+  typedoc@0.28.19:
+    resolution: {integrity: sha512-wKh+lhdmMFivMlc6vRRcMGXeGEHGU2g8a2CkPTJjJlwRf1iXbimWIPcFolCqe4E0d/FRtGszpIrsp3WLpDB8Pw==}
     engines: {node: '>= 18', pnpm: '>= 10'}
     hasBin: true
     peerDependencies:
@@ -2594,10 +2594,10 @@ snapshots:
 
   '@to-skills/core@1.0.1': {}
 
-  '@to-skills/typedoc@1.0.1(typedoc@0.28.18(typescript@5.9.3))':
+  '@to-skills/typedoc@1.0.1(typedoc@0.28.19(typescript@5.9.3))':
     dependencies:
       '@to-skills/core': 1.0.1
-      typedoc: 0.28.18(typescript@5.9.3)
+      typedoc: 0.28.19(typescript@5.9.3)
 
   '@to-skills/vitepress@0.2.17':
     dependencies:
@@ -3604,20 +3604,20 @@ snapshots:
       fsevents: 2.3.3
     optional: true
 
-  typedoc-plugin-markdown@4.11.0(typedoc@0.28.18(typescript@5.9.3)):
+  typedoc-plugin-markdown@4.11.0(typedoc@0.28.19(typescript@5.9.3)):
     dependencies:
-      typedoc: 0.28.18(typescript@5.9.3)
+      typedoc: 0.28.19(typescript@5.9.3)
 
-  typedoc-plugin-to-skills@1.0.2(typedoc@0.28.18(typescript@5.9.3)):
+  typedoc-plugin-to-skills@1.0.2(typedoc@0.28.19(typescript@5.9.3)):
     dependencies:
-      '@to-skills/typedoc': 1.0.1(typedoc@0.28.18(typescript@5.9.3))
-      typedoc: 0.28.18(typescript@5.9.3)
+      '@to-skills/typedoc': 1.0.1(typedoc@0.28.19(typescript@5.9.3))
+      typedoc: 0.28.19(typescript@5.9.3)
 
-  typedoc-vitepress-theme@1.1.2(typedoc-plugin-markdown@4.11.0(typedoc@0.28.18(typescript@5.9.3))):
+  typedoc-vitepress-theme@1.1.2(typedoc-plugin-markdown@4.11.0(typedoc@0.28.19(typescript@5.9.3))):
     dependencies:
-      typedoc-plugin-markdown: 4.11.0(typedoc@0.28.18(typescript@5.9.3))
+      typedoc-plugin-markdown: 4.11.0(typedoc@0.28.19(typescript@5.9.3))
 
-  typedoc@0.28.18(typescript@5.9.3):
+  typedoc@0.28.19(typescript@5.9.3):
     dependencies:
       '@gerrit0/mini-shiki': 3.23.0
       lunr: 2.3.9
