@@ -1,0 +1,42 @@
+# langium-zod-docs
+
+> Documentation site for langium-zod
+
+### API
+
+- `generateZodSchemas`: Main entry point for programmatic Zod schema generation from a Langium grammar.
+- `extractTypeDescriptors`: Extracts ZodTypeDescriptor records from a Langium grammar's type model.
+- `generateZodCode`: Generates a TypeScript source string containing Zod schema exports for all
+provided type descriptors.
+- `detectRecursiveTypes`: Detects type names that participate in a reference cycle across the descriptor
+graph.
+- `generate`: Programmatic entry point for the `langium-zod generate` command.
+- `zRef`: Creates a Zod string schema that validates a cross-reference value against an
+allowlist of known identifiers, evaluated lazily at parse time.
+- `ZodGeneratorError`: Custom error class thrown by the langium-zod code generator when it
+encounters a condition it cannot recover from.
+- `DefaultZodSchemaGenerator`: Default implementation of ZodSchemaGenerator.
+- `DEFAULT_OUTPUT_PATH`: Default output path used when no explicit `outputPath` is provided and the
+project's `langium-config.json` does not declare an `out` directory.
+- `ZodSchemaGeneratorModule`: Langium `Module` definition that registers DefaultZodSchemaGenerator
+under `shared.
+
+## Optional
+
+### Types
+
+- `AstTypesLike`: Duck-typed representation of the type model returned by Langium's `collectAst()`
+function.
+- `InterfaceTypeLike`: Duck-typed representation of a Langium `InterfaceType`, carrying only the fields
+that langium-zod needs.
+- `PropertyLike`: Duck-typed representation of a single property within a Langium `InterfaceType`.
+- `UnionTypeLike`: Duck-typed representation of a Langium `UnionType` (including datatype rules
+that alias primitives or terminal regex patterns).
+- `ZodPropertyDescriptor`: Describes a single property of a Langium interface type after extraction,
+capturing all information the code generator needs to emit a Zod property...
+- `ZodTypeDescriptor`: Union of all type descriptor shapes that the extractor can produce and the
+code generator can consume.
+- `ZodTypeExpression`: A discriminated union that represents a single Zod type node in the descriptor
+tree produced by the extractor and consumed by the code generator.
+- `ZodSchemaGenerator`: Service interface for generating Zod schemas from a parsed Langium grammar.
+- `ZodSchemaGeneratorServices`: Langium DI service container shape for the langium-zod extension.
