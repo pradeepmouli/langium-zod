@@ -1,5 +1,11 @@
 # langium-zod
 
+## 0.5.4
+
+### Patch Changes
+
+- [#48](https://github.com/pradeepmouli/langium-zod/pull/48) [`1bca116`](https://github.com/pradeepmouli/langium-zod/commit/1bca116ce719644594e7ea15bca278f60f434b7d) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - - chore: bump typedoc-plugin-to-skills to ^1.3.0
+
 ## 0.5.3
 
 ### Patch Changes
