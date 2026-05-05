@@ -54,7 +54,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "langium-cli": "^4.2.0",
+    "langium-cli": "^4.2.1",
     "typescript": "^5.9.3",
     "vitest": "^4.1.4"
   },
