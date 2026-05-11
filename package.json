@@ -67,7 +67,7 @@
     "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.30.0",
     "@to-skills/vitepress": "^0.2.25",
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.6.2",
     "@vitest/coverage-v8": "^4.1.4",
     "@vitest/ui": "^4.1.4",
     "lint-staged": "^16.4.0",
