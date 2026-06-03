@@ -19,13 +19,9 @@ must enumerate stub type names explicitly if you want them in the output.
 
 #### include
 
-
-
 **Type:** `string[]`
 
 #### exclude
-
-
 
 **Type:** `string[]`
 
@@ -65,49 +61,33 @@ allows extra properties in validated objects. Set it to `'strict'` to emit
 
 #### grammar
 
-
-
 **Type:** `Grammar | Grammar[]`
 
 #### services
-
-
 
 **Type:** `LangiumCoreServices`
 
 #### outputPath
 
-
-
 **Type:** `string`
 
 #### astTypes
-
-
 
 **Type:** `AstTypesLike`
 
 #### projection
 
-
-
 **Type:** `ProjectionConfig`
 
 #### stripInternals
-
-
 
 **Type:** `boolean`
 
 #### crossRefValidation
 
-
-
 **Type:** `boolean`
 
 #### conformance
-
-
 
 **Type:** `{ astTypesPath?: string; outputPath?: string }`
 
@@ -147,13 +127,9 @@ Controls how object schemas are emitted.
 
 #### include
 
-
-
 **Type:** `string[]`
 
 #### exclude
-
-
 
 **Type:** `string[]`
 
@@ -211,25 +187,17 @@ Explicit output path. Overrides derived path from langium-config.json `out` fiel
 
 #### projection
 
-
-
 **Type:** `ProjectionConfig`
 
 #### stripInternals
-
-
 
 **Type:** `boolean`
 
 #### crossRefValidation
 
-
-
 **Type:** `boolean`
 
 #### conformance
-
-
 
 **Type:** `{ astTypesPath?: string; outputPath?: string }`
 
@@ -269,12 +237,8 @@ Controls how object schemas are emitted.
 
 #### include
 
-
-
 **Type:** `string[]`
 
 #### exclude
-
-
 
 **Type:** `string[]`
