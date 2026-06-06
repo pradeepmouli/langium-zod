@@ -21,7 +21,7 @@
  *
  * @category Generation
  */
-export { generateZodSchemas } from './api.js';
+export { generateZodSchemas, generateDomainSchemas } from './api.js';
 export { DEFAULT_OUTPUT_PATH } from './config.js';
 export type { FilterConfig, ZodGeneratorConfig } from './config.js';
 export { ZodGeneratorError } from './errors.js';
@@ -42,3 +42,9 @@ export type {
 export { DefaultZodSchemaGenerator, ZodSchemaGeneratorModule } from './di.js';
 export type { ZodSchemaGenerator, ZodSchemaGeneratorServices } from './di.js';
 export { zRef } from './ref-utils.js';
+export { generateDomainCode } from './emitters/domain.js';
+export type {
+  DomainGenerationOptions,
+  DomainOverlayConfig,
+  DomainOverlayTypeConfig
+} from './emitters/domain.js';

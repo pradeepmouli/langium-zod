@@ -5,6 +5,7 @@
     "outDir": "./dist",
     "module": "nodenext",
     "moduleResolution": "nodenext",
+    "types": ["node"],
     "composite": true,
     "declaration": true,
     "declarationMap": true,

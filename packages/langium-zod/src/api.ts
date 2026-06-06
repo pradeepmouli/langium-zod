@@ -7,6 +7,7 @@ import { ZodGeneratorError } from './errors.js';
 import { extractTypeDescriptors } from './extractor.js';
 import { generateZodCode } from './generator.js';
 import { applyProjectionToDescriptors, resolveEffectiveStripFields } from './projection.js';
+import { generateDomainCode } from './emitters/domain.js';
 import { detectRecursiveTypes } from './recursion-detector.js';
 import type { AstTypesLike, ZodRegexEnumDescriptor, ZodTypeDescriptor } from './types.js';
 
@@ -245,4 +246,40 @@ function buildDescriptorPipeline(
   });
 
   return descriptors;
+}
+
+/**
+ * Programmatic entry point for the domain target. Runs the same extract pipeline
+ * as {@link generateZodSchemas}, then emits the domain surface (read interfaces +
+ * `toDomain` projection + field-precise write accessors). Writes to
+ * `config.domainOutputPath` when set.
+ */
+export function generateDomainSchemas(config: ZodGeneratorConfig): string {
+  let rawAstTypes: AstTypesLike;
+  if (config.astTypes) {
+    rawAstTypes = config.astTypes;
+  } else if (config.grammar) {
+    rawAstTypes = collectAst(config.grammar) as unknown as AstTypesLike;
+  } else {
+    throw new ZodGeneratorError('Missing grammar or astTypes in ZodGeneratorConfig', {
+      suggestion: "Provide astTypes from Langium's collectAst() or pass a grammar object"
+    });
+  }
+
+  const astTypes = resolveAstTypes(rawAstTypes);
+  const descriptors = buildDescriptorPipeline(astTypes, config);
+  // Note: regexOverrides (regex-enum upgrades) are intentionally NOT applied here —
+  // the domain surface uses type references + primitives, never regex-enum shapes.
+  const source = generateDomainCode(descriptors, {
+    projection: config.projection,
+    stripInternals: config.stripInternals,
+    overlays: config.domainOverlays
+  });
+
+  if (config.domainOutputPath) {
+    mkdirSync(dirname(config.domainOutputPath), { recursive: true });
+    writeFileSync(config.domainOutputPath, source, 'utf8');
+  }
+
+  return source;
 }
