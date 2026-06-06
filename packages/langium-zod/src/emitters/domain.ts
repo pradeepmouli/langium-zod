@@ -120,8 +120,8 @@ function planObject(
 
   for (const property of properties) {
     const isMergeSource = mergedSources.has(property.name);
+    const domainName = renames[property.name] ?? property.name;
     if (!isMergeSource) {
-      const domainName = renames[property.name] ?? property.name;
       fields.push({
         name: domainName,
         tsType: domainTsType(property.zodType),
@@ -130,11 +130,53 @@ function planObject(
       });
     }
     // Accessors always target the SOURCE field; merge sources keep distinct accessors.
-    const label = capitalize(isMergeSource ? property.name : renames[property.name] ?? property.name);
+    const label = capitalize(isMergeSource ? property.name : domainName);
     accessors.push({ label, sourceName: property.name, expression: property.zodType });
   }
 
-  // (Task 8 appends merged READ fields here.)
+  for (const merge of merges) {
+    const knownNames = new Set(properties.map((property) => property.name));
+    const fromSet = new Set(merge.from);
+    for (const sourceName of merge.from) {
+      const sourceProp = properties.find((property) => property.name === sourceName);
+      if (!sourceProp) {
+        throw new Error(
+          `domain overlay merge for ${descriptor.name}: source field "${sourceName}" does not exist`
+        );
+      }
+      if (sourceProp.zodType.kind !== 'array') {
+        throw new Error(
+          `domain overlay merge for ${descriptor.name}: source field "${sourceName}" is not an array (merges aggregate arrays)`
+        );
+      }
+    }
+    if (knownNames.has(merge.to) && !fromSet.has(merge.to)) {
+      throw new Error(
+        `domain overlay merge for ${descriptor.name}: target "${merge.to}" collides with an existing non-source field`
+      );
+    }
+
+    const sourceProps = merge.from
+      .map((sourceName) => properties.find((property) => property.name === sourceName))
+      .filter((property): property is (typeof properties)[number] => property !== undefined);
+
+    const firstArray = sourceProps.find((property) => property.zodType.kind === 'array');
+    const elementTsType =
+      firstArray && firstArray.zodType.kind === 'array'
+        ? domainTsType(firstArray.zodType.element)
+        : 'unknown';
+
+    const spreadExprs = sourceProps
+      .filter((property) => property.zodType.kind === 'array')
+      .map((property) => `...${domainReadExpr(property.zodType, `node.${property.name}`)}`);
+
+    fields.push({
+      name: merge.to,
+      tsType: `${elementTsType}[]`,
+      optional: false,
+      readExpr: `[${spreadExprs.join(', ')}]`
+    });
+  }
 
   return { name: descriptor.name, fields, accessors };
 }

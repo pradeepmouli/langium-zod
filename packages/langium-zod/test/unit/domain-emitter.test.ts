@@ -200,3 +200,88 @@ describe('generateDomainCode — renames', () => {
     expect(source).not.toContain('addAttributes');
   });
 });
+
+const mergeObject: ZodTypeDescriptor[] = [
+  {
+    name: 'RosettaFunction',
+    kind: 'object',
+    properties: [
+      { name: '$type', zodType: { kind: 'literal', value: 'RosettaFunction' }, optional: false },
+      {
+        name: 'conditions',
+        zodType: { kind: 'array', element: { kind: 'reference', typeName: 'Condition' } },
+        optional: false
+      },
+      {
+        name: 'postConditions',
+        zodType: { kind: 'array', element: { kind: 'reference', typeName: 'Condition' } },
+        optional: false
+      }
+    ]
+  }
+];
+
+describe('generateDomainCode — merges', () => {
+  it('emits one merged read field concatenating sources, with no merged setter', () => {
+    const source = generateDomainCode(mergeObject, {
+      overlays: {
+        types: {
+          RosettaFunction: {
+            merges: [{ from: ['conditions', 'postConditions'], to: 'conditions' }]
+          }
+        }
+      }
+    });
+    // single merged read field, type from the first source's element
+    expect(source).toContain('conditions: ConditionDomain[];');
+    expect(source).toContain(
+      'conditions: [...(node.conditions ?? []).map((item) => item ? toDomainCondition(item) : undefined), ...(node.postConditions ?? []).map((item) => item ? toDomainCondition(item) : undefined)],'
+    );
+    // write accessors stay source-keyed, distinct, no merged setter
+    expect(source).toContain('export function addConditions(node: any, item: unknown): void {');
+    expect(source).toContain('  (node.conditions ??= []).push(item);');
+    expect(source).toContain('export function addPostConditions(node: any, item: unknown): void {');
+    expect(source).toContain('  (node.postConditions ??= []).push(item);');
+  });
+});
+
+describe('generateDomainCode — merge validation', () => {
+  const fnWith = (props: any[]): ZodTypeDescriptor[] => [
+    {
+      name: 'F',
+      kind: 'object',
+      properties: [{ name: '$type', zodType: { kind: 'literal', value: 'F' }, optional: false }, ...props]
+    }
+  ];
+  const arr = (name: string) => ({
+    name,
+    zodType: { kind: 'array', element: { kind: 'primitive', primitive: 'string' } },
+    optional: false
+  });
+
+  it('throws when a merge source does not exist', () => {
+    expect(() =>
+      generateDomainCode(fnWith([arr('a')]), {
+        overlays: { types: { F: { merges: [{ from: ['a', 'missing'], to: 'a' }] } } }
+      })
+    ).toThrow(/source field "missing" does not exist/);
+  });
+
+  it('throws when a merge source is not an array', () => {
+    expect(() =>
+      generateDomainCode(
+        fnWith([arr('a'), { name: 'b', zodType: { kind: 'primitive', primitive: 'string' }, optional: false }]),
+        { overlays: { types: { F: { merges: [{ from: ['a', 'b'], to: 'a' }] } } } }
+      )
+    ).toThrow(/is not an array/);
+  });
+
+  it('throws when the merge target collides with a non-source field', () => {
+    expect(() =>
+      generateDomainCode(
+        fnWith([arr('a'), arr('b'), { name: 'c', zodType: { kind: 'primitive', primitive: 'string' }, optional: false }]),
+        { overlays: { types: { F: { merges: [{ from: ['a', 'b'], to: 'c' }] } } } }
+      )
+    ).toThrow(/collides with an existing non-source field/);
+  });
+});
