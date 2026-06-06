@@ -65,3 +65,40 @@ describe('generateDomainCode — read projection', () => {
     expect(source).toContain('superType: node.superType?.$refText,');
   });
 });
+
+const arrayObject: ZodTypeDescriptor[] = [
+  {
+    name: 'Func',
+    kind: 'object',
+    properties: [
+      { name: '$type', zodType: { kind: 'literal', value: 'Func' }, optional: false },
+      { name: 'name', zodType: { kind: 'primitive', primitive: 'string' }, optional: false },
+      { name: 'output', zodType: { kind: 'crossReference', targetType: 'Data' }, optional: true },
+      {
+        name: 'inputs',
+        zodType: { kind: 'array', element: { kind: 'reference', typeName: 'Attribute' } },
+        optional: false
+      },
+      {
+        name: 'tags',
+        zodType: { kind: 'array', element: { kind: 'primitive', primitive: 'string' } },
+        optional: false
+      }
+    ]
+  }
+];
+
+describe('generateDomainCode — write accessors', () => {
+  it('emits set for scalars, $refText-mutating set for cross-refs, add/remove for arrays', () => {
+    const source = generateDomainCode(arrayObject);
+    expect(source).toContain('export function setName(node: any, value: string): void {');
+    expect(source).toContain('  node.name = value;');
+    expect(source).toContain('export function setOutput(node: any, value: string): void {');
+    expect(source).toContain('  if (node.output) node.output.$refText = value;');
+    expect(source).toContain('export function addInputs(node: any, item: unknown): void {');
+    expect(source).toContain('  (node.inputs ??= []).push(item);');
+    expect(source).toContain('export function removeInputsAt(node: any, index: number): void {');
+    expect(source).toContain('  node.inputs?.splice(index, 1);');
+    expect(source).toContain('export function addTags(node: any, item: string): void {');
+  });
+});

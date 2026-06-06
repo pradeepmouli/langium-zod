@@ -5,6 +5,10 @@ import type {
 } from '../types.js';
 import { applyProjectionToDescriptors, type ProjectionConfig } from '../projection.js';
 
+function capitalize(name: string): string {
+  return name.length === 0 ? name : `${name[0]!.toUpperCase()}${name.slice(1)}`;
+}
+
 export interface DomainGenerationOptions {
   /** Reuses the Zod projection for `defaults.strip` + per-type `fields`. */
   projection?: ProjectionConfig;
@@ -55,6 +59,69 @@ function domainReadExpr(expression: ZodTypeExpression, access: string): string {
   }
 }
 
+/** Param type for a scalar/primitive setter or an array element add. */
+function domainWriteType(expression: ZodTypeExpression): string {
+  switch (expression.kind) {
+    case 'primitive':
+      return expression.primitive;
+    case 'crossReference':
+      return 'string';
+    case 'literal':
+      return JSON.stringify(expression.value);
+    default:
+      // reference (nested AST node), union, array, lazy: caller supplies a draft.
+      return 'unknown';
+  }
+}
+
+function emitAccessors(label: string, sourceName: string, expression: ZodTypeExpression): string[] {
+  const src = `node.${sourceName}`;
+  if (expression.kind === 'array') {
+    const elementType = domainWriteType(expression.element);
+    return [
+      `export function add${label}(node: any, item: ${elementType}): void {`,
+      expression.element.kind === 'crossReference'
+        ? `  (${src} ??= []).push({ $refText: item });`
+        : `  (${src} ??= []).push(item);`,
+      '}',
+      '',
+      `export function remove${label}At(node: any, index: number): void {`,
+      `  ${src}?.splice(index, 1);`,
+      '}',
+      ''
+    ];
+  }
+  if (expression.kind === 'crossReference') {
+    return [
+      `export function set${label}(node: any, value: string): void {`,
+      `  if (${src}) ${src}.$refText = value;`,
+      '}',
+      ''
+    ];
+  }
+  if (expression.kind === 'primitive') {
+    return [
+      `export function set${label}(node: any, value: ${expression.primitive}): void {`,
+      `  ${src} = value;`,
+      '}',
+      ''
+    ];
+  }
+  // reference (nested object) scalar, literal, union: no setter in the MVP surface.
+  return [];
+}
+
+function emitWriteAccessors(descriptor: ZodObjectTypeDescriptor): string[] {
+  const out: string[] = [];
+  for (const property of descriptor.properties) {
+    if (property.name === '$type') {
+      continue;
+    }
+    out.push(...emitAccessors(capitalize(property.name), property.name, property.zodType));
+  }
+  return out;
+}
+
 function emitReadFn(descriptor: ZodObjectTypeDescriptor): string[] {
   const out = [`export function toDomain${descriptor.name}(node: any): ${descriptor.name}Domain {`, '  return {'];
   for (const property of descriptor.properties) {
@@ -99,6 +166,7 @@ export function generateDomainCode(
   for (const object of objects) {
     lines.push(...emitInterface(object));
     lines.push(...emitReadFn(object));
+    lines.push(...emitWriteAccessors(object));
   }
 
   return `${lines.join('\n').trim()}\n`;
