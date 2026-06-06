@@ -12,7 +12,7 @@ import { pathToFileURL } from 'node:url';
 import { URI } from 'langium';
 import { createLangiumGrammarServices, resolveImportUri } from 'langium/grammar';
 import { NodeFileSystem } from 'langium/node';
-import { generateZodSchemas } from './api.js';
+import { generateZodSchemas, generateDomainSchemas } from './api.js';
 import { resolveAstTypesPath } from './conformance.js';
 import type { ZodGeneratorConfig } from './config.js';
 import { loadProjectionConfig } from './projection.js';
@@ -175,6 +175,8 @@ OPTIONS
 	--ast-types <path> Path to generated AST declarations (ast.ts)
 	--conformance-out <path> Output path for conformance artifact
 	--cross-ref-validation Emit runtime cross-reference schema factories
+	--domain          Also emit the domain surface (domain.ts)
+	--domain-out <path> Output path for the domain surface
   --help            Show this help message
 
 CONFIGURATION
@@ -344,7 +346,13 @@ export async function generate(opts: GenerateOptions): Promise<void> {
   warnUnknownFilterNames('exclude', userConfig.exclude, availableTypeNames);
 
   // ── 4. Generate schemas ──────────────────────────────────────────────────
-  const { langiumConfig: _ignored, outputPath: _op, ...restConfig } = userConfig;
+  const {
+    langiumConfig: _ignored,
+    outputPath: _op,
+    emitDomain: _emitDomain,
+    domainOutputPath: _domainOutputPath,
+    ...restConfig
+  } = userConfig;
 
   generateZodSchemas({
     grammar,
@@ -353,6 +361,20 @@ export async function generate(opts: GenerateOptions): Promise<void> {
   });
 
   console.log(`✓ Generated Zod schemas → ${outputPath}`);
+
+  if (userConfig.emitDomain) {
+    const domainOutputPath = userConfig.domainOutputPath ?? join(outDir, 'domain.ts');
+    generateDomainSchemas({
+      grammar,
+      domainOutputPath,
+      stripInternals: restConfig.stripInternals,
+      projection: restConfig.projection,
+      domainOverlays: restConfig.domainOverlays,
+      include: restConfig.include,
+      exclude: restConfig.exclude
+    });
+    console.log(`✓ Generated domain surface → ${domainOutputPath}`);
+  }
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -396,6 +418,8 @@ export async function main(): Promise<void> {
   const stripInternalsEnabled = args.includes('--strip-internals');
   const conformanceEnabled = args.includes('--conformance');
   const crossRefValidationEnabled = args.includes('--cross-ref-validation');
+  const domainEnabled = args.includes('--domain');
+  const domainOutFlagValue = getArgValue(args, '--domain-out');
 
   // ── Locate langium-config.json ───────────────────────────────────────────
   const configFileName = configFlagValue ?? 'langium-config.json';
@@ -456,6 +480,16 @@ export async function main(): Promise<void> {
     userConfig = {
       ...userConfig,
       crossRefValidation: true
+    };
+  }
+
+  if (domainEnabled) {
+    userConfig = {
+      ...userConfig,
+      emitDomain: true,
+      domainOutputPath: domainOutFlagValue
+        ? resolve(process.cwd(), domainOutFlagValue)
+        : userConfig.domainOutputPath
     };
   }
 
