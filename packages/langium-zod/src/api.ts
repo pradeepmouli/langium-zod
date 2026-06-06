@@ -268,6 +268,8 @@ export function generateDomainSchemas(config: ZodGeneratorConfig): string {
 
   const astTypes = resolveAstTypes(rawAstTypes);
   const descriptors = buildDescriptorPipeline(astTypes, config);
+  // Note: regexOverrides (regex-enum upgrades) are intentionally NOT applied here —
+  // the domain surface uses type references + primitives, never regex-enum shapes.
   const source = generateDomainCode(descriptors, {
     projection: config.projection,
     stripInternals: config.stripInternals,
