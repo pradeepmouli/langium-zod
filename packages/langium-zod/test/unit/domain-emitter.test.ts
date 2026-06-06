@@ -138,3 +138,27 @@ describe('generateDomainCode — nested references', () => {
     );
   });
 });
+
+const withUnion: ZodTypeDescriptor[] = [
+  {
+    name: 'Literal',
+    kind: 'object',
+    properties: [{ name: '$type', zodType: { kind: 'literal', value: 'Literal' }, optional: false }]
+  },
+  {
+    name: 'BinaryExpr',
+    kind: 'object',
+    properties: [{ name: '$type', zodType: { kind: 'literal', value: 'BinaryExpr' }, optional: false }]
+  },
+  { name: 'Expression', kind: 'union', members: ['Literal', 'BinaryExpr'], discriminator: '$type' }
+];
+
+describe('generateDomainCode — unions', () => {
+  it('emits a domain type alias + a $type dispatcher for grammar unions', () => {
+    const source = generateDomainCode(withUnion);
+    expect(source).toContain('export type ExpressionDomain = LiteralDomain | BinaryExprDomain;');
+    expect(source).toContain('export function toDomainExpression(node: any): ExpressionDomain {');
+    expect(source).toContain('case "Literal": return toDomainLiteral(node);');
+    expect(source).toContain('case "BinaryExpr": return toDomainBinaryExpr(node);');
+  });
+});

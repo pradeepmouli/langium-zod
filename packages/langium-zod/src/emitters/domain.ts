@@ -1,7 +1,8 @@
 import type {
   ZodObjectTypeDescriptor,
   ZodTypeDescriptor,
-  ZodTypeExpression
+  ZodTypeExpression,
+  ZodUnionTypeDescriptor
 } from '../types.js';
 import { applyProjectionToDescriptors, type ProjectionConfig } from '../projection.js';
 
@@ -111,6 +112,28 @@ function emitAccessors(label: string, sourceName: string, expression: ZodTypeExp
   return [];
 }
 
+function emitUnion(descriptor: ZodUnionTypeDescriptor): string[] {
+  const alias = `export type ${descriptor.name}Domain = ${descriptor.members
+    .map((member) => `${member}Domain`)
+    .join(' | ')};`;
+  const out = [
+    alias,
+    '',
+    `export function toDomain${descriptor.name}(node: any): ${descriptor.name}Domain {`,
+    '  switch (node.$type) {'
+  ];
+  for (const member of descriptor.members) {
+    out.push(`    case ${JSON.stringify(member)}: return toDomain${member}(node);`);
+  }
+  out.push(
+    '  }',
+    `  throw new Error(\`Unknown ${descriptor.name} member: \${node.$type}\`);`,
+    '}',
+    ''
+  );
+  return out;
+}
+
 function emitWriteAccessors(descriptor: ZodObjectTypeDescriptor): string[] {
   const out: string[] = [];
   for (const property of descriptor.properties) {
@@ -157,6 +180,9 @@ export function generateDomainCode(
   const objects = surface.filter(
     (descriptor): descriptor is ZodObjectTypeDescriptor => descriptor.kind === 'object'
   );
+  const unions = surface.filter(
+    (descriptor): descriptor is ZodUnionTypeDescriptor => descriptor.kind === 'union'
+  );
 
   const lines: string[] = [
     '// @ts-nocheck — generated domain surface; edit the grammar / domain-surfaces.json to regenerate',
@@ -167,6 +193,10 @@ export function generateDomainCode(
     lines.push(...emitInterface(object));
     lines.push(...emitReadFn(object));
     lines.push(...emitWriteAccessors(object));
+  }
+
+  for (const union of unions) {
+    lines.push(...emitUnion(union));
   }
 
   return `${lines.join('\n').trim()}\n`;
