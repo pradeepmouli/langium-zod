@@ -112,6 +112,19 @@ function emitAccessors(label: string, sourceName: string, expression: ZodTypeExp
   return [];
 }
 
+function emitMasterDispatch(objects: ZodObjectTypeDescriptor[]): string[] {
+  if (objects.length === 0) {
+    return [];
+  }
+  const alias = `export type AnyDomain = ${objects.map((object) => `${object.name}Domain`).join(' | ')};`;
+  const out = [alias, '', 'export function toDomain(node: any): AnyDomain {', '  switch (node.$type) {'];
+  for (const object of objects) {
+    out.push(`    case ${JSON.stringify(object.name)}: return toDomain${object.name}(node);`);
+  }
+  out.push('  }', '  throw new Error(`Unknown node type: ${node.$type}`);', '}', '');
+  return out;
+}
+
 function emitUnion(descriptor: ZodUnionTypeDescriptor): string[] {
   const alias = `export type ${descriptor.name}Domain = ${descriptor.members
     .map((member) => `${member}Domain`)
@@ -198,6 +211,8 @@ export function generateDomainCode(
   for (const union of unions) {
     lines.push(...emitUnion(union));
   }
+
+  lines.push(...emitMasterDispatch(objects));
 
   return `${lines.join('\n').trim()}\n`;
 }

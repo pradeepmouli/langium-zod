@@ -22,9 +22,9 @@ describe('generateDomainCode — flat interfaces', () => {
     expect(source).toContain('export interface DataDomain {');
     expect(source).toContain('name: string;');
     expect(source).toContain('order?: number;');
-    // single cross-reference flattens to a string ($refText); $type is dropped from the surface
+    // single cross-reference flattens to a string ($refText); $type is dropped from the surface interface
     expect(source).toContain('superType?: string;');
-    expect(source).not.toContain('$type');
+    expect(source).not.toContain('$type:'); // no $type property in the domain interface
   });
 
   it('parenthesizes a union when it is an array element', () => {
@@ -160,5 +160,15 @@ describe('generateDomainCode — unions', () => {
     expect(source).toContain('export function toDomainExpression(node: any): ExpressionDomain {');
     expect(source).toContain('case "Literal": return toDomainLiteral(node);');
     expect(source).toContain('case "BinaryExpr": return toDomainBinaryExpr(node);');
+  });
+});
+
+describe('generateDomainCode — master dispatcher', () => {
+  it('emits AnyDomain and a toDomain(node) switch over all objects', () => {
+    const source = generateDomainCode(nestedObject); // Attribute + Data from Task 4
+    expect(source).toContain('export type AnyDomain = AttributeDomain | DataDomain;');
+    expect(source).toContain('export function toDomain(node: any): AnyDomain {');
+    expect(source).toContain('case "Attribute": return toDomainAttribute(node);');
+    expect(source).toContain('case "Data": return toDomainData(node);');
   });
 });
