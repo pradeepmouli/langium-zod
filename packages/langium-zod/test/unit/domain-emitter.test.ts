@@ -172,3 +172,31 @@ describe('generateDomainCode — master dispatcher', () => {
     expect(source).toContain('case "Data": return toDomainData(node);');
   });
 });
+
+const renameObject: ZodTypeDescriptor[] = [
+  {
+    name: 'Choice',
+    kind: 'object',
+    properties: [
+      { name: '$type', zodType: { kind: 'literal', value: 'Choice' }, optional: false },
+      {
+        name: 'attributes',
+        zodType: { kind: 'array', element: { kind: 'reference', typeName: 'Attribute' } },
+        optional: false
+      }
+    ]
+  }
+];
+
+describe('generateDomainCode — renames', () => {
+  it('renames the domain field + accessors but reads/writes the source field', () => {
+    const source = generateDomainCode(renameObject, {
+      overlays: { types: { Choice: { renames: { attributes: 'options' } } } }
+    });
+    expect(source).toContain('options: AttributeDomain[];');
+    expect(source).toContain('options: (node.attributes ?? []).map((item) =>');
+    expect(source).toContain('export function addOptions(node: any, item: unknown): void {');
+    expect(source).toContain('  (node.attributes ??= []).push(item);');
+    expect(source).not.toContain('addAttributes');
+  });
+});

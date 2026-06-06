@@ -10,11 +10,23 @@ function capitalize(name: string): string {
   return name.length === 0 ? name : `${name[0]!.toUpperCase()}${name.slice(1)}`;
 }
 
+export interface DomainOverlayTypeConfig {
+  /** Source field → domain field. Bidirectional: read & write both target the source. */
+  renames?: Record<string, string>;
+  /** Read-only aggregations: concat `from` source arrays into one `to` read field. */
+  merges?: Array<{ from: string[]; to: string }>;
+}
+
+export interface DomainOverlayConfig {
+  types?: Record<string, DomainOverlayTypeConfig>;
+}
+
 export interface DomainGenerationOptions {
   /** Reuses the Zod projection for `defaults.strip` + per-type `fields`. */
   projection?: ProjectionConfig;
   /** Drop `$`-internal metadata fields (`$container`, `$cstNode`, …). */
   stripInternals?: boolean;
+  overlays?: DomainOverlayConfig;
 }
 
 /** TS surface type for a property's read shape. Single cross-refs flatten to `string`. */
@@ -73,6 +85,58 @@ function domainWriteType(expression: ZodTypeExpression): string {
       // reference (nested AST node), union, array, lazy: caller supplies a draft.
       return 'unknown';
   }
+}
+
+interface DomainFieldPlan {
+  name: string; // surface (domain) field name
+  tsType: string;
+  optional: boolean;
+  readExpr: string; // expression in terms of `node`
+}
+
+interface AccessorPlan {
+  label: string; // PascalCase fn label
+  sourceName: string; // AST source field the accessor mutates
+  expression: ZodTypeExpression;
+}
+
+interface DomainObjectPlan {
+  name: string;
+  fields: DomainFieldPlan[];
+  accessors: AccessorPlan[];
+}
+
+function planObject(
+  descriptor: ZodObjectTypeDescriptor,
+  overlay: DomainOverlayTypeConfig | undefined
+): DomainObjectPlan {
+  const renames = overlay?.renames ?? {};
+  const merges = overlay?.merges ?? [];
+  const mergedSources = new Set(merges.flatMap((merge) => merge.from));
+
+  const properties = descriptor.properties.filter((property) => property.name !== '$type');
+  const fields: DomainFieldPlan[] = [];
+  const accessors: AccessorPlan[] = [];
+
+  for (const property of properties) {
+    const isMergeSource = mergedSources.has(property.name);
+    if (!isMergeSource) {
+      const domainName = renames[property.name] ?? property.name;
+      fields.push({
+        name: domainName,
+        tsType: domainTsType(property.zodType),
+        optional: property.optional,
+        readExpr: domainReadExpr(property.zodType, `node.${property.name}`)
+      });
+    }
+    // Accessors always target the SOURCE field; merge sources keep distinct accessors.
+    const label = capitalize(isMergeSource ? property.name : renames[property.name] ?? property.name);
+    accessors.push({ label, sourceName: property.name, expression: property.zodType });
+  }
+
+  // (Task 8 appends merged READ fields here.)
+
+  return { name: descriptor.name, fields, accessors };
 }
 
 function emitAccessors(label: string, sourceName: string, expression: ZodTypeExpression): string[] {
@@ -147,38 +211,29 @@ function emitUnion(descriptor: ZodUnionTypeDescriptor): string[] {
   return out;
 }
 
-function emitWriteAccessors(descriptor: ZodObjectTypeDescriptor): string[] {
-  const out: string[] = [];
-  for (const property of descriptor.properties) {
-    if (property.name === '$type') {
-      continue;
-    }
-    out.push(...emitAccessors(capitalize(property.name), property.name, property.zodType));
+function emitInterface(plan: DomainObjectPlan): string[] {
+  const out = [`export interface ${plan.name}Domain {`];
+  for (const field of plan.fields) {
+    out.push(`  ${field.name}${field.optional ? '?' : ''}: ${field.tsType};`);
   }
+  out.push('}', '');
   return out;
 }
 
-function emitReadFn(descriptor: ZodObjectTypeDescriptor): string[] {
-  const out = [`export function toDomain${descriptor.name}(node: any): ${descriptor.name}Domain {`, '  return {'];
-  for (const property of descriptor.properties) {
-    if (property.name === '$type') {
-      continue;
-    }
-    out.push(`    ${property.name}: ${domainReadExpr(property.zodType, `node.${property.name}`)},`);
+function emitReadFn(plan: DomainObjectPlan): string[] {
+  const out = [`export function toDomain${plan.name}(node: any): ${plan.name}Domain {`, '  return {'];
+  for (const field of plan.fields) {
+    out.push(`    ${field.name}: ${field.readExpr},`);
   }
   out.push('  };', '}', '');
   return out;
 }
 
-function emitInterface(descriptor: ZodObjectTypeDescriptor): string[] {
-  const out = [`export interface ${descriptor.name}Domain {`];
-  for (const property of descriptor.properties) {
-    if (property.name === '$type') {
-      continue;
-    }
-    out.push(`  ${property.name}${property.optional ? '?' : ''}: ${domainTsType(property.zodType)};`);
+function emitWriteAccessors(plan: DomainObjectPlan): string[] {
+  const out: string[] = [];
+  for (const accessor of plan.accessors) {
+    out.push(...emitAccessors(accessor.label, accessor.sourceName, accessor.expression));
   }
-  out.push('}', '');
   return out;
 }
 
@@ -202,10 +257,12 @@ export function generateDomainCode(
     ''
   ];
 
+  const overlayTypes = options.overlays?.types ?? {};
   for (const object of objects) {
-    lines.push(...emitInterface(object));
-    lines.push(...emitReadFn(object));
-    lines.push(...emitWriteAccessors(object));
+    const plan = planObject(object, overlayTypes[object.name]);
+    lines.push(...emitInterface(plan));
+    lines.push(...emitReadFn(plan));
+    lines.push(...emitWriteAccessors(plan));
   }
 
   for (const union of unions) {
