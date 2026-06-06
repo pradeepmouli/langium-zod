@@ -55,3 +55,13 @@ describe('generateDomainCode — flat interfaces', () => {
     expect(source).toContain('items: (string | number)[];');
   });
 });
+
+describe('generateDomainCode — read projection', () => {
+  it('emits toDomain<Name> reading $refText for cross-refs and raw values otherwise', () => {
+    const source = generateDomainCode(flatObject);
+    expect(source).toContain('export function toDomainData(node: any): DataDomain {');
+    expect(source).toContain('name: node.name,');
+    expect(source).toContain('order: node.order,');
+    expect(source).toContain('superType: node.superType?.$refText,');
+  });
+});

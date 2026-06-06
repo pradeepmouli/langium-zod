@@ -34,6 +34,39 @@ function domainTsType(expression: ZodTypeExpression): string {
   }
 }
 
+/** Read-projection expression mapping a source access path to the domain value. */
+function domainReadExpr(expression: ZodTypeExpression, access: string): string {
+  switch (expression.kind) {
+    case 'primitive':
+    case 'literal':
+      return access;
+    case 'crossReference':
+      return `${access}?.$refText`;
+    case 'reference':
+      return `${access} ? toDomain${expression.typeName}(${access}) : undefined`;
+    case 'array':
+      return `(${access} ?? []).map((item) => ${domainReadExpr(expression.element, 'item')})`;
+    case 'union':
+      // Inline property-level unions pass through unchanged (rare — named unions
+      // arrive as `reference`). Documented limitation; revisited in a later task.
+      return access;
+    case 'lazy':
+      return domainReadExpr(expression.inner, access);
+  }
+}
+
+function emitReadFn(descriptor: ZodObjectTypeDescriptor): string[] {
+  const out = [`export function toDomain${descriptor.name}(node: any): ${descriptor.name}Domain {`, '  return {'];
+  for (const property of descriptor.properties) {
+    if (property.name === '$type') {
+      continue;
+    }
+    out.push(`    ${property.name}: ${domainReadExpr(property.zodType, `node.${property.name}`)},`);
+  }
+  out.push('  };', '}', '');
+  return out;
+}
+
 function emitInterface(descriptor: ZodObjectTypeDescriptor): string[] {
   const out = [`export interface ${descriptor.name}Domain {`];
   for (const property of descriptor.properties) {
@@ -65,6 +98,7 @@ export function generateDomainCode(
 
   for (const object of objects) {
     lines.push(...emitInterface(object));
+    lines.push(...emitReadFn(object));
   }
 
   return `${lines.join('\n').trim()}\n`;
