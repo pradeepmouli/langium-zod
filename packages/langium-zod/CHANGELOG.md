@@ -1,5 +1,15 @@
 # langium-zod
 
+## 0.6.0
+
+### Minor Changes
+
+- [#68](https://github.com/pradeepmouli/langium-zod/pull/68) [`6f1ee85`](https://github.com/pradeepmouli/langium-zod/commit/6f1ee85cf44197b977202155bd8875843a270ebb) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - - feat(domain): add domain-surface target — emit quirk-free read interfaces, `toDomain` read projections, and field-precise write accessors from a Langium grammar
+  - feat(domain): `generateDomainSchemas` API + `domainOverlays` config for project-specific renames and read-only merges
+  - feat(domain): CLI `--domain` / `--domain-out` flags
+  - fix(domain): type-qualify write-accessor names to avoid export collisions
+  - note: `regexOverrides` are intentionally not applied on the domain path; domain output is documented in the README under "Domain target (experimental)"
+
 ## 0.5.4
 
 ### Patch Changes
