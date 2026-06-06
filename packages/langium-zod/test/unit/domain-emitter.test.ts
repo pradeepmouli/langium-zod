@@ -102,3 +102,39 @@ describe('generateDomainCode — write accessors', () => {
     expect(source).toContain('export function addTags(node: any, item: string): void {');
   });
 });
+
+const nestedObject: ZodTypeDescriptor[] = [
+  {
+    name: 'Attribute',
+    kind: 'object',
+    properties: [
+      { name: '$type', zodType: { kind: 'literal', value: 'Attribute' }, optional: false },
+      { name: 'name', zodType: { kind: 'primitive', primitive: 'string' }, optional: false }
+    ]
+  },
+  {
+    name: 'Data',
+    kind: 'object',
+    properties: [
+      { name: '$type', zodType: { kind: 'literal', value: 'Data' }, optional: false },
+      { name: 'header', zodType: { kind: 'reference', typeName: 'Attribute' }, optional: true },
+      {
+        name: 'attributes',
+        zodType: { kind: 'array', element: { kind: 'reference', typeName: 'Attribute' } },
+        optional: false
+      }
+    ]
+  }
+];
+
+describe('generateDomainCode — nested references', () => {
+  it('types nested refs as <Name>Domain and recurses in the read projection', () => {
+    const source = generateDomainCode(nestedObject);
+    expect(source).toContain('header?: AttributeDomain;');
+    expect(source).toContain('attributes: AttributeDomain[];');
+    expect(source).toContain('header: node.header ? toDomainAttribute(node.header) : undefined,');
+    expect(source).toContain(
+      'attributes: (node.attributes ?? []).map((item) => item ? toDomainAttribute(item) : undefined),'
+    );
+  });
+});
