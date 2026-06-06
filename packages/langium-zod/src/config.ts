@@ -1,6 +1,7 @@
 import type { Grammar, LangiumCoreServices } from 'langium';
 import type { AstTypesLike } from './types.js';
 import type { ProjectionConfig } from './projection.js';
+import type { DomainOverlayConfig } from './emitters/domain.js';
 
 /**
  * Include/exclude filter that controls which Langium type names are emitted
@@ -165,6 +166,12 @@ export interface ZodGeneratorConfig extends FilterConfig {
    *   properties.
    */
   objectStyle?: 'loose' | 'strict';
+  /** When true, the CLI also emits the domain surface to `domainOutputPath`. */
+  emitDomain?: boolean;
+  /** Output path for the generated domain surface (`domain.ts`). */
+  domainOutputPath?: string;
+  /** Rune-specific semantic overlays (renames + read-only merges) for the domain target. */
+  domainOverlays?: DomainOverlayConfig;
 }
 
 /**
