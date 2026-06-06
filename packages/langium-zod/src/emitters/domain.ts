@@ -6,6 +6,14 @@ import type {
 } from '../types.js';
 import { applyProjectionToDescriptors, type ProjectionConfig } from '../projection.js';
 
+/** Context threaded through type/read helpers to classify references correctly. */
+interface DomainCtx {
+  /** Names of object/union types that DO have a generated Domain interface + toDomain fn. */
+  richTypeNames: Set<string>;
+  /** Returns the primitive TS type for a datatype-rule name (non-rich reference). */
+  datatypePrimitive: (name: string) => string;
+}
+
 function capitalize(name: string): string {
   return name.length === 0 ? name : `${name[0]!.toUpperCase()}${name.slice(1)}`;
 }
@@ -30,29 +38,32 @@ export interface DomainGenerationOptions {
 }
 
 /** TS surface type for a property's read shape. Single cross-refs flatten to `string`. */
-function domainTsType(expression: ZodTypeExpression): string {
+function domainTsType(expression: ZodTypeExpression, ctx: DomainCtx): string {
   switch (expression.kind) {
     case 'primitive':
       return expression.primitive; // 'string' | 'number' | 'boolean' | 'bigint'
     case 'literal':
       return JSON.stringify(expression.value);
     case 'reference':
-      return `${expression.typeName}Domain`;
+      // Non-rich references (datatype rules, keyword-enums, etc.) resolve to a primitive.
+      return ctx.richTypeNames.has(expression.typeName)
+        ? `${expression.typeName}Domain`
+        : ctx.datatypePrimitive(expression.typeName);
     case 'crossReference':
       return 'string';
     case 'array':
-      return `${domainTsType(expression.element)}[]`;
+      return `${domainTsType(expression.element, ctx)}[]`;
     case 'union': {
-      const inner = expression.members.map(domainTsType).join(' | ');
+      const inner = expression.members.map((m) => domainTsType(m, ctx)).join(' | ');
       return expression.members.length > 1 ? `(${inner})` : inner;
     }
     case 'lazy':
-      return domainTsType(expression.inner);
+      return domainTsType(expression.inner, ctx);
   }
 }
 
 /** Read-projection expression mapping a source access path to the domain value. */
-function domainReadExpr(expression: ZodTypeExpression, access: string): string {
+function domainReadExpr(expression: ZodTypeExpression, access: string, ctx: DomainCtx): string {
   switch (expression.kind) {
     case 'primitive':
     case 'literal':
@@ -60,20 +71,23 @@ function domainReadExpr(expression: ZodTypeExpression, access: string): string {
     case 'crossReference':
       return `${access}?.$refText`;
     case 'reference':
-      return `${access} ? toDomain${expression.typeName}(${access}) : undefined`;
+      // Datatype-rule / keyword-enum references are primitives on the AST — read directly.
+      return ctx.richTypeNames.has(expression.typeName)
+        ? `${access} ? toDomain${expression.typeName}(${access}) : undefined`
+        : access;
     case 'array':
-      return `(${access} ?? []).map((item) => ${domainReadExpr(expression.element, 'item')})`;
+      return `(${access} ?? []).map((item) => ${domainReadExpr(expression.element, 'item', ctx)})`;
     case 'union':
       // Inline property-level unions pass through unchanged (rare — named unions
       // arrive as `reference`). Documented limitation; revisited in a later task.
       return access;
     case 'lazy':
-      return domainReadExpr(expression.inner, access);
+      return domainReadExpr(expression.inner, access, ctx);
   }
 }
 
 /** Param type for a scalar/primitive setter or an array element add. */
-function domainWriteType(expression: ZodTypeExpression): string {
+function domainWriteType(expression: ZodTypeExpression, ctx: DomainCtx): string {
   switch (expression.kind) {
     case 'primitive':
       return expression.primitive;
@@ -81,8 +95,11 @@ function domainWriteType(expression: ZodTypeExpression): string {
       return 'string';
     case 'literal':
       return JSON.stringify(expression.value);
+    case 'reference':
+      // Non-rich references are primitives on the AST; rich ones are nested objects.
+      return ctx.richTypeNames.has(expression.typeName) ? 'unknown' : ctx.datatypePrimitive(expression.typeName);
     default:
-      // reference (nested AST node), union, array, lazy: caller supplies a draft.
+      // union, array, lazy: caller supplies a draft.
       return 'unknown';
   }
 }
@@ -108,7 +125,8 @@ interface DomainObjectPlan {
 
 function planObject(
   descriptor: ZodObjectTypeDescriptor,
-  overlay: DomainOverlayTypeConfig | undefined
+  overlay: DomainOverlayTypeConfig | undefined,
+  ctx: DomainCtx
 ): DomainObjectPlan {
   const renames = overlay?.renames ?? {};
   const merges = overlay?.merges ?? [];
@@ -124,9 +142,9 @@ function planObject(
     if (!isMergeSource) {
       fields.push({
         name: domainName,
-        tsType: domainTsType(property.zodType),
+        tsType: domainTsType(property.zodType, ctx),
         optional: property.optional,
-        readExpr: domainReadExpr(property.zodType, `node.${property.name}`)
+        readExpr: domainReadExpr(property.zodType, `node.${property.name}`, ctx)
       });
     }
     // Accessors always target the SOURCE field; merge sources keep distinct accessors.
@@ -163,12 +181,12 @@ function planObject(
     const firstArray = sourceProps.find((property) => property.zodType.kind === 'array');
     const elementTsType =
       firstArray && firstArray.zodType.kind === 'array'
-        ? domainTsType(firstArray.zodType.element)
+        ? domainTsType(firstArray.zodType.element, ctx)
         : 'unknown';
 
     const spreadExprs = sourceProps
       .filter((property) => property.zodType.kind === 'array')
-      .map((property) => `...${domainReadExpr(property.zodType, `node.${property.name}`)}`);
+      .map((property) => `...${domainReadExpr(property.zodType, `node.${property.name}`, ctx)}`);
 
     fields.push({
       name: merge.to,
@@ -181,10 +199,10 @@ function planObject(
   return { name: descriptor.name, fields, accessors };
 }
 
-function emitAccessors(label: string, sourceName: string, expression: ZodTypeExpression): string[] {
+function emitAccessors(label: string, sourceName: string, expression: ZodTypeExpression, ctx: DomainCtx): string[] {
   const src = `node.${sourceName}`;
   if (expression.kind === 'array') {
-    const elementType = domainWriteType(expression.element);
+    const elementType = domainWriteType(expression.element, ctx);
     return [
       `export function add${label}(node: any, item: ${elementType}): void {`,
       expression.element.kind === 'crossReference'
@@ -199,9 +217,11 @@ function emitAccessors(label: string, sourceName: string, expression: ZodTypeExp
     ];
   }
   if (expression.kind === 'crossReference') {
+    // Fix: create the slot when absent so optional cross-refs can be set from scratch.
     return [
       `export function set${label}(node: any, value: string): void {`,
       `  if (${src}) ${src}.$refText = value;`,
+      `  else ${src} = { $refText: value };`,
       '}',
       ''
     ];
@@ -214,7 +234,17 @@ function emitAccessors(label: string, sourceName: string, expression: ZodTypeExp
       ''
     ];
   }
-  // reference (nested object) scalar, literal, union: no setter in the MVP surface.
+  if (expression.kind === 'reference' && !ctx.richTypeNames.has(expression.typeName)) {
+    // Non-rich reference (datatype rule): primitive-valued field, emit a scalar setter.
+    const primitiveType = ctx.datatypePrimitive(expression.typeName);
+    return [
+      `export function set${label}(node: any, value: ${primitiveType}): void {`,
+      `  ${src} = value;`,
+      '}',
+      ''
+    ];
+  }
+  // Rich reference (nested object) scalar, literal, union: no setter in the MVP surface.
   return [];
 }
 
@@ -271,10 +301,10 @@ function emitReadFn(plan: DomainObjectPlan): string[] {
   return out;
 }
 
-function emitWriteAccessors(plan: DomainObjectPlan): string[] {
+function emitWriteAccessors(plan: DomainObjectPlan, ctx: DomainCtx): string[] {
   const out: string[] = [];
   for (const accessor of plan.accessors) {
-    out.push(...emitAccessors(`${plan.name}${accessor.label}`, accessor.sourceName, accessor.expression));
+    out.push(...emitAccessors(`${plan.name}${accessor.label}`, accessor.sourceName, accessor.expression, ctx));
   }
   return out;
 }
@@ -294,6 +324,27 @@ export function generateDomainCode(
     (descriptor): descriptor is ZodUnionTypeDescriptor => descriptor.kind === 'union'
   );
 
+  // Build the classification context:
+  // - richTypeNames: object and union types that get a Domain interface + toDomain fn.
+  // - datatypePrimitive: resolves datatype-rule names (primitive-alias, keyword-enum,
+  //   regex-enum) to their primitive TS type; defaults to 'string' for unknowns.
+  const richTypeNames = new Set<string>([
+    ...objects.map((o) => o.name),
+    ...unions.map((u) => u.name)
+  ]);
+  const datatypeMap = new Map<string, string>();
+  for (const descriptor of surface) {
+    if (descriptor.kind === 'primitive-alias') {
+      datatypeMap.set(descriptor.name, descriptor.primitive);
+    } else if (descriptor.kind === 'keyword-enum' || descriptor.kind === 'regex-enum') {
+      datatypeMap.set(descriptor.name, 'string');
+    }
+  }
+  const ctx: DomainCtx = {
+    richTypeNames,
+    datatypePrimitive: (name) => datatypeMap.get(name) ?? 'string'
+  };
+
   const lines: string[] = [
     '// @ts-nocheck — generated domain surface; edit the grammar / domain-surfaces.json to regenerate',
     ''
@@ -301,10 +352,10 @@ export function generateDomainCode(
 
   const overlayTypes = options.overlays?.types ?? {};
   for (const object of objects) {
-    const plan = planObject(object, overlayTypes[object.name]);
+    const plan = planObject(object, overlayTypes[object.name], ctx);
     lines.push(...emitInterface(plan));
     lines.push(...emitReadFn(plan));
-    lines.push(...emitWriteAccessors(plan));
+    lines.push(...emitWriteAccessors(plan, ctx));
   }
 
   for (const union of unions) {

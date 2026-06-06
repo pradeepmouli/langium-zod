@@ -170,7 +170,7 @@ export interface ZodGeneratorConfig extends FilterConfig {
   emitDomain?: boolean;
   /** Output path for the generated domain surface (`domain.ts`). */
   domainOutputPath?: string;
-  /** Rune-specific semantic overlays (renames + read-only merges) for the domain target. */
+  /** Project-specific semantic overlays (renames + read-only merges) supplied by the consumer for the domain target. */
   domainOverlays?: DomainOverlayConfig;
 }
 

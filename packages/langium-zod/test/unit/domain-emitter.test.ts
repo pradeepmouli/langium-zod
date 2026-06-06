@@ -68,6 +68,14 @@ describe('generateDomainCode — read projection', () => {
 
 const arrayObject: ZodTypeDescriptor[] = [
   {
+    name: 'Attribute',
+    kind: 'object',
+    properties: [
+      { name: '$type', zodType: { kind: 'literal', value: 'Attribute' }, optional: false },
+      { name: 'name', zodType: { kind: 'primitive', primitive: 'string' }, optional: false }
+    ]
+  },
+  {
     name: 'Func',
     kind: 'object',
     properties: [
@@ -95,6 +103,7 @@ describe('generateDomainCode — write accessors', () => {
     expect(source).toContain('  node.name = value;');
     expect(source).toContain('export function setFuncOutput(node: any, value: string): void {');
     expect(source).toContain('  if (node.output) node.output.$refText = value;');
+    expect(source).toContain('  else node.output = { $refText: value };');
     expect(source).toContain('export function addFuncInputs(node: any, item: unknown): void {');
     expect(source).toContain('  (node.inputs ??= []).push(item);');
     expect(source).toContain('export function removeFuncInputsAt(node: any, index: number): void {');
@@ -175,6 +184,14 @@ describe('generateDomainCode — master dispatcher', () => {
 
 const renameObject: ZodTypeDescriptor[] = [
   {
+    name: 'Attribute',
+    kind: 'object',
+    properties: [
+      { name: '$type', zodType: { kind: 'literal', value: 'Attribute' }, optional: false },
+      { name: 'name', zodType: { kind: 'primitive', primitive: 'string' }, optional: false }
+    ]
+  },
+  {
     name: 'Choice',
     kind: 'object',
     properties: [
@@ -202,6 +219,14 @@ describe('generateDomainCode — renames', () => {
 });
 
 const mergeObject: ZodTypeDescriptor[] = [
+  {
+    name: 'Condition',
+    kind: 'object',
+    properties: [
+      { name: '$type', zodType: { kind: 'literal', value: 'Condition' }, optional: false },
+      { name: 'expression', zodType: { kind: 'primitive', primitive: 'string' }, optional: false }
+    ]
+  },
   {
     name: 'RosettaFunction',
     kind: 'object',
@@ -314,5 +339,58 @@ describe('generateDomainCode — accessor name collisions', () => {
     const fnNames = [...source.matchAll(/export function (\w+)\(/g)].map((match) => match[1]);
     const duplicates = fnNames.filter((name, index) => fnNames.indexOf(name) !== index);
     expect(duplicates).toEqual([]);
+  });
+});
+
+// Fix 1: references to datatype-rule / keyword-enum descriptors must NOT emit
+// toDomain<X> / <X>Domain — they resolve to their underlying primitive type.
+const datatypeRefDescriptors: ZodTypeDescriptor[] = [
+  {
+    name: 'ValidID',
+    kind: 'primitive-alias',
+    primitive: 'string'
+  },
+  {
+    name: 'Model',
+    kind: 'object',
+    properties: [
+      { name: '$type', zodType: { kind: 'literal', value: 'Model' }, optional: false },
+      // id references a primitive-alias datatype rule, NOT a rich object type
+      { name: 'id', zodType: { kind: 'reference', typeName: 'ValidID' }, optional: false }
+    ]
+  }
+];
+
+describe('generateDomainCode — datatype-rule reference passthrough', () => {
+  it('resolves primitive-alias references to their primitive type, not to <X>Domain', () => {
+    const source = generateDomainCode(datatypeRefDescriptors);
+    // Interface field must be the primitive type, not ValidIDDomain
+    expect(source).toContain('id: string;');
+    expect(source).not.toContain('id: ValidIDDomain;');
+    // Read projection must be an identity read, not toDomainValidID(...)
+    expect(source).toContain('id: node.id,');
+    expect(source).not.toContain('toDomainValidID');
+    // Write accessor must be a primitive setter, not a cross-ref or missing
+    expect(source).toContain('export function setModelId(node: any, value: string): void {');
+    expect(source).toContain('  node.id = value;');
+  });
+
+  it('resolves keyword-enum references to string, not to <X>Domain', () => {
+    const descriptors: ZodTypeDescriptor[] = [
+      { name: 'Status', kind: 'keyword-enum', keywords: ['active', 'inactive'] },
+      {
+        name: 'Item',
+        kind: 'object',
+        properties: [
+          { name: '$type', zodType: { kind: 'literal', value: 'Item' }, optional: false },
+          { name: 'status', zodType: { kind: 'reference', typeName: 'Status' }, optional: true }
+        ]
+      }
+    ];
+    const source = generateDomainCode(descriptors);
+    expect(source).toContain('status?: string;');
+    expect(source).not.toContain('StatusDomain');
+    expect(source).toContain('status: node.status,');
+    expect(source).not.toContain('toDomainStatus');
   });
 });
