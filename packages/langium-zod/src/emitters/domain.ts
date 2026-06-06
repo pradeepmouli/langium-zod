@@ -274,7 +274,7 @@ function emitReadFn(plan: DomainObjectPlan): string[] {
 function emitWriteAccessors(plan: DomainObjectPlan): string[] {
   const out: string[] = [];
   for (const accessor of plan.accessors) {
-    out.push(...emitAccessors(accessor.label, accessor.sourceName, accessor.expression));
+    out.push(...emitAccessors(`${plan.name}${accessor.label}`, accessor.sourceName, accessor.expression));
   }
   return out;
 }

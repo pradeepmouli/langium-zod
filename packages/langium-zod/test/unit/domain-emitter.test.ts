@@ -91,15 +91,15 @@ const arrayObject: ZodTypeDescriptor[] = [
 describe('generateDomainCode — write accessors', () => {
   it('emits set for scalars, $refText-mutating set for cross-refs, add/remove for arrays', () => {
     const source = generateDomainCode(arrayObject);
-    expect(source).toContain('export function setName(node: any, value: string): void {');
+    expect(source).toContain('export function setFuncName(node: any, value: string): void {');
     expect(source).toContain('  node.name = value;');
-    expect(source).toContain('export function setOutput(node: any, value: string): void {');
+    expect(source).toContain('export function setFuncOutput(node: any, value: string): void {');
     expect(source).toContain('  if (node.output) node.output.$refText = value;');
-    expect(source).toContain('export function addInputs(node: any, item: unknown): void {');
+    expect(source).toContain('export function addFuncInputs(node: any, item: unknown): void {');
     expect(source).toContain('  (node.inputs ??= []).push(item);');
-    expect(source).toContain('export function removeInputsAt(node: any, index: number): void {');
+    expect(source).toContain('export function removeFuncInputsAt(node: any, index: number): void {');
     expect(source).toContain('  node.inputs?.splice(index, 1);');
-    expect(source).toContain('export function addTags(node: any, item: string): void {');
+    expect(source).toContain('export function addFuncTags(node: any, item: string): void {');
   });
 });
 
@@ -195,9 +195,9 @@ describe('generateDomainCode — renames', () => {
     });
     expect(source).toContain('options: AttributeDomain[];');
     expect(source).toContain('options: (node.attributes ?? []).map((item) =>');
-    expect(source).toContain('export function addOptions(node: any, item: unknown): void {');
+    expect(source).toContain('export function addChoiceOptions(node: any, item: unknown): void {');
     expect(source).toContain('  (node.attributes ??= []).push(item);');
-    expect(source).not.toContain('addAttributes');
+    expect(source).not.toContain('addChoiceAttributes');
   });
 });
 
@@ -238,9 +238,9 @@ describe('generateDomainCode — merges', () => {
       'conditions: [...(node.conditions ?? []).map((item) => item ? toDomainCondition(item) : undefined), ...(node.postConditions ?? []).map((item) => item ? toDomainCondition(item) : undefined)],'
     );
     // write accessors stay source-keyed, distinct, no merged setter
-    expect(source).toContain('export function addConditions(node: any, item: unknown): void {');
+    expect(source).toContain('export function addRosettaFunctionConditions(node: any, item: unknown): void {');
     expect(source).toContain('  (node.conditions ??= []).push(item);');
-    expect(source).toContain('export function addPostConditions(node: any, item: unknown): void {');
+    expect(source).toContain('export function addRosettaFunctionPostConditions(node: any, item: unknown): void {');
     expect(source).toContain('  (node.postConditions ??= []).push(item);');
   });
 });
@@ -283,5 +283,36 @@ describe('generateDomainCode — merge validation', () => {
         { overlays: { types: { F: { merges: [{ from: ['a', 'b'], to: 'c' }] } } } }
       )
     ).toThrow(/collides with an existing non-source field/);
+  });
+});
+
+const sharedFieldName: ZodTypeDescriptor[] = [
+  {
+    name: 'Attribute',
+    kind: 'object',
+    properties: [
+      { name: '$type', zodType: { kind: 'literal', value: 'Attribute' }, optional: false },
+      { name: 'name', zodType: { kind: 'primitive', primitive: 'string' }, optional: false }
+    ]
+  },
+  {
+    name: 'Data',
+    kind: 'object',
+    properties: [
+      { name: '$type', zodType: { kind: 'literal', value: 'Data' }, optional: false },
+      { name: 'name', zodType: { kind: 'primitive', primitive: 'string' }, optional: false }
+    ]
+  }
+];
+
+describe('generateDomainCode — accessor name collisions', () => {
+  it('qualifies accessor names by owner type so shared field names do not collide', () => {
+    const source = generateDomainCode(sharedFieldName);
+    expect(source).toContain('export function setAttributeName(');
+    expect(source).toContain('export function setDataName(');
+    // No duplicate top-level export identifier (the SyntaxError-at-import guard).
+    const fnNames = [...source.matchAll(/export function (\w+)\(/g)].map((match) => match[1]);
+    const duplicates = fnNames.filter((name, index) => fnNames.indexOf(name) !== index);
+    expect(duplicates).toEqual([]);
   });
 });
