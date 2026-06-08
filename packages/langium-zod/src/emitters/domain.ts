@@ -29,12 +29,30 @@ export interface DomainOverlayConfig {
   types?: Record<string, DomainOverlayTypeConfig>;
 }
 
+export interface NormalizationConfig {
+  /** Canonical field name to add (e.g. `'extends'` or `'members'`). */
+  as: string;
+  /**
+   * Per-kind source field: `{ TypeName: 'sourceFieldName' }`.
+   * The alias reuses the source field's already-projected `tsType` and `readExpr` verbatim.
+   * Values match the post-rename domain field name. If the source field is absent on a
+   * kind's planned fields, the alias is silently skipped for that kind.
+   */
+  from: Record<string, string>;
+}
+
 export interface DomainGenerationOptions {
   /** Reuses the Zod projection for `defaults.strip` + per-type `fields`. */
   projection?: ProjectionConfig;
   /** Drop `$`-internal metadata fields (`$container`, `$cstNode`, …). */
   stripInternals?: boolean;
   overlays?: DomainOverlayConfig;
+  /**
+   * Additive read-only normalizations: each entry appends a canonical alias field to
+   * every kind that maps to a source field via `from`, reusing the source field's
+   * projected `tsType` and `readExpr`. No setter is emitted for alias fields.
+   */
+  normalizations?: Record<string, NormalizationConfig>;
 }
 
 /** TS surface type for a property's read shape. Cross-refs surface as editable `DomainRef` objects. */
@@ -110,6 +128,8 @@ interface DomainFieldPlan {
   tsType: string;
   optional: boolean;
   readExpr: string; // expression in terms of `node`
+  /** True for additive normalization aliases — no write accessor should be emitted. */
+  readOnly?: boolean;
 }
 
 interface AccessorPlan {
@@ -127,7 +147,8 @@ interface DomainObjectPlan {
 function planObject(
   descriptor: ZodObjectTypeDescriptor,
   overlay: DomainOverlayTypeConfig | undefined,
-  ctx: DomainCtx
+  ctx: DomainCtx,
+  normalizations?: Record<string, NormalizationConfig>
 ): DomainObjectPlan {
   const renames = overlay?.renames ?? {};
   const merges = overlay?.merges ?? [];
@@ -198,6 +219,35 @@ function planObject(
       optional: false,
       readExpr: `[${spreadExprs.join(', ')}]`
     });
+  }
+
+  // Additive normalization pass: for each normalization whose `from` maps this kind,
+  // find the already-planned source field and append a read-only alias using its
+  // projected `tsType` and `readExpr` verbatim. If the source field is not present
+  // in the plan (e.g. stripped), skip silently. A name collision THROWS — never
+  // silently skip — so a config typo can't drop the canonical field.
+  if (normalizations) {
+    for (const norm of Object.values(normalizations)) {
+      const sourceFieldName = norm.from[descriptor.name];
+      if (!sourceFieldName) continue;
+
+      const sourcePlan = fields.find((f) => f.name === sourceFieldName);
+      if (!sourcePlan) continue;
+
+      if (fields.some((f) => f.name === norm.as)) {
+        throw new Error(
+          `domain normalization "${norm.as}" for ${descriptor.name}: target collides with an existing field`
+        );
+      }
+
+      fields.push({
+        name: norm.as,
+        tsType: sourcePlan.tsType,
+        optional: sourcePlan.optional,
+        readExpr: sourcePlan.readExpr,
+        readOnly: true
+      });
+    }
   }
 
   return { name: descriptor.name, fields, accessors };
@@ -359,7 +409,7 @@ export function generateDomainCode(
 
   const overlayTypes = options.overlays?.types ?? {};
   for (const object of objects) {
-    const plan = planObject(object, overlayTypes[object.name], ctx);
+    const plan = planObject(object, overlayTypes[object.name], ctx, options.normalizations);
     lines.push(...emitInterface(plan));
     lines.push(...emitReadFn(plan));
     lines.push(...emitWriteAccessors(plan, ctx));

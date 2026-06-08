@@ -455,3 +455,54 @@ describe('generateDomainCode — $type discriminant retention', () => {
     expect(source).toContain('case "Data": return toDomainData(node);');
   });
 });
+
+describe('generateDomainCode — additive normalizations', () => {
+  const dataDesc: ZodTypeDescriptor[] = [
+    {
+      name: 'Data',
+      kind: 'object',
+      properties: [
+        { name: '$type', zodType: { kind: 'literal', value: 'Data' }, optional: false },
+        { name: 'name', zodType: { kind: 'primitive', primitive: 'string' }, optional: false },
+        { name: 'superType', zodType: { kind: 'crossReference', targetType: 'Data' }, optional: true },
+        { name: 'attributes', zodType: { kind: 'array', element: { kind: 'primitive', primitive: 'string' } }, optional: true }
+      ]
+    }
+  ];
+
+  it('appends extends/members aliases reusing the source field projected type + readExpr', () => {
+    const source = generateDomainCode(dataDesc, {
+      normalizations: {
+        inheritance: { as: 'extends', from: { Data: 'superType' } },
+        members: { as: 'members', from: { Data: 'attributes' } }
+      }
+    });
+    // Source fields retained.
+    expect(source).toContain('superType?: DomainRef;');
+    expect(source).toContain('attributes?: string[];');
+    // Aliases reuse the SOURCE projected type (DomainRef object, not branded/string).
+    expect(source).toContain('extends?: DomainRef;');
+    expect(source).toContain('members?: string[];');
+    // Aliases reuse the SOURCE readExpr verbatim (object passthrough for the ref).
+    expect(source).toContain('extends: node.superType,');
+    expect(source).toContain('members: (node.attributes ?? []).map((item) => item),');
+    // No write accessor for an alias (writes go through the source field's accessor).
+    expect(source).not.toContain('export function setDataExtends');
+    expect(source).not.toContain('export function addDataMembers');
+  });
+
+  it('throws when a normalization `as` collides with an existing field', () => {
+    expect(() =>
+      generateDomainCode(dataDesc, {
+        normalizations: { dup: { as: 'name', from: { Data: 'superType' } } }
+      })
+    ).toThrow(/normalization "name" for Data: target collides/);
+  });
+
+  it('silently skips a kind whose source field is absent', () => {
+    const source = generateDomainCode(dataDesc, {
+      normalizations: { inheritance: { as: 'extends', from: { Choice: 'superType' } } }
+    });
+    expect(source).not.toContain('extends');
+  });
+});
