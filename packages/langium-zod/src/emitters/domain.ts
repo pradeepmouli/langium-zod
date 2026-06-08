@@ -37,7 +37,7 @@ export interface DomainGenerationOptions {
   overlays?: DomainOverlayConfig;
 }
 
-/** TS surface type for a property's read shape. Single cross-refs flatten to `string`. */
+/** TS surface type for a property's read shape. Cross-refs surface as editable `DomainRef` objects. */
 function domainTsType(expression: ZodTypeExpression, ctx: DomainCtx): string {
   switch (expression.kind) {
     case 'primitive':
@@ -50,7 +50,7 @@ function domainTsType(expression: ZodTypeExpression, ctx: DomainCtx): string {
         ? `${expression.typeName}Domain`
         : ctx.datatypePrimitive(expression.typeName);
     case 'crossReference':
-      return 'string';
+      return 'DomainRef';
     case 'array':
       return `${domainTsType(expression.element, ctx)}[]`;
     case 'union': {
@@ -69,7 +69,8 @@ function domainReadExpr(expression: ZodTypeExpression, access: string, ctx: Doma
     case 'literal':
       return access;
     case 'crossReference':
-      return `${access}?.$refText`;
+      // Pass the editable ref object through; .$refText projection is done externally when needed.
+      return access;
     case 'reference':
       // Datatype-rule / keyword-enum references are primitives on the AST — read directly.
       return ctx.richTypeNames.has(expression.typeName)
@@ -347,6 +348,9 @@ export function generateDomainCode(
 
   const lines: string[] = [
     '// @ts-nocheck — generated domain surface; edit the grammar / domain-surfaces.json to regenerate',
+    '',
+    '/** Editable cross-reference: the runtime ref shape. Resolution stays derived/external. */',
+    'export interface DomainRef { $refText: string }',
     ''
   ];
 

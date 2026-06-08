@@ -16,14 +16,17 @@ const flatObject: ZodTypeDescriptor[] = [
 ];
 
 describe('generateDomainCode — flat interfaces', () => {
-  it('emits a header and a per-object read interface, flattening cross-refs to string', () => {
+  it('emits a header and a per-object read interface, with cross-refs as DomainRef objects', () => {
     const source = generateDomainCode(flatObject);
     expect(source).toContain('// @ts-nocheck');
+    expect(source).toContain('export interface DomainRef { $refText: string }');
     expect(source).toContain('export interface DataDomain {');
     expect(source).toContain('name: string;');
     expect(source).toContain('order?: number;');
-    // single cross-reference flattens to a string ($refText); $type is dropped from the surface interface
-    expect(source).toContain('superType?: string;');
+    // single cross-reference surfaces as an editable DomainRef object; $type is dropped from the surface interface
+    expect(source).toContain('superType?: DomainRef;');
+    expect(source).not.toContain('superType?: string;');
+    expect(source).not.toContain("Ref<'"); // not the branded-string form
     expect(source).not.toContain('$type:'); // no $type property in the domain interface
   });
 
@@ -57,12 +60,13 @@ describe('generateDomainCode — flat interfaces', () => {
 });
 
 describe('generateDomainCode — read projection', () => {
-  it('emits toDomain<Name> reading $refText for cross-refs and raw values otherwise', () => {
+  it('emits toDomain<Name> passing cross-ref objects through and raw values otherwise', () => {
     const source = generateDomainCode(flatObject);
     expect(source).toContain('export function toDomainData(node: any): DataDomain {');
     expect(source).toContain('name: node.name,');
     expect(source).toContain('order: node.order,');
-    expect(source).toContain('superType: node.superType?.$refText,');
+    // cross-ref object passed through as-is; no .$refText projection on read
+    expect(source).toContain('superType: node.superType,');
   });
 });
 
