@@ -506,3 +506,48 @@ describe('generateDomainCode — additive normalizations', () => {
     expect(source).not.toContain('extends');
   });
 });
+
+describe('generateDomainCode — toAst inverse', () => {
+  const desc: ZodTypeDescriptor[] = [
+    {
+      name: 'Data',
+      kind: 'object',
+      properties: [
+        { name: '$type', zodType: { kind: 'literal', value: 'Data' }, optional: false },
+        { name: 'name', zodType: { kind: 'primitive', primitive: 'string' }, optional: false },
+        { name: 'superType', zodType: { kind: 'crossReference', targetType: 'Data' }, optional: true },
+        { name: 'attributes', zodType: { kind: 'array', element: { kind: 'reference', typeName: 'Attribute' } }, optional: true }
+      ]
+    },
+    {
+      name: 'Attribute',
+      kind: 'object',
+      properties: [
+        { name: '$type', zodType: { kind: 'literal', value: 'Attribute' }, optional: false },
+        { name: 'name', zodType: { kind: 'primitive', primitive: 'string' }, optional: false }
+      ]
+    }
+  ];
+
+  it('emits per-object toAstX, a master toAst dispatch, and drops normalization aliases', () => {
+    const source = generateDomainCode(desc, {
+      normalizations: { inheritance: { as: 'extends', from: { Data: 'superType' } } }
+    });
+    expect(source).toContain('export function toAstData(node: any): any {');
+    expect(source).toContain("$type: 'Data',");
+    expect(source).toContain('name: node.name,');
+    // Ref object passes straight through.
+    expect(source).toContain('superType: node.superType,');
+    // Rich-child arrays recurse via toAst<Child>.
+    expect(source).toContain('attributes: (node.attributes ?? []).map((item) => item ? toAstAttribute(item) : undefined),');
+    // The `extends` alias is NOT written back to the AST (toAstData must not contain it).
+    // Note: toDomainData legitimately emits the alias read, so we check the toAst function specifically.
+    const toAstDataStart = source.indexOf('export function toAstData(node: any): any {');
+    const toAstDataEnd = source.indexOf('\n}', toAstDataStart) + 2;
+    const toAstDataBody = source.slice(toAstDataStart, toAstDataEnd);
+    expect(toAstDataBody).not.toContain('extends:');
+    // Master dispatch.
+    expect(source).toContain('export function toAst(node: any): any {');
+    expect(source).toContain(`case "Data": return toAstData(node);`);
+  });
+});

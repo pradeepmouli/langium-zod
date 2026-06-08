@@ -105,6 +105,27 @@ function domainReadExpr(expression: ZodTypeExpression, access: string, ctx: Doma
   }
 }
 
+/** Inverse-projection expression: domain value at `access` back to an AST-shaped value. */
+function domainToAstExpr(expression: ZodTypeExpression, access: string, ctx: DomainCtx): string {
+  switch (expression.kind) {
+    case 'primitive':
+    case 'literal':
+    case 'crossReference':
+      // Primitives, literals, and {$refText} ref objects pass straight through.
+      return access;
+    case 'reference':
+      return ctx.richTypeNames.has(expression.typeName)
+        ? `${access} ? toAst${expression.typeName}(${access}) : undefined`
+        : access;
+    case 'array':
+      return `(${access} ?? []).map((item) => ${domainToAstExpr(expression.element, 'item', ctx)})`;
+    case 'union':
+      return access;
+    case 'lazy':
+      return domainToAstExpr(expression.inner, access, ctx);
+  }
+}
+
 /** Param type for a scalar/primitive setter or an array element add. */
 function domainWriteType(expression: ZodTypeExpression, ctx: DomainCtx): string {
   switch (expression.kind) {
@@ -130,6 +151,9 @@ interface DomainFieldPlan {
   readExpr: string; // expression in terms of `node`
   /** True for additive normalization aliases — no write accessor should be emitted. */
   readOnly?: boolean;
+  /** Source expression + source field name, for the toAst inverse. Absent on $type seed + aliases. */
+  sourceName?: string;
+  sourceExpr?: ZodTypeExpression;
 }
 
 interface AccessorPlan {
@@ -169,7 +193,9 @@ function planObject(
         name: domainName,
         tsType: domainTsType(property.zodType, ctx),
         optional: property.optional,
-        readExpr: domainReadExpr(property.zodType, `node.${property.name}`, ctx)
+        readExpr: domainReadExpr(property.zodType, `node.${property.name}`, ctx),
+        sourceName: property.name,
+        sourceExpr: property.zodType
       });
     }
     // Accessors always target the SOURCE field; merge sources keep distinct accessors.
@@ -315,6 +341,37 @@ function emitMasterDispatch(objects: ZodObjectTypeDescriptor[]): string[] {
   return out;
 }
 
+function emitToAstFn(plan: DomainObjectPlan, ctx: DomainCtx): string[] {
+  const out = [`export function toAst${plan.name}(node: any): any {`, '  return {', `    $type: '${plan.name}',`];
+  for (const field of plan.fields) {
+    if (field.name === '$type') continue; // emitted as the literal head
+    if (field.readOnly) continue; // additive normalization alias — not written back
+    if (!field.sourceExpr || !field.sourceName) continue; // no AST source
+    out.push(`    ${field.sourceName}: ${domainToAstExpr(field.sourceExpr, `node.${field.sourceName}`, ctx)},`);
+  }
+  out.push('  };', '}', '');
+  return out;
+}
+
+function emitToAstUnion(descriptor: ZodUnionTypeDescriptor): string[] {
+  const out = [`export function toAst${descriptor.name}(node: any): any {`, '  switch (node.$type) {'];
+  for (const member of descriptor.members) {
+    out.push(`    case ${JSON.stringify(member)}: return toAst${member}(node);`);
+  }
+  out.push('  }', `  throw new Error(\`Unknown ${descriptor.name} member: \${node.$type}\`);`, '}', '');
+  return out;
+}
+
+function emitToAstMaster(objects: ZodObjectTypeDescriptor[]): string[] {
+  if (objects.length === 0) return [];
+  const out = ['export function toAst(node: any): any {', '  switch (node.$type) {'];
+  for (const object of objects) {
+    out.push(`    case ${JSON.stringify(object.name)}: return toAst${object.name}(node);`);
+  }
+  out.push('  }', '  throw new Error(`Unknown node type: ${node.$type}`);', '}', '');
+  return out;
+}
+
 function emitUnion(descriptor: ZodUnionTypeDescriptor): string[] {
   const alias = `export type ${descriptor.name}Domain = ${descriptor.members
     .map((member) => `${member}Domain`)
@@ -412,14 +469,17 @@ export function generateDomainCode(
     const plan = planObject(object, overlayTypes[object.name], ctx, options.normalizations);
     lines.push(...emitInterface(plan));
     lines.push(...emitReadFn(plan));
+    lines.push(...emitToAstFn(plan, ctx));
     lines.push(...emitWriteAccessors(plan, ctx));
   }
 
   for (const union of unions) {
     lines.push(...emitUnion(union));
+    lines.push(...emitToAstUnion(union));
   }
 
   lines.push(...emitMasterDispatch(objects));
+  lines.push(...emitToAstMaster(objects));
 
   return `${lines.join('\n').trim()}\n`;
 }
