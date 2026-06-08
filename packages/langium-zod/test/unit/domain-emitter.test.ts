@@ -399,6 +399,35 @@ describe('generateDomainCode — datatype-rule reference passthrough', () => {
   });
 });
 
+describe('generateDomainCode — lossless surface (strip $-internals only)', () => {
+  const lossyDescriptor: ZodTypeDescriptor[] = [
+    {
+      name: 'Attribute',
+      kind: 'object',
+      properties: [
+        { name: '$type', zodType: { kind: 'literal', value: 'Attribute' }, optional: false },
+        { name: '$container', zodType: { kind: 'primitive', primitive: 'string' }, optional: true },
+        { name: '$cstNode', zodType: { kind: 'primitive', primitive: 'string' }, optional: true },
+        { name: 'name', zodType: { kind: 'primitive', primitive: 'string' }, optional: false },
+        { name: 'references', zodType: { kind: 'array', element: { kind: 'primitive', primitive: 'string' } }, optional: true },
+        { name: 'labels', zodType: { kind: 'array', element: { kind: 'primitive', primitive: 'string' } }, optional: true },
+        { name: 'ruleReferences', zodType: { kind: 'array', element: { kind: 'primitive', primitive: 'string' } }, optional: true },
+        { name: 'typeCallArgs', zodType: { kind: 'array', element: { kind: 'primitive', primitive: 'string' } }, optional: true },
+        { name: 'enumSynonyms', zodType: { kind: 'array', element: { kind: 'primitive', primitive: 'string' } }, optional: true }
+      ]
+    }
+  ];
+
+  it('keeps references/labels/ruleReferences/typeCallArgs/enumSynonyms and strips $-internals', () => {
+    const source = generateDomainCode(lossyDescriptor, { stripInternals: true });
+    for (const field of ['references', 'labels', 'ruleReferences', 'typeCallArgs', 'enumSynonyms']) {
+      expect(source).toContain(`${field}?: string[];`);
+    }
+    expect(source).not.toContain('$container');
+    expect(source).not.toContain('$cstNode');
+  });
+});
+
 describe('generateDomainCode — $type discriminant retention', () => {
   it('keeps $type as a literal interface field and reads node.$type', () => {
     const source = generateDomainCode(flatObject);
