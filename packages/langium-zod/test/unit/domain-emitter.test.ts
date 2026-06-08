@@ -27,7 +27,7 @@ describe('generateDomainCode — flat interfaces', () => {
     expect(source).toContain('superType?: DomainRef;');
     expect(source).not.toContain('superType?: string;');
     expect(source).not.toContain("Ref<'"); // not the branded-string form
-    expect(source).not.toContain('$type:'); // no $type property in the domain interface
+    // $type is retained as the discriminant literal field (see $type discriminant tests below)
   });
 
   it('parenthesizes a union when it is an array element', () => {
@@ -396,5 +396,33 @@ describe('generateDomainCode — datatype-rule reference passthrough', () => {
     expect(source).not.toContain('StatusDomain');
     expect(source).toContain('status: node.status,');
     expect(source).not.toContain('toDomainStatus');
+  });
+});
+
+describe('generateDomainCode — $type discriminant retention', () => {
+  it('keeps $type as a literal interface field and reads node.$type', () => {
+    const source = generateDomainCode(flatObject);
+    expect(source).toContain("$type: 'Data';");
+    expect(source).toContain('$type: node.$type,');
+    // No setter is emitted for $type (it is the discriminant, not an editable field).
+    expect(source).not.toContain('export function setDataType');
+    expect(source).not.toContain('export function set$type');
+  });
+
+  it('emits AnyDomain as a union and a $type-dispatched toDomain', () => {
+    const source = generateDomainCode([
+      ...flatObject,
+      {
+        name: 'Choice',
+        kind: 'object',
+        properties: [
+          { name: '$type', zodType: { kind: 'literal', value: 'Choice' }, optional: false },
+          { name: 'name', zodType: { kind: 'primitive', primitive: 'string' }, optional: false }
+        ]
+      }
+    ]);
+    expect(source).toContain('export type AnyDomain = DataDomain | ChoiceDomain;');
+    expect(source).toContain('export function toDomain(node: any): AnyDomain {');
+    expect(source).toContain('case "Data": return toDomainData(node);');
   });
 });

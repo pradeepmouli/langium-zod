@@ -134,7 +134,10 @@ function planObject(
   const mergedSources = new Set(merges.flatMap((merge) => merge.from));
 
   const properties = descriptor.properties.filter((property) => property.name !== '$type');
-  const fields: DomainFieldPlan[] = [];
+  const fields: DomainFieldPlan[] = [
+    // $type is always first — the literal discriminant for the union; no write accessor.
+    { name: '$type', tsType: `'${descriptor.name}'`, optional: false, readExpr: 'node.$type' }
+  ];
   const accessors: AccessorPlan[] = [];
 
   for (const property of properties) {
