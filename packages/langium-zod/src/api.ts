@@ -273,7 +273,9 @@ export function generateDomainSchemas(config: ZodGeneratorConfig): string {
   const source = generateDomainCode(descriptors, {
     projection: config.projection,
     stripInternals: config.stripInternals,
-    overlays: config.domainOverlays
+    overlays: config.domainOverlays,
+    // Forward config-file normalizations to the emitter (additive extends/members aliases).
+    normalizations: config.projection?.normalizations
   });
 
   if (config.domainOutputPath) {

@@ -4,6 +4,8 @@ import type { ZodTypeDescriptor } from './types.js';
 export interface ProjectionConfig {
   defaults?: { strip?: string[] };
   types?: Record<string, { fields?: string[] }>;
+  /** Optional normalizations forwarded to the domain emitter; see `NormalizationConfig`. */
+  normalizations?: Record<string, { as: string; from: Record<string, string> }>;
 }
 
 export interface ProjectionTransformOptions {
@@ -50,6 +52,7 @@ export function parseProjectionConfig(value: unknown): ProjectionConfig {
   const source = value as {
     defaults?: { strip?: unknown };
     types?: Record<string, { fields?: unknown }>;
+    normalizations?: Record<string, { as?: unknown; from?: unknown }>;
   };
 
   const defaults =
@@ -69,9 +72,25 @@ export function parseProjectionConfig(value: unknown): ProjectionConfig {
     }
   }
 
+  let normalizations: ProjectionConfig['normalizations'];
+  if (source.normalizations && typeof source.normalizations === 'object' && !Array.isArray(source.normalizations)) {
+    normalizations = {};
+    for (const [id, rule] of Object.entries(source.normalizations)) {
+      if (!rule || typeof rule !== 'object' || typeof rule.as !== 'string' || !rule.from || typeof rule.from !== 'object') {
+        continue;
+      }
+      const from: Record<string, string> = {};
+      for (const [kind, field] of Object.entries(rule.from as Record<string, unknown>)) {
+        if (typeof field === 'string') from[kind] = field;
+      }
+      normalizations[id] = { as: rule.as, from };
+    }
+  }
+
   return {
     defaults,
-    types
+    types,
+    normalizations
   };
 }
 
