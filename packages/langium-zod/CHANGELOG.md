@@ -1,5 +1,15 @@
 # langium-zod
 
+## 0.7.0
+
+### Minor Changes
+
+- [#75](https://github.com/pradeepmouli/langium-zod/pull/75) [`abb1460`](https://github.com/pradeepmouli/langium-zod/commit/abb14602bef215d87ca9d7ae957348be6e44c9a7) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - - fix(domain): toAst reads renamed fields from the domain key, not the AST key
+  - fix(domain): normalise crossReference reads to plain DomainRef, stripping Langium runtime ref
+  - test(domain): document toAst merge-target drop is a known non-round-trippable limitation
+  - feat(domain): $type-dispatched toAst inverse (drops normalization aliases)
+  - fix(domain): preserve + forward config-file normalizations to the emitter
+
 ## 0.6.0
 
 ### Minor Changes
