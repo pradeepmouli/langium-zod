@@ -357,7 +357,7 @@ function emitToAstFn(plan: DomainObjectPlan, ctx: DomainCtx): string[] {
     // which are additive + reversible, instead). Read-only projection consumers may still use
     // merges; they just don't round-trip through toAst.
     if (!field.sourceExpr || !field.sourceName) continue;
-    out.push(`    ${field.sourceName}: ${domainToAstExpr(field.sourceExpr, `node.${field.sourceName}`, ctx)},`);
+    out.push(`    ${field.sourceName}: ${domainToAstExpr(field.sourceExpr, `node.${field.name}`, ctx)},`);
   }
   out.push('  };', '}', '');
   return out;

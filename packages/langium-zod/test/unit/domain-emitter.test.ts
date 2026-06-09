@@ -220,6 +220,23 @@ describe('generateDomainCode — renames', () => {
     expect(source).toContain('  (node.attributes ??= []).push(item);');
     expect(source).not.toContain('addChoiceAttributes');
   });
+
+  it('toAst reads the renamed value from the domain key and restores the source field (round-trip)', () => {
+    const source = generateDomainCode(renameObject, {
+      overlays: { types: { Choice: { renames: { attributes: 'options' } } } }
+    });
+    // toAstChoice emits the AST source key `attributes`, but must READ from the domain
+    // surface key `options` (where toDomainChoice stored the value). Reading the AST key
+    // here would see `undefined` and silently zero the field on every round-trip.
+    const toAstStart = source.indexOf('export function toAstChoice(node: any): any {');
+    const toAstEnd = source.indexOf('\n}', toAstStart) + 2;
+    const toAstBody = source.slice(toAstStart, toAstEnd);
+    expect(toAstBody).toContain('attributes: (node.options ?? []).map((item) =>');
+    // The AST source key must NOT be read back — that path sees `undefined` and zeroes
+    // the field. (The emitted PROPERTY is still `attributes:`, the grammar key; only the
+    // read access changes to the domain key `node.options`.)
+    expect(toAstBody).not.toContain('node.attributes');
+  });
 });
 
 const mergeObject: ZodTypeDescriptor[] = [
