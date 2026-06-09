@@ -578,8 +578,8 @@ describe('generateDomainCode — toAst inverse', () => {
     expect(source).toContain('export function toAstData(node: any): any {');
     expect(source).toContain("$type: 'Data',");
     expect(source).toContain('name: node.name,');
-    // Ref object passes straight through.
-    expect(source).toContain('superType: node.superType,');
+    // Cross-ref normalised to {$refText} — strips any circular Langium runtime pointers.
+    expect(source).toContain('superType: (node.superType != null ? { $refText: node.superType.$refText } : node.superType),');
     // Rich-child arrays recurse via toAst<Child>.
     expect(source).toContain('attributes: (node.attributes ?? []).map((item) => item ? toAstAttribute(item) : undefined),');
     // The `extends` alias is NOT written back to the AST (toAstData must not contain it).

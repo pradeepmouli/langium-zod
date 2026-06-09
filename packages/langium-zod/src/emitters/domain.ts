@@ -115,8 +115,9 @@ function domainToAstExpr(expression: ZodTypeExpression, access: string, ctx: Dom
     case 'primitive':
     case 'literal':
     case 'crossReference':
-      // Primitives, literals, and {$refText} ref objects pass straight through.
-      return access;
+      // Extract only $refText — strips any circular Langium runtime pointers a
+      // caller might pass in (live Reference objects carry ref/$container cycles).
+      return `(${access} != null ? { $refText: ${access}.$refText } : ${access})`;
     case 'reference':
       return ctx.richTypeNames.has(expression.typeName)
         ? `${access} ? toAst${expression.typeName}(${access}) : undefined`

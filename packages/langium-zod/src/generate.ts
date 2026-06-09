@@ -255,7 +255,7 @@ export async function generate(opts: GenerateOptions): Promise<void> {
     console.log(`✓ Generated Zod schemas → ${outputPath}`);
   }
 
-  if (userConfig.emitDomain) {
+  if (userConfig.emitDomain || userConfig.domainOnly) {
     const domainOutputPath = userConfig.domainOutputPath ?? join(outDir, 'domain.ts');
     generateDomainSchemas({
       grammar,

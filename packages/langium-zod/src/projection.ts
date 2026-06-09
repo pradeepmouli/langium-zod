@@ -76,7 +76,7 @@ export function parseProjectionConfig(value: unknown): ProjectionConfig {
   if (source.normalizations && typeof source.normalizations === 'object' && !Array.isArray(source.normalizations)) {
     normalizations = {};
     for (const [id, rule] of Object.entries(source.normalizations)) {
-      if (!rule || typeof rule !== 'object' || typeof rule.as !== 'string' || !rule.from || typeof rule.from !== 'object') {
+      if (!rule || typeof rule !== 'object' || typeof rule.as !== 'string' || !rule.from || typeof rule.from !== 'object' || Array.isArray(rule.from)) {
         continue;
       }
       const from: Record<string, string> = {};
