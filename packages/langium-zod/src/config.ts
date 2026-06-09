@@ -168,6 +168,8 @@ export interface ZodGeneratorConfig extends FilterConfig {
   objectStyle?: 'loose' | 'strict';
   /** When true, the CLI also emits the domain surface to `domainOutputPath`. */
   emitDomain?: boolean;
+  /** When true (CLI `--domain-only`), emit ONLY the domain surface and skip Zod-schema generation. */
+  domainOnly?: boolean;
   /** Output path for the generated domain surface (`domain.ts`). */
   domainOutputPath?: string;
   /** Project-specific semantic overlays (renames + read-only merges) supplied by the consumer for the domain target. */

@@ -5,43 +5,27 @@
  * Usage:
  *   langium-zod generate [--config langium-config.json] [--out src/generated/zod-schemas.ts]
  *   langium-zod --help
+ *
+ * @remarks
+ * This module carries the `#!` shebang and `process.argv` parsing. The programmatic
+ * generation core lives in `./generate.ts` (shebang-free) so the package's main
+ * entry can re-export `generate` without dragging the shebang into consumer bundle
+ * graphs. The moved symbols are re-exported below for backward compatibility.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { URI } from 'langium';
-import { createLangiumGrammarServices, resolveImportUri } from 'langium/grammar';
-import { NodeFileSystem } from 'langium/node';
-import { generateZodSchemas, generateDomainSchemas } from './api.js';
-import { resolveAstTypesPath } from './conformance.js';
-import type { ZodGeneratorConfig } from './config.js';
+import { generate } from './generate.js';
+import type { LangiumZodConfig } from './generate.js';
 import { loadProjectionConfig } from './projection.js';
-import type { Grammar, LangiumDocument } from 'langium';
+
+// Re-export the programmatic core for callers that import from the CLI entry.
+export { generate, getUnknownFilterNames } from './generate.js';
+export type { GenerateOptions, LangiumZodConfig } from './generate.js';
 
 // ────────────────────────────────────────────────────────────────────────────
-// Types
+// Argument parsing helpers
 // ────────────────────────────────────────────────────────────────────────────
-
-/** User-facing config file shape (langium-zod.config.js / .ts) */
-export interface LangiumZodConfig extends Omit<
-  ZodGeneratorConfig,
-  'grammar' | 'services' | 'astTypes'
-> {
-  /**
-   * Path to `langium-config.json`. Defaults to `langium-config.json` in cwd.
-   * Only used when picked up via the CLI; programmatic API ignores it.
-   */
-  langiumConfig?: string;
-  /** Explicit output path. Overrides derived path from langium-config.json `out` field. */
-  outputPath?: string;
-}
-
-interface LangiumConfigJson {
-  projectName?: string;
-  out?: string;
-  astTypes?: string;
-  languages?: Array<{ grammar: string }>;
-}
 
 function parseCsvList(value: string): string[] {
   const seen = new Set<string>();
@@ -110,49 +94,6 @@ export function resolveFilterOverrides(
   };
 }
 
-function warnUnknownFilterNames(
-  filterName: 'include' | 'exclude',
-  requested: string[] | undefined,
-  availableTypeNames: string[]
-): void {
-  const unknown = getUnknownFilterNames(requested, availableTypeNames);
-  if (unknown.length === 0) {
-    return;
-  }
-
-  const availableList = availableTypeNames.length > 0 ? availableTypeNames.join(', ') : '(none)';
-  console.warn(
-    `Warning: Unknown ${filterName} type name(s): ${unknown.join(', ')}. Available types: ${availableList}`
-  );
-}
-
-/**
- * Returns the subset of `requested` names that are not present in
- * `availableTypeNames`.
- *
- * Used to surface warnings when the user's `--include` or `--exclude` list
- * references type names that do not exist in the parsed grammar, helping catch
- * typos before generation runs.
- *
- * @param requested - The type names requested by the user (include or exclude
- *   list). Returns an empty array immediately when this is `undefined` or empty.
- * @param availableTypeNames - All type names present in the parsed Langium grammar
- *   (both interface types and union/datatype rule types).
- * @returns An array of names from `requested` that are absent from
- *   `availableTypeNames`.
- */
-export function getUnknownFilterNames(
-  requested: string[] | undefined,
-  availableTypeNames: string[]
-): string[] {
-  if (!requested || requested.length === 0) {
-    return [];
-  }
-
-  const available = new Set(availableTypeNames);
-  return requested.filter((name) => !available.has(name));
-}
-
 // ────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ────────────────────────────────────────────────────────────────────────────
@@ -176,6 +117,7 @@ OPTIONS
 	--conformance-out <path> Output path for conformance artifact
 	--cross-ref-validation Emit runtime cross-reference schema factories
 	--domain          Also emit the domain surface (domain.ts)
+	--domain-only     Emit ONLY the domain surface (implies --domain, skips Zod schemas)
 	--domain-out <path> Output path for the domain surface
   --help            Show this help message
 
@@ -195,188 +137,6 @@ CONFIGURATION
 `);
 }
 
-/**
- * Recursively load imported grammar files so that DocumentBuilder can link
- * cross-file references correctly (mirrors langium-cli's eagerLoad strategy).
- */
-async function eagerLoad(
-  document: LangiumDocument,
-  documents: { getOrCreateDocument: (uri: URI) => Promise<LangiumDocument> },
-  visited: Set<string> = new Set()
-): Promise<void> {
-  const key = document.uri.toString();
-  if (visited.has(key)) return;
-  visited.add(key);
-
-  const grammar = document.parseResult?.value as Grammar | undefined;
-  if (!grammar) return;
-
-  // Grammar.imports is an array of GrammarImport nodes; resolveImportUri handles the URI
-  const imports = (grammar as Grammar & { imports?: unknown[] }).imports ?? [];
-  for (const imp of imports) {
-    const importUri = resolveImportUri(imp as Parameters<typeof resolveImportUri>[0]);
-    if (importUri) {
-      const importedDoc = await documents.getOrCreateDocument(importUri);
-      await eagerLoad(importedDoc, documents, visited);
-    }
-  }
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-// Core generate logic (can be called programmatically)
-// ────────────────────────────────────────────────────────────────────────────
-
-/**
- * Options accepted by the programmatic {@link generate} function.
- *
- * Allows the core generation logic to be invoked directly from other tools or
- * scripts without going through the CLI argument parser.
- */
-export interface GenerateOptions {
-  /** Absolute path to langium-config.json */
-  langiumConfigPath: string;
-  /** Merged generator config (from user's langium-zod.config.js + CLI flags) */
-  config?: LangiumZodConfig;
-}
-
-/**
- * Programmatic entry point for the `langium-zod generate` command.
- *
- * Loads `langium-config.json` from `opts.langiumConfigPath`, resolves the grammar
- * file path, parses the grammar with Langium services (including eager import
- * loading so cross-file references link correctly), then calls
- * {@link generateZodSchemas} with the merged configuration. Prints a success
- * message to stdout when generation completes.
- *
- * @param opts - {@link GenerateOptions} specifying the langium config path and
- *   optional pre-merged generator config.
- * @throws `Error` when the langium-config.json or grammar file cannot be found, or
- *   when the config defines no languages.
- *
- * @example
- * ```ts
- * import { generate } from 'langium-zod';
- * import { resolve } from 'node:path';
- *
- * await generate({
- *   langiumConfigPath: resolve(process.cwd(), 'langium-config.json'),
- *   config: {
- *     outputPath: 'src/generated/zod-schemas.ts',
- *     stripInternals: true,
- *   },
- * });
- * // Prints: ✓ Generated Zod schemas → src/generated/zod-schemas.ts
- * ```
- */
-export async function generate(opts: GenerateOptions): Promise<void> {
-  const { langiumConfigPath } = opts;
-  const userConfig: LangiumZodConfig = opts.config ?? {};
-
-  // ── 1. Load langium-config.json ─────────────────────────────────────────
-  if (!existsSync(langiumConfigPath)) {
-    throw new Error(`langium-config.json not found: ${langiumConfigPath}`);
-  }
-  const langiumConfig: LangiumConfigJson = JSON.parse(readFileSync(langiumConfigPath, 'utf8'));
-
-  const configDir = dirname(langiumConfigPath);
-  const languages = langiumConfig.languages;
-
-  if (!languages || languages.length === 0) {
-    throw new Error('No languages defined in langium-config.json');
-  }
-
-  const grammarRelPath = languages[0]!.grammar;
-  const grammarAbsPath = resolve(configDir, grammarRelPath);
-
-  if (!existsSync(grammarAbsPath)) {
-    throw new Error(`Grammar file not found: ${grammarAbsPath}`);
-  }
-
-  // ── 2. Resolve output path ───────────────────────────────────────────────
-  const outDir = langiumConfig.out
-    ? resolve(configDir, langiumConfig.out)
-    : resolve(configDir, 'src/generated');
-  const outputPath: string = userConfig.outputPath ?? join(outDir, 'zod-schemas.ts');
-
-  const conformanceConfig = userConfig.conformance;
-  if (conformanceConfig) {
-    const resolvedAstTypesPath = conformanceConfig.astTypesPath
-      ? resolve(configDir, conformanceConfig.astTypesPath)
-      : langiumConfig.astTypes
-        ? resolve(configDir, langiumConfig.astTypes)
-        : resolveAstTypesPath(configDir, outDir);
-
-    if (!existsSync(resolvedAstTypesPath)) {
-      throw new Error(`Unable to resolve ast types path for conformance: ${resolvedAstTypesPath}`);
-    }
-
-    userConfig.conformance = {
-      astTypesPath: resolvedAstTypesPath,
-      outputPath: conformanceConfig.outputPath
-    };
-  }
-
-  // ── 3. Parse grammar using Langium services ──────────────────────────────
-  const { shared, grammar: grammarServices } = createLangiumGrammarServices(NodeFileSystem);
-  void grammarServices; // used only for type-checking if needed later
-
-  const langiumDocuments = shared.workspace.LangiumDocuments;
-  const documentBuilder = shared.workspace.DocumentBuilder;
-
-  const grammarUri = URI.file(grammarAbsPath);
-  const entryDocument = await langiumDocuments.getOrCreateDocument(grammarUri);
-
-  // Recursively load imported files so references resolve correctly
-  await eagerLoad(entryDocument, langiumDocuments);
-
-  // Build (parse + link) all loaded documents
-  await documentBuilder.build(langiumDocuments.all.toArray(), {
-    validation: false
-  });
-
-  const grammar = entryDocument.parseResult.value as Grammar;
-  const availableTypeNames = [
-    ...(grammar.interfaces ?? []).map((entry) => entry.name),
-    ...(grammar.types ?? []).map((entry) => entry.name)
-  ]
-    .filter((name): name is string => typeof name === 'string')
-    .sort((left, right) => left.localeCompare(right));
-
-  warnUnknownFilterNames('include', userConfig.include, availableTypeNames);
-  warnUnknownFilterNames('exclude', userConfig.exclude, availableTypeNames);
-
-  // ── 4. Generate schemas ──────────────────────────────────────────────────
-  const {
-    langiumConfig: _ignored,
-    outputPath: _op,
-    emitDomain: _emitDomain,
-    domainOutputPath: _domainOutputPath,
-    ...restConfig
-  } = userConfig;
-
-  generateZodSchemas({
-    grammar,
-    outputPath,
-    ...restConfig
-  });
-
-  console.log(`✓ Generated Zod schemas → ${outputPath}`);
-
-  if (userConfig.emitDomain) {
-    const domainOutputPath = userConfig.domainOutputPath ?? join(outDir, 'domain.ts');
-    generateDomainSchemas({
-      grammar,
-      domainOutputPath,
-      stripInternals: restConfig.stripInternals,
-      projection: restConfig.projection,
-      domainOverlays: restConfig.domainOverlays,
-      include: restConfig.include,
-      exclude: restConfig.exclude
-    });
-    console.log(`✓ Generated domain surface → ${domainOutputPath}`);
-  }
-}
-
 // ────────────────────────────────────────────────────────────────────────────
 // CLI entry point
 // ────────────────────────────────────────────────────────────────────────────
@@ -387,8 +147,8 @@ export async function generate(opts: GenerateOptions): Promise<void> {
  * Parses `process.argv`, resolves `langium-config.json`, loads an optional
  * `langium-zod.config.js` from the same directory, merges all CLI flag overrides
  * (--out, --include, --exclude, --projection, --strip-internals, --conformance,
- * --cross-ref-validation), then delegates to {@link generate}. Exits the process
- * with code 1 on error.
+ * --cross-ref-validation, --domain, --domain-only), then delegates to
+ * {@link generate}. Exits the process with code 1 on error.
  */
 export async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -418,7 +178,8 @@ export async function main(): Promise<void> {
   const stripInternalsEnabled = args.includes('--strip-internals');
   const conformanceEnabled = args.includes('--conformance');
   const crossRefValidationEnabled = args.includes('--cross-ref-validation');
-  const domainEnabled = args.includes('--domain');
+  const domainOnlyEnabled = args.includes('--domain-only');
+  const domainEnabled = args.includes('--domain') || domainOnlyEnabled;
   const domainOutFlagValue = getArgValue(args, '--domain-out');
 
   // ── Locate langium-config.json ───────────────────────────────────────────
@@ -487,6 +248,10 @@ export async function main(): Promise<void> {
     userConfig = {
       ...userConfig,
       emitDomain: true,
+      // --domain-only emits the domain surface WITHOUT regenerating Zod schemas,
+      // so a domain generate can use its own (full) projection without clobbering
+      // a separately-projected zod-schemas.ts.
+      domainOnly: domainOnlyEnabled,
       domainOutputPath: domainOutFlagValue
         ? resolve(process.cwd(), domainOutFlagValue)
         : userConfig.domainOutputPath
