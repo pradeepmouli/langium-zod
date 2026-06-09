@@ -345,8 +345,14 @@ function emitToAstFn(plan: DomainObjectPlan, ctx: DomainCtx): string[] {
   const out = [`export function toAst${plan.name}(node: any): any {`, '  return {', `    $type: '${plan.name}',`];
   for (const field of plan.fields) {
     if (field.name === '$type') continue; // emitted as the literal head
-    if (field.readOnly) continue; // additive normalization alias — not written back
-    if (!field.sourceExpr || !field.sourceName) continue; // no AST source
+    if (field.readOnly) continue; // additive normalization alias — intentionally not written back
+    // No AST source: either the $type seed or a MERGE-TARGET field. Merge targets are a
+    // read-only aggregation that cannot be faithfully inverted (the split point between the
+    // merged source arrays is lost), so toAst cannot restore them — a `merges` overlay is
+    // therefore incompatible with the round-trippable editable model (use `normalizations`,
+    // which are additive + reversible, instead). Read-only projection consumers may still use
+    // merges; they just don't round-trip through toAst.
+    if (!field.sourceExpr || !field.sourceName) continue;
     out.push(`    ${field.sourceName}: ${domainToAstExpr(field.sourceExpr, `node.${field.sourceName}`, ctx)},`);
   }
   out.push('  };', '}', '');

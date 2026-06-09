@@ -272,6 +272,31 @@ describe('generateDomainCode — merges', () => {
     expect(source).toContain('export function addRosettaFunctionPostConditions(node: any, item: unknown): void {');
     expect(source).toContain('  (node.postConditions ??= []).push(item);');
   });
+
+  it('toAst does NOT write back a merge-target field (merges are not round-trippable; documented limitation)', () => {
+    const source = generateDomainCode(mergeObject, {
+      overlays: {
+        types: {
+          RosettaFunction: {
+            merges: [{ from: ['conditions', 'postConditions'], to: 'conditions' }]
+          }
+        }
+      }
+    });
+    // toDomain reads the merged field (sanity: the merge read projection still emits).
+    expect(source).toContain('export function toDomainRosettaFunction(node: any): RosettaFunctionDomain {');
+    expect(source).toContain('conditions: [...(node.conditions ?? []).map');
+    // toAst exists for the type...
+    expect(source).toContain('export function toAstRosettaFunction(node: any): any {');
+    // ...but a merge cannot be inverted (the split point between source arrays is lost),
+    // so the merged target field is absent from toAstRosettaFunction. Pin that drop:
+    // neither the merge-target read-back nor the source-array buckets appear in toAst.
+    const toAstStart = source.indexOf('export function toAstRosettaFunction(node: any): any {');
+    const toAstEnd = source.indexOf('\n}', toAstStart) + 2;
+    const toAstBody = source.slice(toAstStart, toAstEnd);
+    expect(toAstBody).not.toContain('conditions:');
+    expect(toAstBody).not.toContain('postConditions:');
+  });
 });
 
 describe('generateDomainCode — merge validation', () => {
