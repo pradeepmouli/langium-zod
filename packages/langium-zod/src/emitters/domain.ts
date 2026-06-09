@@ -87,8 +87,12 @@ function domainReadExpr(expression: ZodTypeExpression, access: string, ctx: Doma
     case 'literal':
       return access;
     case 'crossReference':
-      // Pass the editable ref object through; .$refText projection is done externally when needed.
-      return access;
+      // Normalise to a plain DomainRef: strip the Langium-runtime `ref` / `$error` properties
+      // that a live Reference object carries (they hold circular AstNode pointers and must NOT
+      // reach the domain surface or JSON.stringify will throw "Converting circular structure").
+      // A pre-normalised DomainRef ({$refText}) passes through unchanged because accessing
+      // .$refText on it is safe and the result is the same plain object shape.
+      return `${access} ? { $refText: ${access}.$refText } : undefined`;
     case 'reference':
       // Datatype-rule / keyword-enum references are primitives on the AST — read directly.
       return ctx.richTypeNames.has(expression.typeName)

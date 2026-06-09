@@ -65,8 +65,8 @@ describe('generateDomainCode — read projection', () => {
     expect(source).toContain('export function toDomainData(node: any): DataDomain {');
     expect(source).toContain('name: node.name,');
     expect(source).toContain('order: node.order,');
-    // cross-ref object passed through as-is; no .$refText projection on read
-    expect(source).toContain('superType: node.superType,');
+    // cross-ref is normalised to a plain DomainRef on read (strips Langium runtime `ref` pointer)
+    expect(source).toContain('superType: node.superType ? { $refText: node.superType.$refText } : undefined,');
   });
 });
 
@@ -508,8 +508,8 @@ describe('generateDomainCode — additive normalizations', () => {
     // Aliases reuse the SOURCE projected type (DomainRef object, not branded/string).
     expect(source).toContain('extends?: DomainRef;');
     expect(source).toContain('members?: string[];');
-    // Aliases reuse the SOURCE readExpr verbatim (object passthrough for the ref).
-    expect(source).toContain('extends: node.superType,');
+    // Aliases reuse the SOURCE readExpr verbatim (normalised DomainRef for the ref).
+    expect(source).toContain('extends: node.superType ? { $refText: node.superType.$refText } : undefined,');
     expect(source).toContain('members: (node.attributes ?? []).map((item) => item),');
     // No write accessor for an alias (writes go through the source field's accessor).
     expect(source).not.toContain('export function setDataExtends');
