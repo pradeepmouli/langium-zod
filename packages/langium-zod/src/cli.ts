@@ -119,6 +119,8 @@ OPTIONS
 	--domain          Also emit the domain surface (domain.ts)
 	--domain-only     Emit ONLY the domain surface (implies --domain, skips Zod schemas)
 	--domain-out <path> Output path for the domain surface
+	--namespace-ops   Also emit the namespace-ops surface (domain.ts with merged namespaces)
+	--namespace-ops-out <path> Output path for the namespace-ops surface
   --help            Show this help message
 
 CONFIGURATION
@@ -181,6 +183,8 @@ export async function main(): Promise<void> {
   const domainOnlyEnabled = args.includes('--domain-only');
   const domainEnabled = args.includes('--domain') || domainOnlyEnabled;
   const domainOutFlagValue = getArgValue(args, '--domain-out');
+  const namespaceOpsEnabled = args.includes('--namespace-ops');
+  const namespaceOpsOutFlagValue = getArgValue(args, '--namespace-ops-out');
 
   // ── Locate langium-config.json ───────────────────────────────────────────
   const configFileName = configFlagValue ?? 'langium-config.json';
@@ -255,6 +259,16 @@ export async function main(): Promise<void> {
       domainOutputPath: domainOutFlagValue
         ? resolve(process.cwd(), domainOutFlagValue)
         : userConfig.domainOutputPath
+    };
+  }
+
+  if (namespaceOpsEnabled) {
+    userConfig = {
+      ...userConfig,
+      namespaceOps: true,
+      namespaceOpsOutputPath: namespaceOpsOutFlagValue
+        ? resolve(process.cwd(), namespaceOpsOutFlagValue)
+        : userConfig.namespaceOpsOutputPath
     };
   }
 

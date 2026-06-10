@@ -174,6 +174,10 @@ export interface ZodGeneratorConfig extends FilterConfig {
   domainOutputPath?: string;
   /** Project-specific semantic overlays (renames + read-only merges) supplied by the consumer for the domain target. */
   domainOverlays?: DomainOverlayConfig;
+  /** When true (CLI `--namespace-ops`), also emit the namespace-ops surface alongside other targets. */
+  namespaceOps?: boolean;
+  /** Output path for the generated namespace-ops surface (`domain.ts`). */
+  namespaceOpsOutputPath?: string;
 }
 
 /**
