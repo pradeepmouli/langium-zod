@@ -57,6 +57,23 @@ const rosettaFunctionOptional: ZodTypeDescriptor = {
   ],
 };
 
+const choiceOptionType: ZodTypeDescriptor = {
+  name: 'ChoiceOption',
+  kind: 'object',
+  properties: [
+    { name: '$type', zodType: { kind: 'literal', value: 'ChoiceOption' }, optional: false },
+    { name: 'typeCall', zodType: { kind: 'reference', typeName: 'TypeCall' }, optional: false },
+  ],
+};
+const choiceType: ZodTypeDescriptor = {
+  name: 'Choice',
+  kind: 'object',
+  properties: [
+    { name: '$type', zodType: { kind: 'literal', value: 'Choice' }, optional: false },
+    { name: 'attributes', zodType: { kind: 'array', element: { kind: 'reference', typeName: 'ChoiceOption' } }, optional: false },
+  ],
+};
+
 describe('generateNamespaceOps', () => {
   it('emits a single-barrel header: namespace import + star re-export from ast.js', () => {
     const result = generateNamespaceOps([dataType, attributeType]);
@@ -124,6 +141,32 @@ describe('generateNamespaceOps', () => {
     };
     const result = generateNamespaceOps([primitiveOnly]);
     expect(result).not.toContain('export namespace ValidID');
+  });
+
+  it('emits removeX matching by single-segment identity path when configured', () => {
+    const result = generateNamespaceOps([dataType, attributeType], { identity: { Attribute: 'name' } });
+    expect(result).toContain('export function removeAttribute(node: Dehydrated<ast.Data>, attribute: Dehydrated<ast.Attribute>): boolean {');
+    expect(result).toContain('const __k = attribute.name;');
+    expect(result).toContain('const __i = node.attributes.findIndex((e) => e.name === __k);');
+    expect(result).toContain('if (__i < 0) return false;');
+    expect(result).toContain('node.attributes.splice(__i, 1);');
+    expect(result).toContain('return true;');
+  });
+
+  it('emits no removeX when the element type is absent from identity config', () => {
+    const result = generateNamespaceOps([dataType, attributeType]);
+    expect(result).not.toContain('export function removeAttribute(');
+    const withEmpty = generateNamespaceOps([dataType, attributeType], { identity: {} });
+    expect(withEmpty).not.toContain('export function removeAttribute(');
+  });
+
+  it('emits removeX with optional-chained access for nested identity paths', () => {
+    const result = generateNamespaceOps([choiceType, choiceOptionType], {
+      identity: { ChoiceOption: 'typeCall.type.$refText' },
+    });
+    expect(result).toContain('export function removeAttribute(node: Dehydrated<ast.Choice>, attribute: Dehydrated<ast.ChoiceOption>): boolean {');
+    expect(result).toContain('const __k = attribute.typeCall?.type?.$refText;');
+    expect(result).toContain('const __i = node.attributes.findIndex((e) => e.typeCall?.type?.$refText === __k);');
   });
 
   it('produces balanced braces', () => {

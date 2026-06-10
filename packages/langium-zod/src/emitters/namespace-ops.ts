@@ -145,13 +145,53 @@ function emitCrossRefOps(
   return lines.join('\n');
 }
 
-function emitNamespace(descriptor: ZodObjectTypeDescriptor, objectTypeNames: Set<string>): string | null {
+export interface NamespaceOpsOptions {
+  /** element type name → identity field path (e.g. "name", "typeCall.type.$refText"). */
+  identity?: Record<string, string>;
+}
+
+/** Emits `removeX(node, item): boolean` matching node.<field>[].<idPath> === item.<idPath>. */
+function emitRemoveByIdentity(
+  typeName: string,
+  fieldName: string,
+  elementType: string,
+  idPath: string,
+): string {
+  const Singular = capitalize(singularize(fieldName));
+  const T = astRef(typeName);
+  const E = astRef(elementType);
+  const param = safeParam(singularize(fieldName));
+  const segs = idPath.split('.');
+  const access = (recv: string) =>
+    segs.length === 1
+      ? `${recv}.${segs[0]}`
+      : `${recv}.${segs[0]}` + segs.slice(1).map((seg) => `?.${seg}`).join('');
+  return [
+    `  export function remove${Singular}(node: Dehydrated<${T}>, ${param}: Dehydrated<${E}>): boolean {`,
+    `    const __k = ${access(param)};`,
+    `    const __i = node.${fieldName}.findIndex((e) => ${access('e')} === __k);`,
+    `    if (__i < 0) return false;`,
+    `    node.${fieldName}.splice(__i, 1);`,
+    `    return true;`,
+    `  }`,
+  ].join('\n');
+}
+
+function emitNamespace(
+  descriptor: ZodObjectTypeDescriptor,
+  objectTypeNames: Set<string>,
+  identity: Record<string, string>,
+): string | null {
   const ops: string[] = [];
   for (const prop of descriptor.properties) {
     const kind = classifyField(prop.name, prop.zodType, prop.optional, objectTypeNames);
     if (kind.tag === 'skip') continue;
     if (kind.tag === 'array') {
       ops.push(emitArrayOps(descriptor.name, kind));
+      const idPath = identity[kind.elementType];
+      if (idPath) {
+        ops.push(emitRemoveByIdentity(descriptor.name, kind.fieldName, kind.elementType, idPath));
+      }
     } else if (kind.tag === 'singleNode') {
       ops.push(emitSingleNodeOps(descriptor.name, kind));
     } else if (kind.tag === 'crossRef') {
@@ -185,9 +225,10 @@ function emitNamespace(descriptor: ZodObjectTypeDescriptor, objectTypeNames: Set
  * which resolve to the local alias (namespaced types) or the star-exported interface
  * (non-namespaced element types) — no `$`-suffixed aliases, no TS2395.
  */
-export function generateNamespaceOps(types: ZodTypeDescriptor[]): string {
+export function generateNamespaceOps(types: ZodTypeDescriptor[], options?: NamespaceOpsOptions): string {
   const objectTypes = types.filter((t): t is ZodObjectTypeDescriptor => t.kind === 'object');
   const objectTypeNames = new Set(objectTypes.map((t) => t.name));
+  const identity = options?.identity ?? {};
 
   const parts: string[] = [];
 
@@ -201,7 +242,7 @@ export function generateNamespaceOps(types: ZodTypeDescriptor[]): string {
   parts.push(`export * from './ast.js';`);
 
   for (const descriptor of objectTypes) {
-    const ns = emitNamespace(descriptor, objectTypeNames);
+    const ns = emitNamespace(descriptor, objectTypeNames, identity);
     if (ns === null) continue;
     parts.push('');
     // Local type alias re-exposes the interface under the same name the namespace uses,

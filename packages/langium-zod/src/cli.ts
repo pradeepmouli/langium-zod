@@ -12,7 +12,7 @@
  * entry can re-export `generate` without dragging the shebang into consumer bundle
  * graphs. The moved symbols are re-exported below for backward compatibility.
  */
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { generate } from './generate.js';
@@ -121,6 +121,7 @@ OPTIONS
 	--domain-out <path> Output path for the domain surface
 	--namespace-ops   Also emit the namespace-ops surface (domain-ops.ts with merged namespaces)
 	--namespace-ops-out <path> Output path for the namespace-ops surface
+	--domain-surface-config <path> Identity-field map for namespace-ops removeX emission
   --help            Show this help message
 
 CONFIGURATION
@@ -185,6 +186,7 @@ export async function main(): Promise<void> {
   const domainOutFlagValue = getArgValue(args, '--domain-out');
   const namespaceOpsEnabled = args.includes('--namespace-ops');
   const namespaceOpsOutFlagValue = getArgValue(args, '--namespace-ops-out');
+  const domainSurfaceConfigFlagValue = getArgValue(args, '--domain-surface-config');
 
   // ── Locate langium-config.json ───────────────────────────────────────────
   const configFileName = configFlagValue ?? 'langium-config.json';
@@ -270,6 +272,15 @@ export async function main(): Promise<void> {
         ? resolve(process.cwd(), namespaceOpsOutFlagValue)
         : userConfig.namespaceOpsOutputPath
     };
+  }
+
+  if (domainSurfaceConfigFlagValue) {
+    const dsPath = resolve(process.cwd(), domainSurfaceConfigFlagValue);
+    if (!existsSync(dsPath)) {
+      throw new Error(`--domain-surface-config file not found: ${dsPath}`);
+    }
+    const parsed = JSON.parse(readFileSync(dsPath, 'utf8')) as { identity?: Record<string, string> };
+    userConfig = { ...userConfig, namespaceOpsIdentity: parsed.identity ?? {} };
   }
 
   try {

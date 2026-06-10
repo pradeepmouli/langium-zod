@@ -307,7 +307,7 @@ export function generateNamespaceOpsSchemas(config: ZodGeneratorConfig): string 
 
   const astTypes = resolveAstTypes(rawAstTypes);
   const descriptors = buildDescriptorPipeline(astTypes, config);
-  const source = generateNamespaceOps(descriptors);
+  const source = generateNamespaceOps(descriptors, { identity: config.namespaceOpsIdentity });
 
   if (config.namespaceOpsOutputPath) {
     mkdirSync(dirname(config.namespaceOpsOutputPath), { recursive: true });
