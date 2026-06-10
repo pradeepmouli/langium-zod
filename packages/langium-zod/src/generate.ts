@@ -13,7 +13,7 @@ import { dirname, join, resolve } from 'node:path';
 import { URI } from 'langium';
 import { createLangiumGrammarServices, resolveImportUri } from 'langium/grammar';
 import { NodeFileSystem } from 'langium/node';
-import { generateZodSchemas, generateDomainSchemas } from './api.js';
+import { generateZodSchemas, generateDomainSchemas, generateNamespaceOpsSchemas } from './api.js';
 import { resolveAstTypesPath } from './conformance.js';
 import type { ZodGeneratorConfig } from './config.js';
 import type { Grammar, LangiumDocument } from 'langium';
@@ -243,6 +243,8 @@ export async function generate(opts: GenerateOptions): Promise<void> {
     emitDomain: _emitDomain,
     domainOutputPath: _domainOutputPath,
     domainOnly: _domainOnly,
+    namespaceOps: _namespaceOps,
+    namespaceOpsOutputPath: _namespaceOpsOutputPath,
     ...restConfig
   } = userConfig;
 
@@ -267,5 +269,16 @@ export async function generate(opts: GenerateOptions): Promise<void> {
       exclude: restConfig.exclude
     });
     console.log(`✓ Generated domain surface → ${domainOutputPath}`);
+  }
+
+  if (userConfig.namespaceOps) {
+    const namespaceOpsOutputPath = userConfig.namespaceOpsOutputPath ?? join(outDir, 'domain-ops.ts');
+    generateNamespaceOpsSchemas({
+      grammar,
+      namespaceOpsOutputPath,
+      include: restConfig.include,
+      exclude: restConfig.exclude
+    });
+    console.log(`✓ Generated namespace-ops surface → ${namespaceOpsOutputPath}`);
   }
 }

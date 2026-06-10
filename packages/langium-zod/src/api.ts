@@ -8,6 +8,7 @@ import { extractTypeDescriptors } from './extractor.js';
 import { generateZodCode } from './generator.js';
 import { applyProjectionToDescriptors, resolveEffectiveStripFields } from './projection.js';
 import { generateDomainCode } from './emitters/domain.js';
+import { generateNamespaceOps } from './emitters/namespace-ops.js';
 import { detectRecursiveTypes } from './recursion-detector.js';
 import type { AstTypesLike, ZodRegexEnumDescriptor, ZodTypeDescriptor } from './types.js';
 
@@ -285,3 +286,35 @@ export function generateDomainSchemas(config: ZodGeneratorConfig): string {
 
   return source;
 }
+
+/**
+ * Programmatic entry point for the namespace-ops target. Runs the same extract pipeline
+ * as {@link generateZodSchemas}, then emits the namespace-ops surface (re-exported AST
+ * types + per-type namespace-merged op functions for arrays, single nodes, and cross-refs).
+ * Writes to `config.namespaceOpsOutputPath` when set.
+ */
+export function generateNamespaceOpsSchemas(config: ZodGeneratorConfig): string {
+  let rawAstTypes: AstTypesLike;
+  if (config.astTypes) {
+    rawAstTypes = config.astTypes;
+  } else if (config.grammar) {
+    rawAstTypes = collectAst(config.grammar) as unknown as AstTypesLike;
+  } else {
+    throw new ZodGeneratorError('Missing grammar or astTypes in ZodGeneratorConfig', {
+      suggestion: "Provide astTypes from Langium's collectAst() or pass a grammar object"
+    });
+  }
+
+  const astTypes = resolveAstTypes(rawAstTypes);
+  const descriptors = buildDescriptorPipeline(astTypes, config);
+  const source = generateNamespaceOps(descriptors);
+
+  if (config.namespaceOpsOutputPath) {
+    mkdirSync(dirname(config.namespaceOpsOutputPath), { recursive: true });
+    writeFileSync(config.namespaceOpsOutputPath, source, 'utf8');
+  }
+
+  return source;
+}
+
+export { generateNamespaceOps } from './emitters/namespace-ops.js';
