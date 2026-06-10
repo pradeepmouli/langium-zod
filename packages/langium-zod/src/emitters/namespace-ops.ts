@@ -91,6 +91,7 @@ function emitArrayOps(typeName: string, field: Extract<FieldKind, { tag: 'array'
     `    node.${fieldName}[index] = ${safeSingular};`,
     `  }`,
     `  export function move${Singular}At(node: Dehydrated<${T}>, from: number, to: number): void {`,
+    `    if (from < 0 || from >= node.${fieldName}.length) return;`,
     `    const [item] = node.${fieldName}.splice(from, 1);`,
     `    if (item === undefined) return;`,
     `    node.${fieldName}.splice(to, 0, item);`,

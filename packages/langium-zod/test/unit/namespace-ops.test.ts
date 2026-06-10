@@ -103,6 +103,14 @@ describe('generateNamespaceOps', () => {
     expect(result).toContain('export function moveAttributeAt(node: Dehydrated<ast.Data>, from: number, to: number): void');
   });
 
+  it('moveXAt guards an out-of-range `from` index (no-op, not a splice-from-end)', () => {
+    const result = generateNamespaceOps([dataType, attributeType]);
+    // Without the guard, splice(from, 1) with a negative `from` removes from the
+    // END (corrupting order) instead of being a no-op. The guard matches the
+    // consumer's reorderInPlace contract: out-of-range from → return early.
+    expect(result).toContain('if (from < 0 || from >= node.attributes.length) return;');
+  });
+
   it('emits setSuperType + clearSuperType for optional crossReference using refText: string', () => {
     const result = generateNamespaceOps([dataType, attributeType]);
     expect(result).toContain('export function setSuperType(node: Dehydrated<ast.Data>, refText: string): void');
