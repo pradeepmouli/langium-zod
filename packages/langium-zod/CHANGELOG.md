@@ -1,5 +1,14 @@
 # langium-zod
 
+## 0.8.0
+
+### Minor Changes
+
+- [`6171c9d`](https://github.com/pradeepmouli/langium-zod/commit/6171c9d83dd6cb51b5f05ae7cf33efc4d58e1d8d) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - Fix three bugs in namespace-ops emitter:
+  - Skip non-object referenced types (e.g. ValidID string unions) to avoid unimported names in generated code
+  - Add reserved-word escaping for field names used as parameter names (`function` → `function_`)
+  - Alias all AST type imports with `$` suffix to avoid TS2395 when `export namespace Foo` and `import type { Foo }` coexist in the same file
+
 ## 0.7.0
 
 ### Minor Changes
