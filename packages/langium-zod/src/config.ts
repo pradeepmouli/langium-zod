@@ -178,6 +178,11 @@ export interface ZodGeneratorConfig extends FilterConfig {
   namespaceOps?: boolean;
   /** Output path for the generated namespace-ops surface (`domain-ops.ts`). */
   namespaceOpsOutputPath?: string;
+  /**
+   * Element-type → identity field path map for namespace-ops `removeX` emission.
+   * e.g. `{ Attribute: 'name', ChoiceOption: 'typeCall.type.$refText' }`.
+   */
+  namespaceOpsIdentity?: Record<string, string>;
 }
 
 /**
