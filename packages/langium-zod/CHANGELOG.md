@@ -1,5 +1,15 @@
 # langium-zod
 
+## 0.8.3
+
+### Patch Changes
+
+- [#83](https://github.com/pradeepmouli/langium-zod/pull/83) [`5769eae`](https://github.com/pradeepmouli/langium-zod/commit/5769eae3b4cb2c6f7636d5232b230ff87ec60193) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - namespace-ops: `moveXAt` now guards an out-of-range `from` index. Previously
+  `splice(from, 1)` with a negative `from` removed an element from the END of the
+  array (corrupting order) instead of being a no-op. Adds
+  `if (from < 0 || from >= node.<field>.length) return;`, matching the typical
+  consumer reorder contract (out-of-range from → no-op).
+
 ## 0.8.2
 
 ### Patch Changes
