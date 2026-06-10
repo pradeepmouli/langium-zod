@@ -58,44 +58,52 @@ const rosettaFunctionOptional: ZodTypeDescriptor = {
 };
 
 describe('generateNamespaceOps', () => {
-  it('emits aliased import header from ast.js (no type re-export)', () => {
+  it('emits a single-barrel header: namespace import + star re-export from ast.js', () => {
     const result = generateNamespaceOps([dataType, attributeType]);
-    expect(result).toContain("import type {");
-    expect(result).toContain("Data as Data$");
-    expect(result).toContain("from './ast.js'");
-    // No type re-export — import alias prevents TS2395 without it.
-    expect(result).not.toContain("export type { Data }");
+    expect(result).toContain("import * as ast from './ast.js'");
+    expect(result).toContain("export * from './ast.js'");
+    // No `$`-suffixed aliased imports — the namespace import binding is used instead.
+    expect(result).not.toContain('Data as Data$');
   });
 
-  it('emits 6-op set for array<reference> fields', () => {
+  it('emits a type alias re-export for each namespaced type so the name is both type + ops', () => {
+    const result = generateNamespaceOps([dataType, attributeType]);
+    // Data gets a namespace, so it needs a local `export type Data = ast.Data` to keep
+    // the merged name usable as a type (the namespace shadows the star-exported interface).
+    expect(result).toContain('export type Data = ast.Data;');
+    // Attribute has no actionable fields → no namespace → no type alias (flows via export *).
+    expect(result).not.toContain('export type Attribute = ast.Attribute;');
+  });
+
+  it('emits 6-op set for array<reference> fields, qualified through the ast binding', () => {
     const result = generateNamespaceOps([dataType, attributeType]);
     expect(result).toContain('export namespace Data {');
-    expect(result).toContain('export function getAttributes(node: Dehydrated<Data$>): Dehydrated<Attribute$>[]');
-    expect(result).toContain('export function addAttribute(node: Dehydrated<Data$>, attribute: Dehydrated<Attribute$>): void');
-    expect(result).toContain('export function insertAttributeAt(node: Dehydrated<Data$>, index: number, attribute: Dehydrated<Attribute$>): void');
-    expect(result).toContain('export function removeAttributeAt(node: Dehydrated<Data$>, index: number): void');
-    expect(result).toContain('export function setAttributeAt(node: Dehydrated<Data$>, index: number, attribute: Dehydrated<Attribute$>): void');
-    expect(result).toContain('export function moveAttributeAt(node: Dehydrated<Data$>, from: number, to: number): void');
+    expect(result).toContain('export function getAttributes(node: Dehydrated<ast.Data>): Dehydrated<ast.Attribute>[]');
+    expect(result).toContain('export function addAttribute(node: Dehydrated<ast.Data>, attribute: Dehydrated<ast.Attribute>): void');
+    expect(result).toContain('export function insertAttributeAt(node: Dehydrated<ast.Data>, index: number, attribute: Dehydrated<ast.Attribute>): void');
+    expect(result).toContain('export function removeAttributeAt(node: Dehydrated<ast.Data>, index: number): void');
+    expect(result).toContain('export function setAttributeAt(node: Dehydrated<ast.Data>, index: number, attribute: Dehydrated<ast.Attribute>): void');
+    expect(result).toContain('export function moveAttributeAt(node: Dehydrated<ast.Data>, from: number, to: number): void');
   });
 
   it('emits setSuperType + clearSuperType for optional crossReference using refText: string', () => {
     const result = generateNamespaceOps([dataType, attributeType]);
-    expect(result).toContain('export function setSuperType(node: Dehydrated<Data$>, refText: string): void');
+    expect(result).toContain('export function setSuperType(node: Dehydrated<ast.Data>, refText: string): void');
     expect(result).toContain('node.superType = { $refText: refText }');
-    expect(result).toContain('export function clearSuperType(node: Dehydrated<Data$>): void');
+    expect(result).toContain('export function clearSuperType(node: Dehydrated<ast.Data>): void');
     expect(result).toContain('node.superType = undefined');
   });
 
   it('emits setOutput only for required single-node field', () => {
     const result = generateNamespaceOps([attributeType, rosettaFunctionRequired]);
-    expect(result).toContain('export function setOutput(node: Dehydrated<RosettaFunction$>, output: Dehydrated<Attribute$>): void');
+    expect(result).toContain('export function setOutput(node: Dehydrated<ast.RosettaFunction>, output: Dehydrated<ast.Attribute>): void');
     expect(result).not.toContain('clearOutput');
   });
 
   it('emits setOutput + clearOutput for optional single-node field', () => {
     const result = generateNamespaceOps([attributeType, rosettaFunctionOptional]);
-    expect(result).toContain('export function setOutput(node: Dehydrated<RosettaFunctionOpt$>, output: Dehydrated<Attribute$>): void');
-    expect(result).toContain('export function clearOutput(node: Dehydrated<RosettaFunctionOpt$>): void');
+    expect(result).toContain('export function setOutput(node: Dehydrated<ast.RosettaFunctionOpt>, output: Dehydrated<ast.Attribute>): void');
+    expect(result).toContain('export function clearOutput(node: Dehydrated<ast.RosettaFunctionOpt>): void');
     expect(result).toContain('node.output = undefined');
   });
 

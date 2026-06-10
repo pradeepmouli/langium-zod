@@ -52,6 +52,16 @@ function singularize(name: string): string {
   return name.endsWith('s') ? name.slice(0, -1) : name;
 }
 
+/**
+ * Qualify an AST type name through the `import * as ast` namespace binding.
+ * `export * from './ast.js'` re-exports names to consumers but does NOT bring them
+ * into this module's lexical scope, so signatures must reference `ast.Foo` (a real
+ * local binding) rather than a bare `Foo`.
+ */
+function astRef(typeName: string): string {
+  return `ast.${typeName}`;
+}
+
 function capitalize(s: string): string {
   return s.length === 0 ? s : `${s[0]!.toUpperCase()}${s.slice(1)}`;
 }
@@ -62,24 +72,25 @@ function emitArrayOps(typeName: string, field: Extract<FieldKind, { tag: 'array'
   const safeSingular = safeParam(singular);
   const Singular = capitalize(singular);
   const Field = capitalize(fieldName);
-  const S = IMPORT_ALIAS_SUFFIX;
+  const T = astRef(typeName);
+  const E = astRef(elementType);
   const lines: string[] = [
-    `  export function get${Field}(node: Dehydrated<${typeName}${S}>): Dehydrated<${elementType}${S}>[] {`,
+    `  export function get${Field}(node: Dehydrated<${T}>): Dehydrated<${E}>[] {`,
     `    return node.${fieldName};`,
     `  }`,
-    `  export function add${Singular}(node: Dehydrated<${typeName}${S}>, ${safeSingular}: Dehydrated<${elementType}${S}>): void {`,
+    `  export function add${Singular}(node: Dehydrated<${T}>, ${safeSingular}: Dehydrated<${E}>): void {`,
     `    node.${fieldName}.push(${safeSingular});`,
     `  }`,
-    `  export function insert${Singular}At(node: Dehydrated<${typeName}${S}>, index: number, ${safeSingular}: Dehydrated<${elementType}${S}>): void {`,
+    `  export function insert${Singular}At(node: Dehydrated<${T}>, index: number, ${safeSingular}: Dehydrated<${E}>): void {`,
     `    node.${fieldName}.splice(index, 0, ${safeSingular});`,
     `  }`,
-    `  export function remove${Singular}At(node: Dehydrated<${typeName}${S}>, index: number): void {`,
+    `  export function remove${Singular}At(node: Dehydrated<${T}>, index: number): void {`,
     `    node.${fieldName}.splice(index, 1);`,
     `  }`,
-    `  export function set${Singular}At(node: Dehydrated<${typeName}${S}>, index: number, ${safeSingular}: Dehydrated<${elementType}${S}>): void {`,
+    `  export function set${Singular}At(node: Dehydrated<${T}>, index: number, ${safeSingular}: Dehydrated<${E}>): void {`,
     `    node.${fieldName}[index] = ${safeSingular};`,
     `  }`,
-    `  export function move${Singular}At(node: Dehydrated<${typeName}${S}>, from: number, to: number): void {`,
+    `  export function move${Singular}At(node: Dehydrated<${T}>, from: number, to: number): void {`,
     `    const [item] = node.${fieldName}.splice(from, 1);`,
     `    if (item === undefined) return;`,
     `    node.${fieldName}.splice(to, 0, item);`,
@@ -95,15 +106,16 @@ function emitSingleNodeOps(
   const { fieldName, typeName: fieldTypeName, optional } = field;
   const safeFieldParam = safeParam(fieldName);
   const Field = capitalize(fieldName);
-  const S = IMPORT_ALIAS_SUFFIX;
+  const T = astRef(typeName);
+  const F = astRef(fieldTypeName);
   const lines: string[] = [
-    `  export function set${Field}(node: Dehydrated<${typeName}${S}>, ${safeFieldParam}: Dehydrated<${fieldTypeName}${S}>): void {`,
+    `  export function set${Field}(node: Dehydrated<${T}>, ${safeFieldParam}: Dehydrated<${F}>): void {`,
     `    node.${fieldName} = ${safeFieldParam};`,
     `  }`,
   ];
   if (optional) {
     lines.push(
-      `  export function clear${Field}(node: Dehydrated<${typeName}${S}>): void {`,
+      `  export function clear${Field}(node: Dehydrated<${T}>): void {`,
       `    node.${fieldName} = undefined;`,
       `  }`
     );
@@ -117,15 +129,15 @@ function emitCrossRefOps(
 ): string {
   const { fieldName, optional } = field;
   const Field = capitalize(fieldName);
-  const S = IMPORT_ALIAS_SUFFIX;
+  const T = astRef(typeName);
   const lines: string[] = [
-    `  export function set${Field}(node: Dehydrated<${typeName}${S}>, refText: string): void {`,
+    `  export function set${Field}(node: Dehydrated<${T}>, refText: string): void {`,
     `    node.${fieldName} = { $refText: refText };`,
     `  }`,
   ];
   if (optional) {
     lines.push(
-      `  export function clear${Field}(node: Dehydrated<${typeName}${S}>): void {`,
+      `  export function clear${Field}(node: Dehydrated<${T}>): void {`,
       `    node.${fieldName} = undefined;`,
       `  }`
     );
@@ -160,35 +172,42 @@ function emitNamespace(descriptor: ZodObjectTypeDescriptor, objectTypeNames: Set
  * Primitive/literal fields → skipped.
  */
 /**
- * Suffix used for import aliases to avoid TS2395 ("Individual declarations in merged
- * declaration must be all exported or all local"). We import `Data as Data$` and use
- * `Data$` in function signatures so that the public `export namespace Data` is the only
- * declaration of that name in this file.
+ * No import-alias suffix is used. The generated `domain.ts` is a single barrel:
+ *
+ *   import * as ast from './ast.js';
+ *   export * from './ast.js';              // forwards every guard / reflection / non-namespaced type
+ *   export type Data = ast.Data;           // local type alias — shadows the star-exported interface
+ *   export namespace Data { ... }          // local value — shadows the star-exported reflection const
+ *
+ * A local `type` + `namespace` pair under the same name merges (type space + value space)
+ * and, per TypeScript export precedence, shadows the corresponding names brought in by
+ * `export * from './ast.js'`. So function signatures reference bare `Data` / `Attribute`,
+ * which resolve to the local alias (namespaced types) or the star-exported interface
+ * (non-namespaced element types) — no `$`-suffixed aliases, no TS2395.
  */
-const IMPORT_ALIAS_SUFFIX = '$';
-
 export function generateNamespaceOps(types: ZodTypeDescriptor[]): string {
   const objectTypes = types.filter((t): t is ZodObjectTypeDescriptor => t.kind === 'object');
-  const typeNames = objectTypes.map((t) => t.name);
-  const objectTypeNames = new Set(typeNames);
+  const objectTypeNames = new Set(objectTypes.map((t) => t.name));
 
   const parts: string[] = [];
 
-  // Import with alias suffix so `export namespace Foo` doesn't conflict with `import type { Foo }`.
-  if (typeNames.length > 0) {
-    const aliasedImports = typeNames.map((n) => `${n} as ${n}${IMPORT_ALIAS_SUFFIX}`).join(', ');
-    parts.push(`import type { ${aliasedImports} } from './ast.js';`);
-  }
-
-  parts.push('');
+  parts.push(`import * as ast from './ast.js';`);
   parts.push(`import type { Dehydrated } from '../serializer/dehydrated.js';`);
+  parts.push('');
+  // Re-export the entire AST surface (interfaces, type guards, reflection, terminals,
+  // union types) so `domain.ts` is the sole core barrel. The per-type `export type` and
+  // `export namespace` declarations below shadow the interface + reflection-const for the
+  // namespaced types; everything else flows through unchanged.
+  parts.push(`export * from './ast.js';`);
 
   for (const descriptor of objectTypes) {
     const ns = emitNamespace(descriptor, objectTypeNames);
-    if (ns !== null) {
-      parts.push('');
-      parts.push(ns);
-    }
+    if (ns === null) continue;
+    parts.push('');
+    // Local type alias re-exposes the interface under the same name the namespace uses,
+    // so the merged `Data` is both a type and an ops namespace at every call site.
+    parts.push(`export type ${descriptor.name} = ast.${descriptor.name};`);
+    parts.push(ns);
   }
 
   return parts.join('\n') + '\n';
