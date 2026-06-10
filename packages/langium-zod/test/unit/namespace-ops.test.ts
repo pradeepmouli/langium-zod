@@ -49,8 +49,9 @@ const rosettaFunctionOptional: ZodTypeDescriptor = {
 };
 
 describe('generateNamespaceOps', () => {
-  it('emits re-export header from ast.js', () => {
+  it('emits import + re-export header from ast.js for local binding and consumers', () => {
     const result = generateNamespaceOps([dataType]);
+    expect(result).toContain("import type { Data }");
     expect(result).toContain("export type { Data }");
     expect(result).toContain("from './ast.js'");
   });
@@ -66,10 +67,10 @@ describe('generateNamespaceOps', () => {
     expect(result).toContain('export function moveAttributeAt(node: Dehydrated<Data>, from: number, to: number): void');
   });
 
-  it('emits setSuperType + clearSuperType for optional crossReference', () => {
+  it('emits setSuperType + clearSuperType for optional crossReference using refText: string', () => {
     const result = generateNamespaceOps([dataType]);
-    expect(result).toContain('export function setSuperType(node: Dehydrated<Data>, ref: Dehydrated<Data>): void');
-    expect(result).toContain('ref.$namespace');
+    expect(result).toContain('export function setSuperType(node: Dehydrated<Data>, refText: string): void');
+    expect(result).toContain('node.superType = { $refText: refText }');
     expect(result).toContain('export function clearSuperType(node: Dehydrated<Data>): void');
     expect(result).toContain('node.superType = undefined');
   });

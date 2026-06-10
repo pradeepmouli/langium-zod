@@ -119,7 +119,7 @@ OPTIONS
 	--domain          Also emit the domain surface (domain.ts)
 	--domain-only     Emit ONLY the domain surface (implies --domain, skips Zod schemas)
 	--domain-out <path> Output path for the domain surface
-	--namespace-ops   Also emit the namespace-ops surface (domain.ts with merged namespaces)
+	--namespace-ops   Also emit the namespace-ops surface (domain-ops.ts with merged namespaces)
 	--namespace-ops-out <path> Output path for the namespace-ops surface
   --help            Show this help message
 

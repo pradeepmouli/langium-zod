@@ -61,7 +61,8 @@ function emitArrayOps(typeName: string, field: Extract<FieldKind, { tag: 'array'
     `  }`,
     `  export function move${Singular}At(node: Dehydrated<${typeName}>, from: number, to: number): void {`,
     `    const [item] = node.${fieldName}.splice(from, 1);`,
-    `    node.${fieldName}.splice(to, 0, item!);`,
+    `    if (item === undefined) return;`,
+    `    node.${fieldName}.splice(to, 0, item);`,
     `  }`,
   ];
   return lines.join('\n');
@@ -92,11 +93,11 @@ function emitCrossRefOps(
   typeName: string,
   field: Extract<FieldKind, { tag: 'crossRef' }>
 ): string {
-  const { fieldName, targetType, optional } = field;
+  const { fieldName, optional } = field;
   const Field = capitalize(fieldName);
   const lines: string[] = [
-    `  export function set${Field}(node: Dehydrated<${typeName}>, ref: Dehydrated<${targetType}>): void {`,
-    `    node.${fieldName} = { $refText: ref.$namespace ? \`\${ref.$namespace}.\${ref.name}\` : ref.name };`,
+    `  export function set${Field}(node: Dehydrated<${typeName}>, refText: string): void {`,
+    `    node.${fieldName} = { $refText: refText };`,
     `  }`,
   ];
   if (optional) {
@@ -141,8 +142,9 @@ export function generateNamespaceOps(types: ZodTypeDescriptor[]): string {
 
   const parts: string[] = [];
 
-  // Re-export header
+  // Import for local binding + re-export for consumers
   if (typeNames.length > 0) {
+    parts.push(`import type { ${typeNames.join(', ')} } from './ast.js';`);
     parts.push(`export type { ${typeNames.join(', ')} } from './ast.js';`);
   }
 

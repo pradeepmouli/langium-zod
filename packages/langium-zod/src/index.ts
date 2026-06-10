@@ -21,7 +21,7 @@
  *
  * @category Generation
  */
-export { generateZodSchemas, generateDomainSchemas } from './api.js';
+export { generateZodSchemas, generateDomainSchemas, generateNamespaceOps } from './api.js';
 export { DEFAULT_OUTPUT_PATH } from './config.js';
 export type { FilterConfig, ZodGeneratorConfig } from './config.js';
 export { ZodGeneratorError } from './errors.js';

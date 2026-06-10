@@ -176,7 +176,7 @@ export interface ZodGeneratorConfig extends FilterConfig {
   domainOverlays?: DomainOverlayConfig;
   /** When true (CLI `--namespace-ops`), also emit the namespace-ops surface alongside other targets. */
   namespaceOps?: boolean;
-  /** Output path for the generated namespace-ops surface (`domain.ts`). */
+  /** Output path for the generated namespace-ops surface (`domain-ops.ts`). */
   namespaceOpsOutputPath?: string;
 }
 
