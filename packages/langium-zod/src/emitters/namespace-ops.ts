@@ -17,6 +17,7 @@ function classifyField(
     if (el.kind === 'reference') {
       return { tag: 'array', fieldName, elementType: el.typeName };
     }
+    // Union/crossRef/primitive arrays are not yet supported; ops are skipped silently.
     return { tag: 'skip' };
   }
   if (zodType.kind === 'reference') {

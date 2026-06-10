@@ -272,7 +272,7 @@ export async function generate(opts: GenerateOptions): Promise<void> {
   }
 
   if (userConfig.namespaceOps) {
-    const namespaceOpsOutputPath = userConfig.namespaceOpsOutputPath ?? join(outDir, 'domain.ts');
+    const namespaceOpsOutputPath = userConfig.namespaceOpsOutputPath ?? join(outDir, 'domain-ops.ts');
     generateNamespaceOpsSchemas({
       grammar,
       namespaceOpsOutputPath,
