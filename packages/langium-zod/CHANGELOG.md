@@ -1,5 +1,15 @@
 # langium-zod
 
+## 0.8.2
+
+### Patch Changes
+
+- [#81](https://github.com/pradeepmouli/langium-zod/pull/81) [`fe4f779`](https://github.com/pradeepmouli/langium-zod/commit/fe4f779a4f029ae9bf0478dc97a64a63b42dfa66) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - namespace-ops: config-declared identity `removeX` op. `generateNamespaceOps`
+  accepts `{ identity: Record<elementType, fieldPath> }`; array fields whose
+  element type has an identity path get `removeX(node, item): boolean` matching
+  by that path (single-segment direct, nested segments optional-chained). New CLI
+  flag `--domain-surface-config <path>` loads the `{ identity: {...} }` map.
+
 ## 0.8.1
 
 ### Patch Changes
