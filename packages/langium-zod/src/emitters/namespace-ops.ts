@@ -205,6 +205,51 @@ function emitNamespace(
   return [`export namespace ${descriptor.name} {`, ops.join('\n'), '}'].join('\n');
 }
 
+/** Emits the grammar-invariant generic repository primitive (interface + runtime). */
+function emitRepositoryPrimitive(): string {
+  return [
+    'export class DuplicateKeyError extends Error {',
+    '  constructor(public readonly key: string) {',
+    '    super(`Duplicate repository key: ${key}`);',
+    "    this.name = 'DuplicateKeyError';",
+    '  }',
+    '}',
+    '',
+    'export interface Repository<T> {',
+    '  byId(id: string): T | undefined;',
+    '  byType<K extends string>(type: K): readonly T[];',
+    '  all(): readonly T[];',
+    '}',
+    '',
+    'export function createRepository<T>(',
+    '  items: Iterable<T>,',
+    '  opts: { key: (t: T) => string; type: (t: T) => string },',
+    '): Repository<T> {',
+    '  const byIdMap = new Map<string, T>();',
+    '  const byTypeMap = new Map<string, T[]>();',
+    '  const allItems: T[] = [];',
+    '  for (const item of items) {',
+    '    const k = opts.key(item);',
+    '    if (byIdMap.has(k)) throw new DuplicateKeyError(k);',
+    '    byIdMap.set(k, item);',
+    '    const t = opts.type(item);',
+    '    let bucket = byTypeMap.get(t);',
+    '    if (bucket === undefined) {',
+    '      bucket = [];',
+    '      byTypeMap.set(t, bucket);',
+    '    }',
+    '    bucket.push(item);',
+    '    allItems.push(item);',
+    '  }',
+    '  return {',
+    '    byId: (id) => byIdMap.get(id),',
+    '    byType: <K extends string>(type: K) => (byTypeMap.get(type) ?? []) as readonly T[],',
+    '    all: () => allItems,',
+    '  };',
+    '}',
+  ].join('\n');
+}
+
 /**
  * Generates a TypeScript `domain.ts` that re-exports all AST interface types
  * from `./ast.js` and merges namespace-scoped ops for each member-container type.
@@ -252,6 +297,12 @@ export function generateNamespaceOps(types: ZodTypeDescriptor[], options?: Names
     // so the merged `Data` is both a type and an ops namespace at every call site.
     parts.push(`export type ${descriptor.name} = ast.${descriptor.name};`);
     parts.push(ns);
+  }
+
+  const repositoryElementTypes = options?.repository?.elementTypes ?? [];
+  if (repositoryElementTypes.length > 0) {
+    parts.push('');
+    parts.push(emitRepositoryPrimitive());
   }
 
   return parts.join('\n') + '\n';

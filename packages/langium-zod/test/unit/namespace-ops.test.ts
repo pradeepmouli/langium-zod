@@ -184,3 +184,29 @@ describe('generateNamespaceOps', () => {
     expect(open).toBe(close);
   });
 });
+
+describe('repository emission', () => {
+  it('emits the generic Repository<T> primitive + createRepository with throw-on-dup', () => {
+    const source = generateNamespaceOps([dataType, attributeType], {
+      repository: { elementTypes: ['Data'] },
+    });
+    expect(source).toContain('export interface Repository<T> {');
+    expect(source).toContain('byId(id: string): T | undefined;');
+    expect(source).toContain('byType<K extends string>(type: K): readonly T[];');
+    expect(source).toContain('all(): readonly T[];');
+    expect(source).toContain('export function createRepository<T>(');
+    expect(source).toContain('if (byIdMap.has(k)) throw new DuplicateKeyError(k);');
+    expect(source).toContain('export class DuplicateKeyError extends Error {');
+    // The repository-emitting path must stay brace-balanced (the no-options
+    // balanced-braces test never exercises it).
+    const open = (source.match(/\{/g) ?? []).length;
+    const close = (source.match(/\}/g) ?? []).length;
+    expect(open).toBe(close);
+  });
+
+  it('emits NOTHING repository-shaped when elementTypes is absent', () => {
+    const source = generateNamespaceOps([dataType, attributeType]);
+    expect(source).not.toContain('export interface Repository<T>');
+    expect(source).not.toContain('createRepository');
+  });
+});
