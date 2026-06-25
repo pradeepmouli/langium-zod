@@ -279,8 +279,12 @@ export async function main(): Promise<void> {
     if (!existsSync(dsPath)) {
       throw new Error(`--domain-surface-config file not found: ${dsPath}`);
     }
-    const parsed = JSON.parse(readFileSync(dsPath, 'utf8')) as { identity?: Record<string, string> };
-    userConfig = { ...userConfig, namespaceOpsIdentity: parsed.identity ?? {} };
+    const parsed = JSON.parse(readFileSync(dsPath, 'utf8')) as { identity?: Record<string, string>; repository?: { elementTypes?: string[] } };
+    userConfig = {
+      ...userConfig,
+      namespaceOpsIdentity: parsed.identity ?? {},
+      namespaceOpsRepository: parsed.repository,
+    };
   }
 
   try {

@@ -246,6 +246,7 @@ export async function generate(opts: GenerateOptions): Promise<void> {
     namespaceOps: _namespaceOps,
     namespaceOpsOutputPath: _namespaceOpsOutputPath,
     namespaceOpsIdentity: _namespaceOpsIdentity,
+    namespaceOpsRepository: _namespaceOpsRepository,
     ...restConfig
   } = userConfig;
 
@@ -279,7 +280,8 @@ export async function generate(opts: GenerateOptions): Promise<void> {
       namespaceOpsOutputPath,
       include: restConfig.include,
       exclude: restConfig.exclude,
-      namespaceOpsIdentity: userConfig.namespaceOpsIdentity
+      namespaceOpsIdentity: userConfig.namespaceOpsIdentity,
+      namespaceOpsRepository: userConfig.namespaceOpsRepository,
     });
     console.log(`✓ Generated namespace-ops surface → ${namespaceOpsOutputPath}`);
   }

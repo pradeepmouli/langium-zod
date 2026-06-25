@@ -149,6 +149,8 @@ function emitCrossRefOps(
 export interface NamespaceOpsOptions {
   /** element type name → identity field path (e.g. "name", "typeCall.type.$refText"). */
   identity?: Record<string, string>;
+  /** top-level element types for the generated domain repository (e.g. `['Data', 'Choice']`). */
+  repository?: { elementTypes?: string[] };
 }
 
 /** Emits `removeX(node, item): boolean` matching node.<field>[].<idPath> === item.<idPath>. */
