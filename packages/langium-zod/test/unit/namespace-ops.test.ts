@@ -209,4 +209,19 @@ describe('repository emission', () => {
     expect(source).not.toContain('export interface Repository<T>');
     expect(source).not.toContain('createRepository');
   });
+
+  it('emits AnyDomain union + DomainRepository (Extract typing) + createDomainRepository', () => {
+    const source = generateNamespaceOps([dataType, attributeType], {
+      repository: { elementTypes: ['Data', 'RosettaFunction'] },
+    });
+    expect(source).toContain('export type AnyDomain =');
+    expect(source).toContain('| Dehydrated<ast.Data>');
+    expect(source).toContain('| Dehydrated<ast.RosettaFunction>');
+    expect(source).toContain('export interface DomainRepository {');
+    expect(source).toContain("byType<K extends AnyDomain['$type']>(type: K): readonly Extract<AnyDomain, { $type: K }>[];");
+    expect(source).toContain('export function createDomainRepository(');
+    expect(source).toContain('type: (e) => e.$type');
+    // No parallel type-map artifact:
+    expect(source).not.toContain('DomainTypeMap');
+  });
 });

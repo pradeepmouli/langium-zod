@@ -250,6 +250,28 @@ function emitRepositoryPrimitive(): string {
   ].join('\n');
 }
 
+/** Emits the domain-typed repository surface from the configured element types. */
+function emitDomainRepository(elementTypes: string[]): string {
+  const union = elementTypes.map((t) => `  | Dehydrated<ast.${t}>`).join('\n');
+  return [
+    'export type AnyDomain =',
+    `${union};`,
+    '',
+    'export interface DomainRepository {',
+    '  byId(qn: string): AnyDomain | undefined;',
+    "  byType<K extends AnyDomain['$type']>(type: K): readonly Extract<AnyDomain, { $type: K }>[];",
+    '  all(): readonly AnyDomain[];',
+    '}',
+    '',
+    'export function createDomainRepository(',
+    '  elements: Iterable<AnyDomain>,',
+    '  key: (e: AnyDomain) => string = (e) => (e.$namespace ? `${e.$namespace}.${e.name}` : e.name),',
+    '): DomainRepository {',
+    '  return createRepository(elements, { key, type: (e) => e.$type }) as DomainRepository;',
+    '}',
+  ].join('\n');
+}
+
 /**
  * Generates a TypeScript `domain.ts` that re-exports all AST interface types
  * from `./ast.js` and merges namespace-scoped ops for each member-container type.
@@ -303,6 +325,8 @@ export function generateNamespaceOps(types: ZodTypeDescriptor[], options?: Names
   if (repositoryElementTypes.length > 0) {
     parts.push('');
     parts.push(emitRepositoryPrimitive());
+    parts.push('');
+    parts.push(emitDomainRepository(repositoryElementTypes));
   }
 
   return parts.join('\n') + '\n';
