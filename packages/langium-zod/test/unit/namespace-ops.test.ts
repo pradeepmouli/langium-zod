@@ -57,6 +57,28 @@ const rosettaFunctionOptional: ZodTypeDescriptor = {
   ],
 };
 
+// A RosettaFunction variant WITH a required `name` — a valid repository member
+// (distinct from `rosettaFunctionRequired` above, which models no `name` field).
+const rosettaFunctionNamed: ZodTypeDescriptor = {
+  name: 'RosettaFunction',
+  kind: 'object',
+  properties: [
+    { name: '$type', zodType: { kind: 'literal', value: 'RosettaFunction' }, optional: false },
+    { name: 'name', zodType: { kind: 'primitive', primitive: 'string' }, optional: false },
+  ],
+};
+
+// A top-level element type whose `name` is OPTIONAL — invalid as a repository member
+// because the qualified-name key would emit `e.name` of type `string | undefined`.
+const optionalNameType: ZodTypeDescriptor = {
+  name: 'Condition',
+  kind: 'object',
+  properties: [
+    { name: '$type', zodType: { kind: 'literal', value: 'Condition' }, optional: false },
+    { name: 'name', zodType: { kind: 'primitive', primitive: 'string' }, optional: true },
+  ],
+};
+
 const choiceOptionType: ZodTypeDescriptor = {
   name: 'ChoiceOption',
   kind: 'object',
@@ -211,7 +233,7 @@ describe('repository emission', () => {
   });
 
   it('emits AnyDomain union + DomainRepository (Extract typing) + createDomainRepository', () => {
-    const source = generateNamespaceOps([dataType, attributeType], {
+    const source = generateNamespaceOps([dataType, attributeType, rosettaFunctionNamed], {
       repository: { elementTypes: ['Data', 'RosettaFunction'] },
     });
     expect(source).toContain('export type AnyDomain =');
@@ -223,5 +245,31 @@ describe('repository emission', () => {
     expect(source).toContain('type: (e) => e.$type');
     // No parallel type-map artifact:
     expect(source).not.toContain('DomainTypeMap');
+  });
+
+  it('throws when a configured elementType has no required `name` field', () => {
+    // `attributeType` has only `$type` — no `name`. The emitted `e.name` key would
+    // not compile against the consuming repo, so codegen must fail fast instead.
+    expect(() =>
+      generateNamespaceOps([dataType, attributeType], {
+        repository: { elementTypes: ['Attribute'] },
+      }),
+    ).toThrow(/Attribute.*name/s);
+  });
+
+  it('throws when a configured elementType has only an OPTIONAL `name` field', () => {
+    expect(() =>
+      generateNamespaceOps([dataType, optionalNameType], {
+        repository: { elementTypes: ['Condition'] },
+      }),
+    ).toThrow(/Condition.*name/s);
+  });
+
+  it('throws when a configured elementType is not a known object type', () => {
+    expect(() =>
+      generateNamespaceOps([dataType, attributeType], {
+        repository: { elementTypes: ['Nonexistent'] },
+      }),
+    ).toThrow(/Nonexistent/);
   });
 });

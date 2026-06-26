@@ -251,7 +251,31 @@ function emitRepositoryPrimitive(): string {
 }
 
 /** Emits the domain-typed repository surface from the configured element types. */
-function emitDomainRepository(elementTypes: string[]): string {
+function emitDomainRepository(
+  elementTypes: string[],
+  objectTypes: ZodObjectTypeDescriptor[],
+): string {
+  // The emitted `createDomainRepository` derives its qualified-name key from `e.name`,
+  // so every configured element type must resolve to a known object type that declares
+  // a REQUIRED `name`. Validate at codegen time — otherwise a missing/optional `name`
+  // surfaces only as a cryptic TS error when the generated domain.ts is compiled in the
+  // consuming repo (TS2339 for absent, TS2322 for `name?`).
+  const byName = new Map(objectTypes.map((t) => [t.name, t]));
+  for (const t of elementTypes) {
+    const descriptor = byName.get(t);
+    if (descriptor === undefined) {
+      throw new Error(
+        `Repository elementType '${t}' is not a known object type; cannot build the domain repository.`,
+      );
+    }
+    const nameProp = descriptor.properties.find((p) => p.name === 'name');
+    if (nameProp === undefined || nameProp.optional) {
+      throw new Error(
+        `Repository elementType '${t}' must declare a required \`name\` field — the generated ` +
+          `domain repository derives qualified-name identity from \`name\`.`,
+      );
+    }
+  }
   const union = elementTypes.map((t) => `  | Dehydrated<ast.${t}>`).join('\n');
   return [
     'export type AnyDomain =',
@@ -326,7 +350,7 @@ export function generateNamespaceOps(types: ZodTypeDescriptor[], options?: Names
     parts.push('');
     parts.push(emitRepositoryPrimitive());
     parts.push('');
-    parts.push(emitDomainRepository(repositoryElementTypes));
+    parts.push(emitDomainRepository(repositoryElementTypes, objectTypes));
   }
 
   return parts.join('\n') + '\n';
