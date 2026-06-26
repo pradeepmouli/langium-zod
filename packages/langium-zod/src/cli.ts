@@ -283,7 +283,9 @@ export async function main(): Promise<void> {
     userConfig = {
       ...userConfig,
       namespaceOpsIdentity: parsed.identity ?? {},
-      namespaceOpsRepository: parsed.repository,
+      // Fall back to any repository config already set in langium-zod.config.js — a
+      // surface-config file that carries only `identity` must not clear it.
+      namespaceOpsRepository: parsed.repository ?? userConfig.namespaceOpsRepository,
     };
   }
 
