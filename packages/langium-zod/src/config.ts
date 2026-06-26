@@ -183,6 +183,11 @@ export interface ZodGeneratorConfig extends FilterConfig {
    * e.g. `{ Attribute: 'name', ChoiceOption: 'typeCall.type.$refText' }`.
    */
   namespaceOpsIdentity?: Record<string, string>;
+  /**
+   * Top-level element types included in the generated domain repository
+   * (`AnyDomain` union). e.g. `{ elementTypes: ['Data', 'Choice'] }`.
+   */
+  namespaceOpsRepository?: { elementTypes?: string[] };
 }
 
 /**

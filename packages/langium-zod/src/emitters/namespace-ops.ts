@@ -149,6 +149,8 @@ function emitCrossRefOps(
 export interface NamespaceOpsOptions {
   /** element type name → identity field path (e.g. "name", "typeCall.type.$refText"). */
   identity?: Record<string, string>;
+  /** top-level element types for the generated domain repository (e.g. `['Data', 'Choice']`). */
+  repository?: { elementTypes?: string[] };
 }
 
 /** Emits `removeX(node, item): boolean` matching node.<field>[].<idPath> === item.<idPath>. */
@@ -203,6 +205,97 @@ function emitNamespace(
   return [`export namespace ${descriptor.name} {`, ops.join('\n'), '}'].join('\n');
 }
 
+/** Emits the grammar-invariant generic repository primitive (interface + runtime). */
+function emitRepositoryPrimitive(): string {
+  return [
+    'export class DuplicateKeyError extends Error {',
+    '  constructor(public readonly key: string) {',
+    '    super(`Duplicate repository key: ${key}`);',
+    "    this.name = 'DuplicateKeyError';",
+    '  }',
+    '}',
+    '',
+    'export interface Repository<T> {',
+    '  byId(id: string): T | undefined;',
+    '  byType<K extends string>(type: K): readonly T[];',
+    '  all(): readonly T[];',
+    '}',
+    '',
+    'export function createRepository<T>(',
+    '  items: Iterable<T>,',
+    '  opts: { key: (t: T) => string; type: (t: T) => string },',
+    '): Repository<T> {',
+    '  const byIdMap = new Map<string, T>();',
+    '  const byTypeMap = new Map<string, T[]>();',
+    '  const allItems: T[] = [];',
+    '  for (const item of items) {',
+    '    const k = opts.key(item);',
+    '    if (byIdMap.has(k)) throw new DuplicateKeyError(k);',
+    '    byIdMap.set(k, item);',
+    '    const t = opts.type(item);',
+    '    let bucket = byTypeMap.get(t);',
+    '    if (bucket === undefined) {',
+    '      bucket = [];',
+    '      byTypeMap.set(t, bucket);',
+    '    }',
+    '    bucket.push(item);',
+    '    allItems.push(item);',
+    '  }',
+    '  return {',
+    '    byId: (id) => byIdMap.get(id),',
+    '    byType: <K extends string>(type: K) => (byTypeMap.get(type) ?? []) as readonly T[],',
+    '    all: () => allItems,',
+    '  };',
+    '}',
+  ].join('\n');
+}
+
+/** Emits the domain-typed repository surface from the configured element types. */
+function emitDomainRepository(
+  elementTypes: string[],
+  objectTypes: ZodObjectTypeDescriptor[],
+): string {
+  // The emitted `createDomainRepository` derives its qualified-name key from `e.name`,
+  // so every configured element type must resolve to a known object type that declares
+  // a REQUIRED `name`. Validate at codegen time — otherwise a missing/optional `name`
+  // surfaces only as a cryptic TS error when the generated domain.ts is compiled in the
+  // consuming repo (TS2339 for absent, TS2322 for `name?`).
+  const byName = new Map(objectTypes.map((t) => [t.name, t]));
+  for (const t of elementTypes) {
+    const descriptor = byName.get(t);
+    if (descriptor === undefined) {
+      throw new Error(
+        `Repository elementType '${t}' is not a known object type; cannot build the domain repository.`,
+      );
+    }
+    const nameProp = descriptor.properties.find((p) => p.name === 'name');
+    if (nameProp === undefined || nameProp.optional) {
+      throw new Error(
+        `Repository elementType '${t}' must declare a required \`name\` field — the generated ` +
+          `domain repository derives qualified-name identity from \`name\`.`,
+      );
+    }
+  }
+  const union = elementTypes.map((t) => `  | Dehydrated<ast.${t}>`).join('\n');
+  return [
+    'export type AnyDomain =',
+    `${union};`,
+    '',
+    'export interface DomainRepository {',
+    '  byId(qn: string): AnyDomain | undefined;',
+    "  byType<K extends AnyDomain['$type']>(type: K): readonly Extract<AnyDomain, { $type: K }>[];",
+    '  all(): readonly AnyDomain[];',
+    '}',
+    '',
+    'export function createDomainRepository(',
+    '  elements: Iterable<AnyDomain>,',
+    '  key: (e: AnyDomain) => string = (e) => (e.$namespace ? `${e.$namespace}.${e.name}` : e.name),',
+    '): DomainRepository {',
+    '  return createRepository(elements, { key, type: (e) => e.$type }) as DomainRepository;',
+    '}',
+  ].join('\n');
+}
+
 /**
  * Generates a TypeScript `domain.ts` that re-exports all AST interface types
  * from `./ast.js` and merges namespace-scoped ops for each member-container type.
@@ -250,6 +343,14 @@ export function generateNamespaceOps(types: ZodTypeDescriptor[], options?: Names
     // so the merged `Data` is both a type and an ops namespace at every call site.
     parts.push(`export type ${descriptor.name} = ast.${descriptor.name};`);
     parts.push(ns);
+  }
+
+  const repositoryElementTypes = options?.repository?.elementTypes ?? [];
+  if (repositoryElementTypes.length > 0) {
+    parts.push('');
+    parts.push(emitRepositoryPrimitive());
+    parts.push('');
+    parts.push(emitDomainRepository(repositoryElementTypes, objectTypes));
   }
 
   return parts.join('\n') + '\n';

@@ -279,8 +279,14 @@ export async function main(): Promise<void> {
     if (!existsSync(dsPath)) {
       throw new Error(`--domain-surface-config file not found: ${dsPath}`);
     }
-    const parsed = JSON.parse(readFileSync(dsPath, 'utf8')) as { identity?: Record<string, string> };
-    userConfig = { ...userConfig, namespaceOpsIdentity: parsed.identity ?? {} };
+    const parsed = JSON.parse(readFileSync(dsPath, 'utf8')) as { identity?: Record<string, string>; repository?: { elementTypes?: string[] } };
+    userConfig = {
+      ...userConfig,
+      namespaceOpsIdentity: parsed.identity ?? {},
+      // Fall back to any repository config already set in langium-zod.config.js — a
+      // surface-config file that carries only `identity` must not clear it.
+      namespaceOpsRepository: parsed.repository ?? userConfig.namespaceOpsRepository,
+    };
   }
 
   try {
