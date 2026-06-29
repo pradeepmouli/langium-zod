@@ -1,5 +1,20 @@
 # langium-zod
 
+## 0.10.0
+
+### Minor Changes
+
+- [#94](https://github.com/pradeepmouli/langium-zod/pull/94) [`cb0bafb`](https://github.com/pradeepmouli/langium-zod/commit/cb0bafb8fddf9829ef8ac2036367f8ace06f4a4c) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - Derive array `.min(1)` from grammar minimum-occurrence for real parsed grammars.
+
+  Previously `.min(1)` was emitted only when a single rule call carried an explicit
+  `+` cardinality — and only for synthetic `astTypes` fixtures, never from a real
+  `collectAst` grammar (the real Langium `Property` exposes `astNodes` but no
+  `cardinality`/`operator`). The generator now walks each array property's
+  originating `Assignment` nodes' cardinality chains (`Property.astNodes` +
+  `isOptionalCardinality`) and emits `.min(1)` when any `+=` assignment occurs on a
+  mandatory path. This covers both `x+=A+` and the comma-list idiom
+  `x+=A (',' x+=A)*` (e.g. a required `sources+=[Src] (',' sources+=[Src])*`).
+
 ## 0.9.0
 
 ### Minor Changes
