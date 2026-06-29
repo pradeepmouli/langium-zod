@@ -20,6 +20,25 @@ extraction results across multiple code-generation runs).
 
 The function is synchronous and writes to disk only when `config.outputPath` is set.
 It does not shell out or spawn child processes.
+
+**Config option decision tree:**
+- Does your grammar have recursive rules (e.g. `Expression: ... | left=Expression`)? →
+  no action needed; cycle detection is automatic. If you run a custom pipeline, pass the
+  *full* (unprojected) descriptor set to `detectRecursiveTypes` first.
+- Does your grammar have cross-references (`ref:` properties)? →
+  if you need runtime ref-text validation in a live language server, enable
+  `crossRefValidation: true` and use the emitted `create*Schema()` factories.
+  Otherwise leave it off — unconstrained `ReferenceSchema` is lighter and sufficient for
+  batch/offline validation.
+- Do you want to strip Langium internal bookkeeping fields (`$container`, `$document`,
+  `$cstNode`, etc.)? → set `stripInternals: true`. These fields are never meaningful
+  in a validation context and inflate the generated schema.
+- Do you need form labels and descriptions driven by the grammar? → enable `formMetadata: true`.
+  Only properties whose grammar rule has a JSDoc/grammar comment get a `description`; every
+  property gets a humanized `title` regardless.
+- Are you using Zod 4's `z.looseObject`? → the default `objectStyle: 'loose'` emits
+  `z.looseObject(...)`. Switch to `objectStyle: 'strict'` + `.strict()` on the schema only
+  when you need hard rejection of unknown properties (e.g. strict API request validation).
 ```ts
 generateZodSchemas(config: ZodGeneratorConfig): string
 ```
@@ -275,3 +294,16 @@ generate(opts: GenerateOptions): Promise<void>
 **Returns:** `Promise<void>`
 **Throws:** `Error` when the langium-config.json or grammar file cannot be found, or
   when the config defines no languages.
+```ts
+import { generate } from 'langium-zod';
+import { resolve } from 'node:path';
+
+await generate({
+  langiumConfigPath: resolve(process.cwd(), 'langium-config.json'),
+  config: {
+    outputPath: 'src/generated/zod-schemas.ts',
+    stripInternals: true,
+  },
+});
+// Prints: ✓ Generated Zod schemas → src/generated/zod-schemas.ts
+```
