@@ -4,7 +4,13 @@ import type { AstNode } from 'langium';
 /**
  * True when `node` (a grammar Assignment/Action) contributes on an UNCONDITIONAL
  * path: neither it nor any AbstractElement ancestor up to the ParserRule carries
- * an optional cardinality (`?` or `*`). `+` and absent cardinality are mandatory.
+ * an optional cardinality (`?` or `*`), and no ancestor is a branch of a
+ * multi-branch `Alternatives`. A single branch of an N-way choice is conditional
+ * even without a `?`/`*` cardinality — a valid document may take a different branch
+ * and produce an empty array, which would fail `.min(1)`.
+ *
+ * `UnorderedGroup` (`A & B`) is intentionally NOT treated as optional: every
+ * element in an unordered group must occur, so both contribute mandatorily.
  */
 function isMandatoryOccurrence(node: AstNode): boolean {
   let el: AstNode | undefined = node;
@@ -13,7 +19,12 @@ function isMandatoryOccurrence(node: AstNode): boolean {
     if (GrammarUtils.isOptionalCardinality(element.cardinality, element)) {
       return false;
     }
-    el = el.$container;
+    const parent: AstNode | undefined = el.$container;
+    // One branch of an N-way choice is conditional even without a '?'/'*'.
+    if (parent && GrammarAST.isAlternatives(parent) && parent.elements.length > 1) {
+      return false;
+    }
+    el = parent;
   }
   return true;
 }

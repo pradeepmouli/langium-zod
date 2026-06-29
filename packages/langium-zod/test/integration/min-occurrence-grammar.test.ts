@@ -37,4 +37,31 @@ hidden terminal WS: /\\s+/;`
     const source = generateZodSchemas({ grammar });
     expect(source).not.toMatch(/"items":\s*z\.array\([^)]*\)\.min\(1\)/);
   });
+
+  it('does NOT emit .min(1) when the array is in one branch of an Alternatives', async () => {
+    // `'all' | items+=Item (…)*` — valid docs taking the `'all'` branch have items:[],
+    // which would fail .min(1); must conservatively omit .min(1).
+    const grammar = await grammarFrom(
+      `grammar Test3
+entry Model: 'all' | items+=Item (',' items+=Item)*;
+Item: name=ID;
+terminal ID: /[a-z]+/;
+hidden terminal WS: /\\s+/;`
+    );
+    const source = generateZodSchemas({ grammar });
+    expect(source).not.toMatch(/"items":\s*z\.array\([^)]*\)\.min\(1\)/);
+  });
+
+  it('emits .min(1) for a cross-ref comma-list (refs+=[Item:ID] (\',\' refs+=[Item:ID])*)', async () => {
+    // Proves the RosettaSynonym sources+=[Src] (',' sources+=[Src])* shape works.
+    const grammar = await grammarFrom(
+      `grammar Test4
+entry Model: refs+=[Item:ID] (',' refs+=[Item:ID])*;
+Item: name=ID;
+terminal ID: /[a-z]+/;
+hidden terminal WS: /\\s+/;`
+    );
+    const source = generateZodSchemas({ grammar });
+    expect(source).toMatch(/"refs":\s*z\.array\([^)]*\)\.min\(1\)/);
+  });
 });

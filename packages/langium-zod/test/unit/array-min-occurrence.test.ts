@@ -10,6 +10,9 @@ function assignment(operator: '+=' | '=' | '?=', cardinality: '*' | '+' | '?' | 
 function group(cardinality: '*' | '+' | '?' | undefined, container: unknown) {
   return { $type: 'Group', cardinality, $container: container } as never;
 }
+function alternatives(elementCount: number, container: unknown) {
+  return { $type: 'Alternatives', cardinality: undefined, elements: Array(elementCount).fill({}), $container: container } as never;
+}
 
 describe('arrayMinFromAstNodes', () => {
   it('returns 1 for a mandatory += assignment directly under the rule', () => {
@@ -39,5 +42,12 @@ describe('arrayMinFromAstNodes', () => {
   it('returns undefined for empty/absent astNodes', () => {
     expect(arrayMinFromAstNodes(undefined)).toBeUndefined();
     expect(arrayMinFromAstNodes(new Set())).toBeUndefined();
+  });
+
+  it('returns undefined when the += assignment is inside an Alternatives branch (N-way choice)', () => {
+    // `'all' | items+=Item (…)*` — the assignment sits inside a 2-branch Alternatives;
+    // a document taking the other branch has items:[] which fails .min(1).
+    const alt = alternatives(2, RULE);
+    expect(arrayMinFromAstNodes(new Set([assignment('+=', undefined, alt)]))).toBeUndefined();
   });
 });
