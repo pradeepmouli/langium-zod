@@ -151,6 +151,30 @@ describe('extractor', () => {
     ).toBeUndefined();
   });
 
+  it('sets minItems=1 from astNodes (comma-list idiom, no synthetic cardinality)', () => {
+    const RULE = { $type: 'ParserRule' } as never;
+    const star = { $type: 'Group', cardinality: '*', $container: RULE } as never;
+    const first = { $type: 'Assignment', operator: '+=', cardinality: undefined, $container: RULE } as never;
+    const second = { $type: 'Assignment', operator: '+=', cardinality: undefined, $container: star } as never;
+
+    const descriptors = extractTypeDescriptors({
+      interfaces: [
+        {
+          name: 'Container',
+          properties: [
+            // No `assignment`/`cardinality` — exercises the real-grammar path only.
+            { name: 'sources', type: 'Item', optional: false, astNodes: new Set([first, second]) }
+          ]
+        },
+        { name: 'Item', properties: [{ name: 'name', type: 'ID', optional: false }] }
+      ],
+      unions: []
+    });
+    const container = descriptors.find((e) => e.name === 'Container' && e.kind === 'object');
+    if (!container || container.kind !== 'object') throw new Error('Container descriptor not found');
+    expect(container.properties.find((p) => p.name === 'sources')?.minItems).toBe(1);
+  });
+
   it('creates keyword-enum and regex-enum descriptors from union layouts', () => {
     const descriptors = extractTypeDescriptors({
       interfaces: [],

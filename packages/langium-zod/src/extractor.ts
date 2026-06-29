@@ -11,6 +11,7 @@ import type { ZodKeywordEnumDescriptor, ZodRegexEnumDescriptor } from './types.j
 import type { FilterConfig } from './config.js';
 import { ZodGeneratorError } from './errors.js';
 import { mapPropertyType } from './type-mapper.js';
+import { arrayMinFromAstNodes } from './array-min-occurrence.js';
 
 function toStringSet(value: unknown): Set<string> {
   if (!value) {
@@ -74,11 +75,19 @@ function resolveProperties(
 }
 
 function resolveArrayMinItems(property: PropertyLike): number | undefined {
+  // Real-grammar path: derive the minimum from the originating Assignment nodes'
+  // cardinality chains. Covers `x+=A+` AND the comma-list idiom `x+=A (',' x+=A)*`.
+  const fromGrammar = arrayMinFromAstNodes(property.astNodes);
+  if (fromGrammar !== undefined) {
+    return fromGrammar;
+  }
+
+  // Back-compat: synthetic test fixtures set `assignment`/`cardinality` directly
+  // (no astNodes). Real `collectAst` Property objects never reach this branch.
   const assignmentOperator = property.assignment ?? property.operator ?? '=';
   if (assignmentOperator !== '+=') {
     return undefined;
   }
-
   const typeObj = property.type as
     | { cardinality?: '*' | '+' | '?'; elementType?: { cardinality?: '*' | '+' | '?' } }
     | undefined;
@@ -87,11 +96,9 @@ function resolveArrayMinItems(property: PropertyLike): number | undefined {
     property.cardinality ??
     typeObj?.cardinality ??
     typeObj?.elementType?.cardinality;
-
   if (cardinality === '+') {
     return 1;
   }
-
   return undefined;
 }
 
