@@ -1,5 +1,69 @@
 # langium-zod
 
+## 0.8.3
+
+### Patch Changes
+
+- [#83](https://github.com/pradeepmouli/langium-zod/pull/83) [`5769eae`](https://github.com/pradeepmouli/langium-zod/commit/5769eae3b4cb2c6f7636d5232b230ff87ec60193) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - namespace-ops: `moveXAt` now guards an out-of-range `from` index. Previously
+  `splice(from, 1)` with a negative `from` removed an element from the END of the
+  array (corrupting order) instead of being a no-op. Adds
+  `if (from < 0 || from >= node.<field>.length) return;`, matching the typical
+  consumer reorder contract (out-of-range from → no-op).
+
+## 0.8.2
+
+### Patch Changes
+
+- [#81](https://github.com/pradeepmouli/langium-zod/pull/81) [`fe4f779`](https://github.com/pradeepmouli/langium-zod/commit/fe4f779a4f029ae9bf0478dc97a64a63b42dfa66) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - namespace-ops: config-declared identity `removeX` op. `generateNamespaceOps`
+  accepts `{ identity: Record<elementType, fieldPath> }`; array fields whose
+  element type has an identity path get `removeX(node, item): boolean` matching
+  by that path (single-segment direct, nested segments optional-chained). New CLI
+  flag `--domain-surface-config <path>` loads the `{ identity: {...} }` map.
+
+## 0.8.1
+
+### Patch Changes
+
+- [#79](https://github.com/pradeepmouli/langium-zod/pull/79) [`cc9491f`](https://github.com/pradeepmouli/langium-zod/commit/cc9491f6dff00ef367514f6f4d6d6440c1d724d7) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - namespace-ops: emit a single-barrel `domain.ts` so AST names merge with their ops
+
+  The emitter now produces `import * as ast` + `export * from './ast.js'` and, per
+  namespaced type, a local `export type Foo = ast.Foo` alongside `export namespace Foo`.
+  The type alias merges with the value namespace under one name (type space + value
+  space) and shadows the star-exported interface/reflection-const, so consumers import a
+  single barrel where `Foo` is both the interface type AND the ops namespace
+  (`Foo.addBar(node, ...)`). Function signatures qualify every type through the `ast.*`
+  binding because `export *` re-exports names to consumers without binding them in the
+  module's own lexical scope. Replaces the prior `$`-suffixed aliased-import form.
+
+## 0.8.0
+
+### Minor Changes
+
+- [`6171c9d`](https://github.com/pradeepmouli/langium-zod/commit/6171c9d83dd6cb51b5f05ae7cf33efc4d58e1d8d) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - Fix three bugs in namespace-ops emitter:
+  - Skip non-object referenced types (e.g. ValidID string unions) to avoid unimported names in generated code
+  - Add reserved-word escaping for field names used as parameter names (`function` → `function_`)
+  - Alias all AST type imports with `$` suffix to avoid TS2395 when `export namespace Foo` and `import type { Foo }` coexist in the same file
+
+## 0.7.0
+
+### Minor Changes
+
+- [#75](https://github.com/pradeepmouli/langium-zod/pull/75) [`abb1460`](https://github.com/pradeepmouli/langium-zod/commit/abb14602bef215d87ca9d7ae957348be6e44c9a7) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - - fix(domain): toAst reads renamed fields from the domain key, not the AST key
+  - fix(domain): normalise crossReference reads to plain DomainRef, stripping Langium runtime ref
+  - test(domain): document toAst merge-target drop is a known non-round-trippable limitation
+  - feat(domain): $type-dispatched toAst inverse (drops normalization aliases)
+  - fix(domain): preserve + forward config-file normalizations to the emitter
+
+## 0.6.0
+
+### Minor Changes
+
+- [#68](https://github.com/pradeepmouli/langium-zod/pull/68) [`6f1ee85`](https://github.com/pradeepmouli/langium-zod/commit/6f1ee85cf44197b977202155bd8875843a270ebb) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - - feat(domain): add domain-surface target — emit quirk-free read interfaces, `toDomain` read projections, and field-precise write accessors from a Langium grammar
+  - feat(domain): `generateDomainSchemas` API + `domainOverlays` config for project-specific renames and read-only merges
+  - feat(domain): CLI `--domain` / `--domain-out` flags
+  - fix(domain): type-qualify write-accessor names to avoid export collisions
+  - note: `regexOverrides` are intentionally not applied on the domain path; domain output is documented in the README under "Domain target (experimental)"
+
 ## 0.5.4
 
 ### Patch Changes

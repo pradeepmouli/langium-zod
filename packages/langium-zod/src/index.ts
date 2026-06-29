@@ -21,15 +21,15 @@
  *
  * @category Generation
  */
-export { generateZodSchemas } from './api.js';
+export { generateZodSchemas, generateDomainSchemas, generateNamespaceOps } from './api.js';
 export { DEFAULT_OUTPUT_PATH } from './config.js';
 export type { FilterConfig, ZodGeneratorConfig } from './config.js';
 export { ZodGeneratorError } from './errors.js';
 export { extractTypeDescriptors } from './extractor.js';
 export { generateZodCode } from './generator.js';
 export { detectRecursiveTypes } from './recursion-detector.js';
-export { generate } from './cli.js';
-export type { GenerateOptions, LangiumZodConfig } from './cli.js';
+export { generate } from './generate.js';
+export type { GenerateOptions, LangiumZodConfig } from './generate.js';
 export type {
   AstTypesLike,
   InterfaceTypeLike,
@@ -42,3 +42,9 @@ export type {
 export { DefaultZodSchemaGenerator, ZodSchemaGeneratorModule } from './di.js';
 export type { ZodSchemaGenerator, ZodSchemaGeneratorServices } from './di.js';
 export { zRef } from './ref-utils.js';
+export { generateDomainCode } from './emitters/domain.js';
+export type {
+  DomainGenerationOptions,
+  DomainOverlayConfig,
+  DomainOverlayTypeConfig
+} from './emitters/domain.js';
