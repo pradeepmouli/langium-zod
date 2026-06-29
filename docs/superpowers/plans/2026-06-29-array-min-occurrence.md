@@ -16,7 +16,7 @@
 - **Emission untouched:** do NOT change the two `withArrayMin` blocks in `src/generator.ts` (lines ~126 and ~171) — they already emit `.min(minItems)` for array properties.
 - Imports come from the top-level `langium` package: `import { GrammarAST, GrammarUtils } from 'langium'` and `import type { AstNode } from 'langium'`.
 - Release: a **minor** changeset (`langium-zod`) → `0.10.0`.
-- Commands: test `pnpm --filter langium-zod test` (`vitest run`); type-check `pnpm --filter langium-zod type-check` (`tsc -p tsconfig.json --noEmit`); build `pnpm --filter langium-zod build` (`tsc -p tsconfig.json`).
+- Commands: **tests run from the repo ROOT via `pnpm test`** (`vitest.config.ts` is at the repo root; the package-scoped `pnpm --filter langium-zod test` finds no files — verified Task 1). Single file: `pnpm test -- packages/langium-zod/test/<path>` from root. type-check `pnpm --filter langium-zod type-check` (`tsc -p tsconfig.json --noEmit`); build `pnpm --filter langium-zod build` (`tsc -p tsconfig.json`).
 
 ## File Structure
 
