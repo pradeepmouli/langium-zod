@@ -26,6 +26,12 @@ function isMandatoryOccurrence(node: AstNode): boolean {
     }
     el = parent;
   }
+  // Fragment-defined assignment: the $container chain ends at the fragment rule,
+  // not the use site, so use-site cardinality (e.g. `(Frag)*`) is invisible here.
+  // We cannot prove ≥1 at every caller — conservatively treat as optional.
+  if (el && GrammarAST.isParserRule(el) && el.fragment) {
+    return false;
+  }
   return true;
 }
 

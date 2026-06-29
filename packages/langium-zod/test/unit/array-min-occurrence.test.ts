@@ -50,4 +50,12 @@ describe('arrayMinFromAstNodes', () => {
     const alt = alternatives(2, RULE);
     expect(arrayMinFromAstNodes(new Set([assignment('+=', undefined, alt)]))).toBeUndefined();
   });
+
+  it('returns undefined when the += assignment is inside a fragment rule', () => {
+    // Fragment-defined assignments end their $container chain at the fragment rule,
+    // NOT the (optional) use site — e.g. `(Frag)*` — so use-site cardinality is
+    // invisible. Conservatively treat as optional.
+    const fragmentRule = { $type: 'ParserRule', fragment: true, $container: undefined } as never;
+    expect(arrayMinFromAstNodes(new Set([assignment('+=', undefined, fragmentRule)]))).toBeUndefined();
+  });
 });

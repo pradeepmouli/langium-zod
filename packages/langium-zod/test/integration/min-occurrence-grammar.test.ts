@@ -64,4 +64,20 @@ hidden terminal WS: /\\s+/;`
     const source = generateZodSchemas({ grammar });
     expect(source).toMatch(/"refs":\s*z\.array\([^)]*\)\.min\(1\)/);
   });
+
+  it('does NOT emit .min(1) for += inside a fragment used in an optional context', async () => {
+    // Fragment assignments end their $container chain at the fragment rule, NOT the
+    // use site `(Syns)*` — isMandatoryOccurrence would wrongly return true without the
+    // fragment guard. A parsed Model with no Syns has syns:[], which fails .min(1).
+    const grammar = await grammarFrom(
+      `grammar Test5
+entry Model: name=ID (Syns)*;
+fragment Syns: syns+=Syn;
+Syn: name=ID;
+terminal ID: /[a-z]+/;
+hidden terminal WS: /\\s+/;`
+    );
+    const source = generateZodSchemas({ grammar });
+    expect(source).not.toMatch(/"syns":\s*z\.array\([^)]*\)\.min\(1\)/);
+  });
 });
