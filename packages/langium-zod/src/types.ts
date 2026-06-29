@@ -1,3 +1,5 @@
+import type { AstNode } from 'langium';
+
 /** The subset of JavaScript primitive types that Zod supports natively. */
 export type ZodPrimitive = 'string' | 'number' | 'boolean' | 'bigint';
 
@@ -222,6 +224,13 @@ export interface PropertyLike {
   referenceType?: string;
   /** JSDoc/grammar comment for this property, propagated to form metadata. */
   comment?: string;
+  /**
+   * Originating Langium grammar nodes for this property, from collectAst's
+   * `Property.astNodes` (a `Set<Assignment | Action | TypeAttribute>`). Used to
+   * derive array minimum-occurrence by walking each `+=` Assignment's cardinality
+   * chain. Absent on synthetic (hand-authored) `astTypes` test fixtures.
+   */
+  astNodes?: ReadonlySet<AstNode>;
 }
 
 /**
