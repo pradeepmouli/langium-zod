@@ -19,13 +19,9 @@ must enumerate stub type names explicitly if you want them in the output.
 
 #### include
 
-
-
 **Type:** `string[]`
 
 #### exclude
-
-
 
 **Type:** `string[]`
 
@@ -65,49 +61,33 @@ allows extra properties in validated objects. Set it to `'strict'` to emit
 
 #### grammar
 
-
-
 **Type:** `Grammar | Grammar[]`
 
 #### services
-
-
 
 **Type:** `LangiumCoreServices`
 
 #### outputPath
 
-
-
 **Type:** `string`
 
 #### astTypes
-
-
 
 **Type:** `AstTypesLike`
 
 #### projection
 
-
-
 **Type:** `ProjectionConfig`
 
 #### stripInternals
-
-
 
 **Type:** `boolean`
 
 #### crossRefValidation
 
-
-
 **Type:** `boolean`
 
 #### conformance
-
-
 
 **Type:** `{ astTypesPath?: string; outputPath?: string }`
 
@@ -145,15 +125,61 @@ Controls how object schemas are emitted.
 
 **Type:** `"loose" | "strict"`
 
+#### emitDomain
+
+When true, the CLI also emits the domain surface to `domainOutputPath`.
+
+**Type:** `boolean`
+
+#### domainOnly
+
+When true (CLI `--domain-only`), emit ONLY the domain surface and skip Zod-schema generation.
+
+**Type:** `boolean`
+
+#### domainOutputPath
+
+Output path for the generated domain surface (`domain.ts`).
+
+**Type:** `string`
+
+#### domainOverlays
+
+Project-specific semantic overlays (renames + read-only merges) supplied by the consumer for the domain target.
+
+**Type:** `DomainOverlayConfig`
+
+#### namespaceOps
+
+When true (CLI `--namespace-ops`), also emit the namespace-ops surface alongside other targets.
+
+**Type:** `boolean`
+
+#### namespaceOpsOutputPath
+
+Output path for the generated namespace-ops surface (`domain-ops.ts`).
+
+**Type:** `string`
+
+#### namespaceOpsIdentity
+
+Element-type → identity field path map for namespace-ops `removeX` emission.
+e.g. `{ Attribute: 'name', ChoiceOption: 'typeCall.type.$refText' }`.
+
+**Type:** `Record<string, string>`
+
+#### namespaceOpsRepository
+
+Top-level element types included in the generated domain repository
+(`AnyDomain` union). e.g. `{ elementTypes: ['Data', 'Choice'] }`.
+
+**Type:** `{ elementTypes?: string[] }`
+
 #### include
-
-
 
 **Type:** `string[]`
 
 #### exclude
-
-
 
 **Type:** `string[]`
 
@@ -211,25 +237,17 @@ Explicit output path. Overrides derived path from langium-config.json `out` fiel
 
 #### projection
 
-
-
 **Type:** `ProjectionConfig`
 
 #### stripInternals
-
-
 
 **Type:** `boolean`
 
 #### crossRefValidation
 
-
-
 **Type:** `boolean`
 
 #### conformance
-
-
 
 **Type:** `{ astTypesPath?: string; outputPath?: string }`
 
@@ -267,14 +285,112 @@ Controls how object schemas are emitted.
 
 **Type:** `"loose" | "strict"`
 
+#### emitDomain
+
+When true, the CLI also emits the domain surface to `domainOutputPath`.
+
+**Type:** `boolean`
+
+#### domainOnly
+
+When true (CLI `--domain-only`), emit ONLY the domain surface and skip Zod-schema generation.
+
+**Type:** `boolean`
+
+#### domainOutputPath
+
+Output path for the generated domain surface (`domain.ts`).
+
+**Type:** `string`
+
+#### domainOverlays
+
+Project-specific semantic overlays (renames + read-only merges) supplied by the consumer for the domain target.
+
+**Type:** `DomainOverlayConfig`
+
+#### namespaceOps
+
+When true (CLI `--namespace-ops`), also emit the namespace-ops surface alongside other targets.
+
+**Type:** `boolean`
+
+#### namespaceOpsOutputPath
+
+Output path for the generated namespace-ops surface (`domain-ops.ts`).
+
+**Type:** `string`
+
+#### namespaceOpsIdentity
+
+Element-type → identity field path map for namespace-ops `removeX` emission.
+e.g. `{ Attribute: 'name', ChoiceOption: 'typeCall.type.$refText' }`.
+
+**Type:** `Record<string, string>`
+
+#### namespaceOpsRepository
+
+Top-level element types included in the generated domain repository
+(`AnyDomain` union). e.g. `{ elementTypes: ['Data', 'Choice'] }`.
+
+**Type:** `{ elementTypes?: string[] }`
+
 #### include
-
-
 
 **Type:** `string[]`
 
 #### exclude
 
-
-
 **Type:** `string[]`
+
+## DomainGenerationOptions
+
+### Properties
+
+#### projection
+
+Reuses the Zod projection for `defaults.strip` + per-type `fields`.
+
+**Type:** `ProjectionConfig`
+
+#### stripInternals
+
+Drop `$`-internal metadata fields (`$container`, `$cstNode`, …).
+
+**Type:** `boolean`
+
+#### overlays
+
+**Type:** `DomainOverlayConfig`
+
+#### normalizations
+
+Additive read-only normalizations: each entry appends a canonical alias field to
+every kind that maps to a source field via `from`, reusing the source field's
+projected `tsType` and `readExpr`. No setter is emitted for alias fields.
+
+**Type:** `Record<string, NormalizationConfig>`
+
+## DomainOverlayConfig
+
+### Properties
+
+#### types
+
+**Type:** `Record<string, DomainOverlayTypeConfig>`
+
+## DomainOverlayTypeConfig
+
+### Properties
+
+#### renames
+
+Source field → domain field. Bidirectional: read & write both target the source.
+
+**Type:** `Record<string, string>`
+
+#### merges
+
+Read-only aggregations: concat `from` source arrays into one `to` read field.
+
+**Type:** `{ from: string[]; to: string }[]`

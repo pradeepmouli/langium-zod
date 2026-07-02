@@ -1,105 +1,5 @@
 # Types & Enums
 
-## Configuration
-
-### `FilterConfig`
-Include/exclude filter that controls which Langium type names are emitted
-during schema generation.
-
-When `include` is non-empty, only the listed type names (and any stub types
-they reference) are generated. When `exclude` is non-empty, the listed names
-are skipped. If both are supplied, `exclude` takes precedence for names that
-appear in both lists. An empty (or omitted) `FilterConfig` emits all types.
-**Properties:**
-- `include: string[]` (optional)
-- `exclude: string[]` (optional)
-
-### `ZodGeneratorConfig`
-Full configuration object for generateZodSchemas.
-
-At least one of `grammar` or `astTypes` must be provided:
-- `grammar` — a parsed Langium `Grammar` AST (or array for multi-grammar
-  projects); the extractor calls Langium's `collectAst()` internally.
-- `astTypes` — a pre-built AstTypesLike descriptor, useful when the
-  caller already has the type model and wants to skip grammar parsing.
-
-All other fields are optional and control output path, include/exclude
-filtering, projection, strip-internals, cross-reference validation, conformance
-artifact generation, regex overrides, form metadata emission, and object style.
-**Properties:**
-- `grammar: Grammar | Grammar[]` (optional)
-- `services: LangiumCoreServices` (optional)
-- `outputPath: string` (optional)
-- `astTypes: AstTypesLike` (optional)
-- `projection: ProjectionConfig` (optional)
-- `stripInternals: boolean` (optional)
-- `crossRefValidation: boolean` (optional)
-- `conformance: { astTypesPath?: string; outputPath?: string }` (optional)
-- `regexOverrides: Record<string, string>` (optional) — Override the generated schema for specific type names.
-
-Use this for parser-based datatype rules (e.g. `BigDecimal returns string: ... INT ...`)
-whose structure cannot be expressed as a regex automatically by Langium.
-
-The value is a raw regex pattern string (without surrounding `/` slashes).
-The named type will emit `z.string().regex(new RegExp("..."))` instead of `z.string()`.
-- `formMetadata: boolean` (optional) — When `true`, emit `.meta({ title, description? })` on generated Zod schemas
-using humanized property/type names as `title` and JSDoc comments from the grammar
-as `description`. The `description` field is only included when a JSDoc/grammar
-comment exists for the corresponding type or property. Useful for zod-to-forms
-integrations that derive field labels from metadata.
-- `objectStyle: "loose" | "strict"` (optional) — Controls how object schemas are emitted.
-- `'loose'` (default): emits `z.looseObject(...)` which allows extra properties to
-  pass through unchanged.
-- `'strict'`: emits `z.object(...)` (the standard Zod object). This strips unknown
-  properties by default instead of rejecting them with a validation error. Consumers
-  can call `.strict()` on the emitted schema if they need hard rejection of unknown
-  properties.
-- `include: string[]` (optional)
-- `exclude: string[]` (optional)
-
-## cli
-
-### `GenerateOptions`
-Options accepted by the programmatic generate function.
-
-Allows the core generation logic to be invoked directly from other tools or
-scripts without going through the CLI argument parser.
-**Properties:**
-- `langiumConfigPath: string` — Absolute path to langium-config.json
-- `config: LangiumZodConfig` (optional) — Merged generator config (from user's langium-zod.config.js + CLI flags)
-
-### `LangiumZodConfig`
-User-facing config file shape (langium-zod.config.js / .ts)
-**Properties:**
-- `langiumConfig: string` (optional) — Path to `langium-config.json`. Defaults to `langium-config.json` in cwd.
-Only used when picked up via the CLI; programmatic API ignores it.
-- `outputPath: string` (optional) — Explicit output path. Overrides derived path from langium-config.json `out` field.
-- `projection: ProjectionConfig` (optional)
-- `stripInternals: boolean` (optional)
-- `crossRefValidation: boolean` (optional)
-- `conformance: { astTypesPath?: string; outputPath?: string }` (optional)
-- `regexOverrides: Record<string, string>` (optional) — Override the generated schema for specific type names.
-
-Use this for parser-based datatype rules (e.g. `BigDecimal returns string: ... INT ...`)
-whose structure cannot be expressed as a regex automatically by Langium.
-
-The value is a raw regex pattern string (without surrounding `/` slashes).
-The named type will emit `z.string().regex(new RegExp("..."))` instead of `z.string()`.
-- `formMetadata: boolean` (optional) — When `true`, emit `.meta({ title, description? })` on generated Zod schemas
-using humanized property/type names as `title` and JSDoc comments from the grammar
-as `description`. The `description` field is only included when a JSDoc/grammar
-comment exists for the corresponding type or property. Useful for zod-to-forms
-integrations that derive field labels from metadata.
-- `objectStyle: "loose" | "strict"` (optional) — Controls how object schemas are emitted.
-- `'loose'` (default): emits `z.looseObject(...)` which allows extra properties to
-  pass through unchanged.
-- `'strict'`: emits `z.object(...)` (the standard Zod object). This strips unknown
-  properties by default instead of rejecting them with a validation error. Consumers
-  can call `.strict()` on the emitted schema if they need hard rejection of unknown
-  properties.
-- `include: string[]` (optional)
-- `exclude: string[]` (optional)
-
 ## Analysis
 
 ### `AstTypesLike`
@@ -111,8 +11,8 @@ Using this interface rather than Langium's concrete `AstTypes` class means the
 extractor and tests can supply plain object literals without importing from
 Langium's grammar internals.
 **Properties:**
-- `interfaces: InterfaceTypeLike[]`
-- `unions: UnionTypeLike[]`
+- `interfaces: InterfaceTypeLike[]` — All interface types defined in the grammar, including those inherited via `superTypes`.
+- `unions: UnionTypeLike[]` — All union and datatype-rule types defined in the grammar.
 
 ### `InterfaceTypeLike`
 Duck-typed representation of a Langium `InterfaceType`, carrying only the fields
@@ -120,10 +20,10 @@ that langium-zod needs. Using this abstraction instead of Langium's concrete
 class keeps the extractor decoupled from Langium's internal AST model and makes
 unit testing easier via plain object stubs.
 **Properties:**
-- `name: string`
-- `properties: PropertyLike[]` (optional)
-- `superTypes: string[] | Set<string>` (optional)
-- `comment: string` (optional)
+- `name: string` — Type name as declared in the Langium grammar (e.g. `"Expression"`).
+- `properties: PropertyLike[]` (optional) — Properties declared directly on this interface type.
+- `superTypes: string[] | Set<string>` (optional) — Names of super-types this interface extends, used for property inheritance.
+- `comment: string` (optional) — JSDoc/grammar comment attached to this interface type, if any.
 
 ### `ZodTypeDescriptor`
 Union of all type descriptor shapes that the extractor can produce and the
@@ -164,16 +64,24 @@ type expression, optionality, and array cardinality for a property:
 - `isCrossRef` / `referenceType` — signals that the property holds a Langium
   cross-reference rather than an inline value.
 **Properties:**
-- `name: string`
-- `type: unknown` (optional)
-- `optional: boolean` (optional)
-- `operator: "=" | "+=" | "?="` (optional)
-- `assignment: "=" | "+=" | "?="` (optional)
-- `cardinality: "*" | "+" | "?"` (optional)
-- `ruleCall: { cardinality?: "*" | "+" | "?" }` (optional)
-- `isCrossRef: boolean` (optional)
-- `referenceType: string` (optional)
-- `comment: string` (optional)
+- `name: string` — Property name as declared in the grammar (e.g. `"left"`, `"elements"`).
+- `type: unknown` (optional) — Raw Langium type node for this property, inspected by the type mapper.
+- `optional: boolean` (optional) — `true` when the grammar marks the property optional.
+- `operator: "=" | "+=" | "?="` (optional) — Grammar assignment operator: `=` (single value), `+=` (array append),
+`?=` (boolean flag).
+- `assignment: "=" | "+=" | "?="` (optional) — Alternative assignment field used in some Langium 3.x AST shapes;
+the extractor consults both `operator` and `assignment`.
+- `cardinality: "*" | "+" | "?"` (optional) — Cardinality suffix on the property's type node (`*`, `+`, `?`).
+- `ruleCall: { cardinality?: "*" | "+" | "?" }` (optional) — Cardinality on the rule call inside the type node (Langium 4.x shape);
+the extractor checks this when `cardinality` is absent.
+- `isCrossRef: boolean` (optional) — `true` when the property holds a Langium cross-reference (`ref:` prefix).
+- `referenceType: string` (optional) — Target type name for cross-reference properties (e.g. `"Symbol"` in `ref:Symbol`).
+Used by the extractor to emit `ReferenceSchema` with the correct target type name.
+- `comment: string` (optional) — JSDoc/grammar comment for this property, propagated to form metadata.
+- `astNodes: ReadonlySet<AstNode>` (optional) — Originating Langium grammar nodes for this property, from collectAst's
+`Property.astNodes` (a `Set<Assignment | Action | TypeAttribute>`). Used to
+derive array minimum-occurrence by walking each `+=` Assignment's cardinality
+chain. Absent on synthetic (hand-authored) `astTypes` test fixtures.
 
 ### `UnionTypeLike`
 Duck-typed representation of a Langium `UnionType` (including datatype rules
@@ -182,9 +90,10 @@ raw Langium type-model node and is inspected structurally by the extractor to
 classify the union as a keyword-enum, regex-enum, discriminated-union, or
 primitive alias.
 **Properties:**
-- `name: string`
-- `type: unknown` (optional)
-- `members: string[]` (optional)
+- `name: string` — Union type name as declared in the Langium grammar (e.g. `"Statement"`).
+- `type: unknown` (optional) — Raw Langium type-model node; inspected structurally by the extractor to classify
+the union as a keyword-enum, regex-enum, discriminated-union, or primitive alias.
+- `members: string[]` (optional) — Explicit member type names, when the extractor pre-populates them.
 
 ### `ZodPropertyDescriptor`
 Describes a single property of a Langium interface type after extraction,
@@ -199,11 +108,12 @@ expression.
   cardinality (emits `.min(1)`); `undefined` for all other cases.
 - `comment` — JSDoc/grammar comment to propagate into form metadata, if any.
 **Properties:**
-- `name: string`
-- `zodType: ZodTypeExpression`
-- `optional: boolean`
-- `minItems: number` (optional)
-- `comment: string` (optional)
+- `name: string` — Property name as it appears in the Langium grammar (e.g. `"elements"`).
+- `zodType: ZodTypeExpression` — Resolved Zod type expression for this property.
+- `optional: boolean` — `true` when the grammar uses `?=` assignment or marks the property optional.
+- `minItems: number` (optional) — Minimum array length when the grammar uses `+=` with `+` cardinality;
+`undefined` for all other cases. Emits `.min(1)` on the generated array schema.
+- `comment: string` (optional) — JSDoc/grammar comment to propagate into form metadata, if any.
 
 ## DI
 
