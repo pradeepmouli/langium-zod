@@ -16,10 +16,11 @@ and, per TypeScript export precedence, shadows the corresponding names brought i
 which resolve to the local alias (namespaced types) or the star-exported interface
 (non-namespaced element types) — no `$`-suffixed aliases, no TS2395.
 ```ts
-generateNamespaceOps(types: ZodTypeDescriptor[]): string
+generateNamespaceOps(types: ZodTypeDescriptor[], options?: NamespaceOpsOptions): string
 ```
 **Parameters:**
 - `types: ZodTypeDescriptor[]`
+- `options: NamespaceOpsOptions` (optional)
 **Returns:** `string`
 
 ### `generateDomainCode`
