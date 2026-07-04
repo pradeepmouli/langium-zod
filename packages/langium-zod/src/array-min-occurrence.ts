@@ -2,17 +2,28 @@ import { GrammarAST, GrammarUtils } from 'langium';
 import type { AstNode } from 'langium';
 
 /**
- * True when `node` (a grammar Assignment/Action) contributes on an UNCONDITIONAL
- * path: neither it nor any AbstractElement ancestor up to the ParserRule carries
- * an optional cardinality (`?` or `*`), and no ancestor is a branch of a
- * multi-branch `Alternatives`. A single branch of an N-way choice is conditional
- * even without a `?`/`*` cardinality — a valid document may take a different branch
- * and produce an empty array, which would fail `.min(1)`.
+ * True when `node` (any grammar `AbstractElement` — an `Assignment`/`Action`,
+ * or an `Alternatives` group itself) sits on an UNCONDITIONAL path: neither it
+ * nor any `AbstractElement` ancestor up to the `ParserRule` carries an optional
+ * cardinality (`?` or `*`), and no ancestor is a branch of a multi-branch
+ * `Alternatives`. A single branch of an N-way choice is conditional even
+ * without a `?`/`*` cardinality — a valid document may take a different branch,
+ * so anything that only occurs on ONE branch of a choice cannot be guaranteed.
+ *
+ * Also handles the fragment-boundary case (PR #96): a fragment-defined
+ * element's `$container` chain ends at the fragment `ParserRule`, not the call
+ * site, so use-site cardinality (e.g. `(Frag)*`) is invisible to this walk. We
+ * cannot prove the fragment is unconditionally called from every caller —
+ * conservatively treat fragment-defined content as optional.
  *
  * `UnorderedGroup` (`A & B`) is intentionally NOT treated as optional: every
  * element in an unordered group must occur, so both contribute mandatorily.
+ *
+ * Shared by `array-min-occurrence.ts` (per-assignment `+=` mandatory-occurrence
+ * check) and `non-empty-body.ts` (whole-`Alternatives`-group mandatory-execution
+ * check, called with the `Alternatives` node itself as `node`).
  */
-function isMandatoryOccurrence(node: AstNode): boolean {
+export function isMandatoryOccurrence(node: AstNode): boolean {
   let el: AstNode | undefined = node;
   while (el && GrammarAST.isAbstractElement(el)) {
     const element = el as GrammarAST.AbstractElement;

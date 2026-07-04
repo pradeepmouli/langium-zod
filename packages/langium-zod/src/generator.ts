@@ -117,6 +117,34 @@ function renderMetaSuffix(name: string, comment?: string): string {
   return `.meta({ ${entries.join(', ')} })`;
 }
 
+/**
+ * Renders a `.superRefine` suffix that fails validation when NONE of
+ * `atLeastOneOf`'s properties are populated on the parsed value. Array-typed
+ * properties are checked for non-empty length; all other kinds are checked for
+ * `!== undefined`. The issue message names the missing-alternative set so
+ * z2f-driven forms can surface it directly.
+ */
+function renderAtLeastOneOfSuffix(
+  atLeastOneOf: readonly string[],
+  properties: readonly ZodPropertyDescriptor[]
+): string {
+  const propertyKinds = new Map(properties.map((property) => [property.name, property.zodType.kind]));
+  const checks = atLeastOneOf
+    .map((name) => {
+      const isArray = propertyKinds.get(name) === 'array';
+      const accessor = `val[${JSON.stringify(name)}]`;
+      return isArray ? `${accessor}?.length` : `${accessor} !== undefined`;
+    })
+    .join(' || ');
+  const message = JSON.stringify(`At least one of ${atLeastOneOf.join(', ')} must be present`);
+
+  return `.superRefine((val, ctx) => {
+  if (!(${checks})) {
+    ctx.addIssue({ code: 'custom', message: ${message} });
+  }
+})`;
+}
+
 function renderPropertyExpression(
   property: ZodPropertyDescriptor,
   lazyNames: ReadonlySet<string>,
@@ -128,7 +156,14 @@ function renderPropertyExpression(
       ? `${baseExpression}.min(${property.minItems})`
       : baseExpression;
 
-  const withOptional = property.optional ? `${withArrayMin}.optional()` : withArrayMin;
+  // Langium's assignMandatoryProperties always materialises `[]` for array-typed
+  // properties — an array is never `undefined` in real parse output, regardless
+  // of the grammar's `optional` flag. `.optional()` here would admit a shape the
+  // parser never produces, so array properties skip it unconditionally.
+  const withOptional =
+    property.optional && property.zodType.kind !== 'array'
+      ? `${withArrayMin}.optional()`
+      : withArrayMin;
 
   if (formMetadata && property.name !== '$type') {
     return `${withOptional}${renderMetaSuffix(property.name, property.comment)}`;
@@ -173,7 +208,12 @@ function renderCrossRefPropertyExpression(
       ? `${baseExpression}.min(${property.minItems})`
       : baseExpression;
 
-  const withOptional = property.optional ? `${withArrayMin}.optional()` : withArrayMin;
+  // See renderPropertyExpression: array properties never carry .optional() —
+  // Langium always materialises `[]`, never `undefined`, for array-typed props.
+  const withOptional =
+    property.optional && property.zodType.kind !== 'array'
+      ? `${withArrayMin}.optional()`
+      : withArrayMin;
 
   if (formMetadata && property.name !== '$type') {
     return `${withOptional}${renderMetaSuffix(property.name, property.comment)}`;
@@ -457,6 +497,9 @@ export function generateZodCode(
     const objectMetaSuffix = options.formMetadata
       ? renderMetaSuffix(descriptor.name, descriptor.comment)
       : '';
+    const atLeastOneOfSuffix = descriptor.atLeastOneOf
+      ? renderAtLeastOneOfSuffix(descriptor.atLeastOneOf, descriptor.properties)
+      : '';
 
     if (hasRecursiveGetter) {
       lines.push(`export const ${descriptor.name}Schema = z.${objectMethodName}({`);
@@ -465,7 +508,7 @@ export function generateZodCode(
           `${propertyLine(property, descriptor.name, recursiveTypes, unionNames, options.formMetadata)},`
         );
       }
-      lines.push(`})${objectMetaSuffix};`);
+      lines.push(`})${objectMetaSuffix}${atLeastOneOfSuffix};`);
       lines.push('');
       continue;
     }
@@ -481,7 +524,7 @@ export function generateZodCode(
       ? build.object(objectProperties).loose()
       : build.object(objectProperties);
     lines.push(
-      `export const ${descriptor.name}Schema = ${objectBuilder.text()}${objectMetaSuffix};`
+      `export const ${descriptor.name}Schema = ${objectBuilder.text()}${objectMetaSuffix}${atLeastOneOfSuffix};`
     );
     lines.push('');
   }

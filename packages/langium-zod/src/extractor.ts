@@ -11,6 +11,7 @@ import type { ZodKeywordEnumDescriptor, ZodRegexEnumDescriptor } from './types.j
 import type { FilterConfig } from './config.js';
 import { ZodGeneratorError } from './errors.js';
 import { mapPropertyType } from './type-mapper.js';
+import { resolveAtLeastOneOf } from './non-empty-body.js';
 import { arrayMinFromAstNodes } from './array-min-occurrence.js';
 
 function toStringSet(value: unknown): Set<string> {
@@ -436,7 +437,8 @@ export function extractTypeDescriptors(
       }
     ];
 
-    for (const property of resolveProperties(typeMap, entry.name)) {
+    const resolvedProperties = resolveProperties(typeMap, entry.name);
+    for (const property of resolvedProperties) {
       if (property.name.startsWith('$') && property.name !== '$type') {
         continue;
       }
@@ -459,11 +461,14 @@ export function extractTypeDescriptors(
       });
     }
 
+    const atLeastOneOf = resolveAtLeastOneOf(entry.name, resolvedProperties);
+
     objectDescriptors.push({
       name: entry.name,
       kind: 'object',
       properties,
-      ...(entry.comment ? { comment: entry.comment } : {})
+      ...(entry.comment ? { comment: entry.comment } : {}),
+      ...(atLeastOneOf ? { atLeastOneOf } : {})
     });
   }
 
