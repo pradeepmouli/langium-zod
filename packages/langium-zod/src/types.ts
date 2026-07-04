@@ -70,6 +70,15 @@ export interface ZodObjectTypeDescriptor {
   kind: 'object';
   properties: ZodPropertyDescriptor[];
   comment?: string;
+  /**
+   * Property names forming an "at least one of" constraint: the grammar rule
+   * that produces this type has a top-level `Alternatives` group whose branches
+   * are mutually-exclusive property producers, so the parser can never yield an
+   * instance where NONE of these properties are populated. When present, the
+   * generator emits a `.superRefine` requiring at least one listed property to
+   * be non-empty/defined. See {@link resolveAtLeastOneOf}.
+   */
+  atLeastOneOf?: string[];
 }
 
 export interface ZodUnionTypeDescriptor {

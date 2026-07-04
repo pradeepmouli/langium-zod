@@ -18,6 +18,7 @@ coverage/
 Thumbs.db
 .vscode/
 .idea/
+packages/langium-zod/test/.scratch-non-empty-body/
 docs/html/
 
 # Generated API docs (typedoc)
