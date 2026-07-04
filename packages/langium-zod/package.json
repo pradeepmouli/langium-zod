@@ -49,15 +49,15 @@
   },
   "dependencies": {
     "humanize-string": "^3.1.0",
-    "langium": "^4.2.4",
+    "langium": "^4.3.1",
     "x-to-zod": "^0.10.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^25.9.1",
-    "langium-cli": "^4.2.1",
+    "@types/node": "^26.1.0",
+    "langium-cli": "^4.3.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.9"
   },
   "author": "Pradeep Mouli <pmouli@mac.com> (https://github.com/pradeepmouli)"
 }
