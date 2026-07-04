@@ -20,6 +20,7 @@ Thumbs.db
 .idea/
 packages/langium-zod/test/.scratch-non-empty-body/
 packages/langium-zod/test/.scratch-union-flattening/
+packages/langium-zod/test/.scratch-refined-crossref-factory/
 docs/html/
 
 # Generated API docs (typedoc)
