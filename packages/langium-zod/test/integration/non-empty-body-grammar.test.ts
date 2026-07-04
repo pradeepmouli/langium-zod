@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { EmptyFileSystem, type Grammar } from 'langium';
 import { createLangiumGrammarServices } from 'langium/grammar';
 import { parseHelper } from 'langium/test';
-import { generateZodSchemas } from '../../src/api.js';
+import { generateZodSchemas } from '../../src/index.js';
 
 const services = createLangiumGrammarServices(EmptyFileSystem).grammar;
 const parse = parseHelper<Grammar>(services);
@@ -244,6 +244,63 @@ hidden terminal WS: /\\s+/;`
     const module = await importGenerated(source);
     const modelSchema = module.ModelSchema as SafeParseable;
     expect(modelSchema.safeParse({ $type: 'Model', name: 'x' }).success).toBe(true);
+  });
+
+  it('does NOT emit .superRefine when a branch has a starred assignment that can match zero times (probe b1)', async () => {
+    // ('kw' items+=ID* | value=STRING) — the 'kw' branch's ONLY checkable
+    // assignment is starred, so taking that branch legally produces items:[]
+    // with `value` also absent. A refinement over {items, value} would reject
+    // that legitimately-parsed shape.
+    const grammar = await grammarFrom(
+      `grammar TestB1
+entry Model: ('kw' items+=ID* | value=STRING);
+terminal ID: /[a-z]+/;
+terminal STRING: /"[^"]*"/;
+hidden terminal WS: /\\s+/;`
+    );
+    const source = generateZodSchemas({ grammar });
+    expect(source).not.toMatch(/\.superRefine\(/);
+
+    const module = await importGenerated(source);
+    const modelSchema = module.ModelSchema as SafeParseable;
+    expect(modelSchema.safeParse({ $type: 'Model', items: [] }).success).toBe(true);
+  });
+
+  it('does NOT emit .superRefine when a branch has an optional (?=) assignment as its only checkable one (probe b2)', async () => {
+    // ('kw' value=STRING? | other=ID) — the 'kw' branch's only assignment is
+    // itself optional; taking that branch with `value` unset is legal.
+    const grammar = await grammarFrom(
+      `grammar TestB2
+entry Model: ('kw' value=STRING? | other=ID);
+terminal ID: /[a-z]+/;
+terminal STRING: /"[^"]*"/;
+hidden terminal WS: /\\s+/;`
+    );
+    const source = generateZodSchemas({ grammar });
+    expect(source).not.toMatch(/\.superRefine\(/);
+
+    const module = await importGenerated(source);
+    const modelSchema = module.ModelSchema as SafeParseable;
+    expect(modelSchema.safeParse({ $type: 'Model' }).success).toBe(true);
+  });
+
+  it('does NOT emit .superRefine when a branch-internal assignment is nested inside an optional group (probe b3)', async () => {
+    // ('kw' ('extra' value=STRING)? | other=ID) — `value` sits inside an
+    // optional group WITHIN the 'kw' branch; taking that branch with the
+    // inner group unmatched leaves `value` undefined, which is legal.
+    const grammar = await grammarFrom(
+      `grammar TestB3
+entry Model: ('kw' ('extra' value=STRING)? | other=ID);
+terminal ID: /[a-z]+/;
+terminal STRING: /"[^"]*"/;
+hidden terminal WS: /\\s+/;`
+    );
+    const source = generateZodSchemas({ grammar });
+    expect(source).not.toMatch(/\.superRefine\(/);
+
+    const module = await importGenerated(source);
+    const modelSchema = module.ModelSchema as SafeParseable;
+    expect(modelSchema.safeParse({ $type: 'Model' }).success).toBe(true);
   });
 
   it('does NOT emit .superRefine for a type-inferring alternation (NestedAnnotationPath shape)', async () => {

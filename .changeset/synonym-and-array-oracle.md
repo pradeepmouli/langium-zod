@@ -16,14 +16,19 @@ Make generated Zod schemas an honest validity oracle for two remaining gaps:
   group itself or an ancestor element, a branch position inside an OUTER
   multi-way `Alternatives`, or a fragment-rule call-site boundary all skip the
   refinement entirely (an optional, starred, nested, or optionally-called
-  alternation may legally execute zero times). Boolean flag assignments (`?=`)
-  are excluded from the check (Langium always serialises them as `false` when
-  absent, so a branch containing only a flag can legally produce zero checkable
-  properties — the whole refinement is dropped when it would otherwise reject a
-  valid empty-except-flag branch). Branches whose subtree infers a DIFFERENT
-  type via `{infer Type.x=current}` (Langium's tree-rebuilding left-recursion
-  idiom, e.g. path-vs-deep-path selection) are also excluded — that shape is a
-  type-union rule, not an intra-type alternation.
+  alternation may legally execute zero times). Each branch's OWN candidate
+  assignment must also be unconditional WITHIN the branch — a branch entered
+  via a leading keyword whose only checkable assignment is starred, optional,
+  or nested inside an optional sub-group does not guarantee that assignment
+  fires, so it is excluded from the "at least one" set the same way a
+  keyword-only branch is. Boolean flag assignments (`?=`) are excluded from the
+  check (Langium always serialises them as `false` when absent, so a branch
+  containing only a flag can legally produce zero checkable properties — the
+  whole refinement is dropped when it would otherwise reject a valid
+  empty-except-flag branch). Branches whose subtree infers a DIFFERENT type via
+  `{infer Type.x=current}` (Langium's tree-rebuilding left-recursion idiom, e.g.
+  path-vs-deep-path selection) are also excluded — that shape is a type-union
+  rule, not an intra-type alternation.
 - **Array `.optional()` cleanup**: array-typed properties never emit
   `.optional()` regardless of the grammar's optional flag. Langium's
   `assignMandatoryProperties` always materialises `[]` for array-typed

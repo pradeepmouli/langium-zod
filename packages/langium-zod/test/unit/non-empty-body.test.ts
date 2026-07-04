@@ -20,8 +20,13 @@ interface Node {
   fragment?: boolean;
 }
 
-function assignment(name: string, operator: '=' | '+=' | '?=', container: unknown): Node {
-  return { $type: 'Assignment', feature: name, operator, $container: container } as never;
+function assignment(
+  name: string,
+  operator: '=' | '+=' | '?=',
+  container: unknown,
+  cardinality?: '?' | '*' | '+'
+): Node {
+  return { $type: 'Assignment', feature: name, operator, cardinality, $container: container } as never;
 }
 
 function action(inferredTypeName: string, container: unknown): Node {
@@ -290,6 +295,56 @@ describe('resolveAtLeastOneOf', () => {
     );
 
     const properties = [prop('a', [a]), prop('b', [b])];
+    expect(resolveAtLeastOneOf('Test', properties)).toBeUndefined();
+  });
+
+  it('returns undefined when a branch\'s only checkable assignment is starred (probe b1)', () => {
+    // ('kw' items+=ID* | value=STRING) — the 'kw' branch's only assignment is
+    // starred; taking that branch legally produces items:[] with no other
+    // checkable property populated.
+    const items = assignment('items', '+=', undefined, '*');
+    const value = assignment('value', '=', undefined);
+    alternatives([(c) => assignmentGroup(items, c), (c) => assignmentGroup(value, c)], RULE);
+
+    const properties = [prop('items', [items]), prop('value', [value])];
+    expect(resolveAtLeastOneOf('Test', properties)).toBeUndefined();
+  });
+
+  it('returns undefined when a branch\'s only checkable assignment is itself optional (probe b2)', () => {
+    // ('kw' value=STRING? | other=ID) — the 'kw' branch's only assignment
+    // carries its own `?` cardinality; taking that branch with it unset is legal.
+    const value = assignment('value', '=', undefined, '?');
+    const other = assignment('other', '=', undefined);
+    alternatives([(c) => assignmentGroup(value, c), (c) => assignmentGroup(other, c)], RULE);
+
+    const properties = [prop('value', [value]), prop('other', [other])];
+    expect(resolveAtLeastOneOf('Test', properties)).toBeUndefined();
+  });
+
+  it('returns undefined when a branch-internal assignment is nested inside an optional group WITHIN the branch (probe b3)', () => {
+    // ('kw' ('extra' value=STRING)? | other=ID) — `value` sits inside an
+    // optional group nested inside the 'kw' branch itself (not the outer
+    // Alternatives); the inner group's own cardinality disqualifies it.
+    const value = assignment('value', '=', undefined);
+    const other = assignment('other', '=', undefined);
+
+    alternatives(
+      [
+        (c) => {
+          const branchRoot: Node = { $type: 'Group', elements: [], $container: c };
+          const innerGroup = optionalGroup('?', (gc) => {
+            value.$container = gc;
+            return value;
+          }, branchRoot);
+          branchRoot.elements = [innerGroup];
+          return branchRoot;
+        },
+        (c) => assignmentGroup(other, c)
+      ],
+      RULE
+    );
+
+    const properties = [prop('value', [value]), prop('other', [other])];
     expect(resolveAtLeastOneOf('Test', properties)).toBeUndefined();
   });
 });

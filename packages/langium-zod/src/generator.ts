@@ -139,9 +139,9 @@ function renderAtLeastOneOfSuffix(
   const message = JSON.stringify(`At least one of ${atLeastOneOf.join(', ')} must be present`);
 
   return `.superRefine((val, ctx) => {
-	if (!(${checks})) {
-		ctx.addIssue({ code: 'custom', message: ${message} });
-	}
+  if (!(${checks})) {
+    ctx.addIssue({ code: 'custom', message: ${message} });
+  }
 })`;
 }
 

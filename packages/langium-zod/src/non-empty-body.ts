@@ -1,4 +1,4 @@
-import { GrammarAST } from 'langium';
+import { GrammarAST, GrammarUtils } from 'langium';
 import type { AstNode } from 'langium';
 import type { PropertyLike } from './types.js';
 import { isMandatoryOccurrence } from './array-min-occurrence.js';
@@ -37,15 +37,26 @@ function findEnclosingBranch(
 
 /**
  * Determines whether a grammar `AbstractElement` subtree contains at least one
- * CHECKABLE `Assignment`/`Action` — i.e. one whose presence in the parsed value
- * can distinguish "this branch was taken" from "nothing populated". Boolean
- * flag assignments (`?=`) are EXCLUDED: Langium always serialises them as
- * `false` when absent, so a branch containing only a flag (e.g.
- * `default?='default' 'to'` with no other assignment) can still legally
- * produce an object where every checkable property is undefined — exactly
- * like a bare keyword-only branch (e.g. `'meta'` alone).
+ * CHECKABLE `Assignment`/`Action` that is MANDATORY WITHIN THE BRANCH — i.e.
+ * one guaranteed to occur whenever the branch is taken at all, whose presence
+ * in the parsed value can therefore distinguish "this branch was taken" from
+ * "nothing populated".
+ *
+ * Descends the subtree tracking cardinality along the way: any `?`/`*` on an
+ * element ANYWHERE between the branch root and a candidate assignment means
+ * that assignment is NOT guaranteed — the branch can be taken (e.g. via a
+ * leading keyword) while the optional/starred sub-element matches zero times,
+ * producing a parser-valid object where that assignment never fires. Such an
+ * assignment does not count, exactly like a bare keyword-only branch.
+ *
+ * Boolean flag assignments (`?=`) are EXCLUDED regardless of cardinality:
+ * Langium always serialises them as `false` when absent, so their presence
+ * can never distinguish an empty body from a populated one.
  */
 function branchHasCheckableAssignment(element: GrammarAST.AbstractElement): boolean {
+  if (GrammarUtils.isOptionalCardinality(element.cardinality, element)) {
+    return false;
+  }
   if (GrammarAST.isAssignment(element)) {
     return element.operator !== '?=';
   }
