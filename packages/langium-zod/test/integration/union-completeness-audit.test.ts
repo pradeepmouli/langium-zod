@@ -137,6 +137,15 @@ hidden terminal WS: /\\s+/;`
       if (missing.length > 0) {
         mismatches.push(`${unionName}: missing [${missing.join(', ')}]`);
       }
+      // Extras direction: the generated union must not contain MORE members
+      // than the independently-computed closure either — an over-flattening
+      // regression (e.g. a future change that widens the recursion and pulls
+      // in unrelated types) would silently accept parser output that should
+      // be rejected, the opposite failure mode from the one this bug fixed.
+      const extra = [...actualMembers].filter((name) => !expectedClosure.has(name));
+      if (extra.length > 0) {
+        mismatches.push(`${unionName}: extra [${extra.join(', ')}]`);
+      }
     }
 
     expect(mismatches).toEqual([]);
@@ -152,6 +161,13 @@ hidden terminal WS: /\\s+/;`
   });
 });
 
+// Deliberately reimplements the same raw-shape parsing as extractor.ts's
+// private `extractUnionMembers` (rather than importing it) so this audit
+// stays independent of the code under test. If `collectAst()`'s raw union
+// shape ever changes (e.g. a future Langium version), BOTH this copy and
+// `extractUnionMembers` need updating together, or this audit will silently
+// stop exercising anything (every union would report an empty closure and
+// be skipped, not fail loudly) — keep them in sync.
 function extractRawMemberNames(unionType: { members?: unknown; type?: unknown }): string[] {
   if (Array.isArray(unionType.members)) {
     return unionType.members.filter((m): m is string => typeof m === 'string');
