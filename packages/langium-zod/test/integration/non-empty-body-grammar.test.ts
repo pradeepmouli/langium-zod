@@ -163,6 +163,89 @@ hidden terminal WS: /\\s+/;`
     expect(modelSchema.safeParse({ $type: 'Model', empty: true }).success).toBe(true);
   });
 
+  it('does NOT emit .superRefine when the alternation is wrapped in an optional group (probe a1)', async () => {
+    // 'kw' name=ID (a=STRING | b=INT)? — the optional GROUP wrapping the
+    // alternation means a document may take it zero times, producing
+    // {$type, name} with neither `a` nor `b` populated. A refinement here
+    // would reject that legitimately-parsed shape.
+    const grammar = await grammarFrom(
+      `grammar TestA1
+entry Model: 'kw' name=ID (a=STRING | b=INT)?;
+terminal ID: /[a-z]+/;
+terminal STRING: /"[^"]*"/;
+terminal INT returns number: /[0-9]+/;
+hidden terminal WS: /\\s+/;`
+    );
+    const source = generateZodSchemas({ grammar });
+    expect(source).not.toMatch(/\.superRefine\(/);
+
+    const module = await importGenerated(source);
+    const modelSchema = module.ModelSchema as SafeParseable;
+    // Taking the optional group zero times: neither `a` nor `b` present.
+    expect(modelSchema.safeParse({ $type: 'Model', name: 'x' }).success).toBe(true);
+  });
+
+  it('does NOT emit .superRefine when the alternation is starred (probe a2)', async () => {
+    // ('add' adds+=S | 'rem' rems+=S)* — zero iterations is legal; a document
+    // with `name` only and empty `adds`/`rems` arrays must remain valid.
+    const grammar = await grammarFrom(
+      `grammar TestA2
+entry Model: name=ID ('add' adds+=ID | 'rem' rems+=ID)*;
+terminal ID: /[a-z]+/;
+hidden terminal WS: /\\s+/;`
+    );
+    const source = generateZodSchemas({ grammar });
+    expect(source).not.toMatch(/\.superRefine\(/);
+
+    const module = await importGenerated(source);
+    const modelSchema = module.ModelSchema as SafeParseable;
+    expect(
+      modelSchema.safeParse({ $type: 'Model', name: 'x', adds: [], rems: [] }).success
+    ).toBe(true);
+  });
+
+  it('does NOT emit .superRefine for a mandatory alternation nested inside an optional group (probe a3)', async () => {
+    // ('with' (a=STRING | b=INT))? — the alternation itself has no cardinality,
+    // but its enclosing Group is optional, so zero-occurrence is still legal.
+    const grammar = await grammarFrom(
+      `grammar TestA3
+entry Model: name=ID ('with' (a=STRING | b=INT))?;
+terminal ID: /[a-z]+/;
+terminal STRING: /"[^"]*"/;
+terminal INT returns number: /[0-9]+/;
+hidden terminal WS: /\\s+/;`
+    );
+    const source = generateZodSchemas({ grammar });
+    expect(source).not.toMatch(/\.superRefine\(/);
+
+    const module = await importGenerated(source);
+    const modelSchema = module.ModelSchema as SafeParseable;
+    expect(modelSchema.safeParse({ $type: 'Model', name: 'x' }).success).toBe(true);
+  });
+
+  it('does NOT emit .superRefine for a mandatory alternation inside an optionally-called fragment (probe d2)', async () => {
+    // Body? where fragment Body: (a=STRING | b=INT) — the fragment's OWN
+    // content is a mandatory 2-way alternation, but the CALL SITE is optional
+    // (`Body?`), and the fragment's $container chain ends at the fragment
+    // rule itself (invisible to the call-site cardinality) — same
+    // fragment-boundary class array-min-occurrence handles (PR #96).
+    const grammar = await grammarFrom(
+      `grammar TestD2
+entry Model: name=ID (Body)?;
+fragment Body: (a=STRING | b=INT);
+terminal ID: /[a-z]+/;
+terminal STRING: /"[^"]*"/;
+terminal INT returns number: /[0-9]+/;
+hidden terminal WS: /\\s+/;`
+    );
+    const source = generateZodSchemas({ grammar });
+    expect(source).not.toMatch(/\.superRefine\(/);
+
+    const module = await importGenerated(source);
+    const modelSchema = module.ModelSchema as SafeParseable;
+    expect(modelSchema.safeParse({ $type: 'Model', name: 'x' }).success).toBe(true);
+  });
+
   it('does NOT emit .superRefine for a type-inferring alternation (NestedAnnotationPath shape)', async () => {
     // Mirrors rune's NestedAnnotationPath: an Alternatives whose branches infer
     // DIFFERENT types (Path vs DeepPath) via `{infer Type.feature=current}` — a

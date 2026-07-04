@@ -16,6 +16,8 @@ interface Node {
   elements?: Node[];
   operator?: string;
   inferredType?: { name: string };
+  cardinality?: '?' | '*' | '+';
+  fragment?: boolean;
 }
 
 function assignment(name: string, operator: '=' | '+=' | '?=', container: unknown): Node {
@@ -38,10 +40,27 @@ function keywordGroup(container: unknown): Node {
   return { $type: 'Group', elements: [{ $type: 'Keyword' } as Node], $container: container };
 }
 
-function alternatives(branchFactories: Array<(container: Node) => Node>, container: unknown): Node {
-  const alt: Node = { $type: 'Alternatives', elements: [], $container: container };
+function alternatives(
+  branchFactories: Array<(container: Node) => Node>,
+  container: unknown,
+  cardinality?: '?' | '*' | '+'
+): Node {
+  const alt: Node = { $type: 'Alternatives', elements: [], $container: container, cardinality };
   alt.elements = branchFactories.map((factory) => factory(alt));
   return alt;
+}
+
+/** A Group wrapping a single child, with its own optional/starred cardinality. */
+function optionalGroup(cardinality: '?' | '*', childFactory: (container: Node) => Node, container: unknown): Node {
+  const g: Node = { $type: 'Group', elements: [], cardinality, $container: container };
+  g.elements = [childFactory(g)];
+  return g;
+}
+
+/** A fragment ParserRule — the $container chain for its content ends HERE,
+ * making use-site (call-site) cardinality invisible to the analysis. */
+function fragmentRule(): Node {
+  return { $type: 'ParserRule', fragment: true } as never;
 }
 
 function prop(name: string, astNodes: Node[]): PropertyLike {
@@ -220,5 +239,57 @@ describe('resolveAtLeastOneOf', () => {
     ];
 
     expect(resolveAtLeastOneOf('AnnotationDeepPath', properties)).toBeUndefined();
+  });
+
+  it('returns undefined when the Alternatives itself carries an optional (?) cardinality (probe a1)', () => {
+    // (a=STRING | b=INT)? — the alternation may execute zero times.
+    const a = assignment('a', '=', undefined);
+    const b = assignment('b', '=', undefined);
+    alternatives([(c) => assignmentGroup(a, c), (c) => assignmentGroup(b, c)], RULE, '?');
+
+    const properties = [prop('a', [a]), prop('b', [b])];
+    expect(resolveAtLeastOneOf('Test', properties)).toBeUndefined();
+  });
+
+  it('returns undefined when the Alternatives itself is starred (probe a2)', () => {
+    // ('add' adds+=S | 'rem' rems+=S)* — zero iterations is legal.
+    const adds = assignment('adds', '+=', undefined);
+    const rems = assignment('rems', '+=', undefined);
+    alternatives([(c) => assignmentGroup(adds, c), (c) => assignmentGroup(rems, c)], RULE, '*');
+
+    const properties = [prop('adds', [adds]), prop('rems', [rems])];
+    expect(resolveAtLeastOneOf('Test', properties)).toBeUndefined();
+  });
+
+  it('returns undefined when a mandatory Alternatives is nested inside an optional ancestor Group (probe a3)', () => {
+    // ('with' (a=STRING | b=INT))? — the alternation has no cardinality of its
+    // own, but its enclosing Group is optional.
+    const a = assignment('a', '=', undefined);
+    const b = assignment('b', '=', undefined);
+    optionalGroup(
+      '?',
+      (groupContainer) =>
+        alternatives([(c) => assignmentGroup(a, c), (c) => assignmentGroup(b, c)], groupContainer),
+      RULE
+    );
+
+    const properties = [prop('a', [a]), prop('b', [b])];
+    expect(resolveAtLeastOneOf('Test', properties)).toBeUndefined();
+  });
+
+  it('returns undefined when the Alternatives is defined inside a fragment rule (probe d2)', () => {
+    // Body? where fragment Body: (a=STRING | b=INT) — the fragment's content
+    // is a mandatory alternation, but the CALL SITE (Body?) is optional; the
+    // fragment's $container chain ends at the fragment ParserRule itself,
+    // invisible to use-site cardinality (same class PR #96 fixed for array-min).
+    const a = assignment('a', '=', undefined);
+    const b = assignment('b', '=', undefined);
+    alternatives(
+      [(c) => assignmentGroup(a, c), (c) => assignmentGroup(b, c)],
+      fragmentRule()
+    );
+
+    const properties = [prop('a', [a]), prop('b', [b])];
+    expect(resolveAtLeastOneOf('Test', properties)).toBeUndefined();
   });
 });

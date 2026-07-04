@@ -1,6 +1,7 @@
 import { GrammarAST } from 'langium';
 import type { AstNode } from 'langium';
 import type { PropertyLike } from './types.js';
+import { isMandatoryOccurrence } from './array-min-occurrence.js';
 
 /**
  * Walks up from a grammar Assignment/Action node to find the nearest enclosing
@@ -89,6 +90,13 @@ function branchInferredTypeName(element: GrammarAST.AbstractElement): string | u
  * Returns the flat union of branch-introduced property names (the "at least one
  * of" set) when:
  * - the rule has an `Alternatives` ancestor common to its properties' `astNodes`,
+ * - that `Alternatives` is GUARANTEED TO EXECUTE — no `?`/`*` cardinality on the
+ *   group itself or any ancestor element, no enclosing branch of an OUTER
+ *   multi-way `Alternatives`, and no fragment-rule call-site boundary (an
+ *   optional/starred/nested/optionally-called alternation may execute zero
+ *   times, producing an object where every branch-introduced property is
+ *   absent — the refinement would wrongly reject that legitimately-parsed
+ *   shape),
  * - every branch of that `Alternatives` contains at least one CHECKABLE
  *   (non-flag) `Assignment`/`Action` (a bare keyword-only branch, or a branch
  *   containing only a boolean flag, means the object can legally have zero of
@@ -109,8 +117,8 @@ function branchInferredTypeName(element: GrammarAST.AbstractElement): string | u
  * irrelevant to this type's structure and is skipped.
  *
  * Returns `undefined` when the rule has no top-level `Alternatives` describing
- * its OWN type, when any branch is keyword-only, or when a property spans
- * every branch.
+ * its OWN type, when that `Alternatives` is not guaranteed to execute, when any
+ * branch is keyword-only, or when a property spans every branch.
  */
 export function resolveAtLeastOneOf(
   typeName: string,
@@ -152,6 +160,19 @@ export function resolveAtLeastOneOf(
   }
 
   if (!sharedAlternatives || sharedAlternatives.elements.length < 2) {
+    return undefined;
+  }
+
+  // The Alternatives group itself must be GUARANTEED TO EXECUTE — reject any
+  // `?`/`*` cardinality on the group or any ancestor element up to the
+  // ParserRule (an optional/starred alternation may execute zero times,
+  // producing an object where every branch-introduced property is absent —
+  // exactly the shape the refinement would wrongly reject), one branch of an
+  // OUTER multi-way Alternatives (nested alternation, same reasoning), and any
+  // fragment-rule boundary (the call site's cardinality is invisible from
+  // here — conservatively treat as optional, mirroring array-min-occurrence's
+  // fragment handling).
+  if (!isMandatoryOccurrence(sharedAlternatives)) {
     return undefined;
   }
 
