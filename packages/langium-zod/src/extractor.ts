@@ -153,6 +153,81 @@ function extractUnionMembers(unionType: UnionTypeLike): string[] {
 }
 
 /**
+ * Resolves a union type's members to the transitive set of INTERFACE names it
+ * covers, flattening any member that is itself a union (rather than a leaf
+ * interface) into that union's own members, recursively.
+ *
+ * This is the ground-truth membership question for a discriminated-union
+ * schema: `astTypes.unions` is Langium's own `collectAst()` output, so a
+ * union member that names another union entry (not an interface) is not
+ * dropped — its transitive interface members are pulled in instead. Covers
+ * Langium grammar rules like:
+ * ```
+ * PrimaryExpression infers Expression: A | LiteralRule | ...
+ * LiteralRule infers Literal: BoolLiteral | StringLiteral | ...
+ * ```
+ * where `Expression`'s discriminated union must include `BoolLiteral` and
+ * `StringLiteral` (and every other transitive member of `Literal`), not just
+ * `Literal` itself (which is never a `$type` any real AST node carries — only
+ * its leaf members are).
+ *
+ * @param entry - The union whose transitive interface membership to resolve.
+ * @param unionMap - All unions in the grammar, keyed by name, for recursive lookups.
+ * @param includedInterfaceNames - Names already confirmed to be emitted object
+ *   (interface) descriptors; only these count as leaf members.
+ * @param visiting - Internal recursion guard against a cyclic union graph
+ *   (e.g. two unions that transitively reference each other); never populate
+ *   this on the initial call.
+ * @returns The flattened, order-preserving, deduplicated list of interface
+ *   names reachable from `entry`.
+ */
+function resolveTransitiveInterfaceMembers(
+  entry: UnionTypeLike,
+  unionMap: Map<string, UnionTypeLike>,
+  includedInterfaceNames: ReadonlySet<string>,
+  visiting: Set<string> = new Set()
+): string[] {
+  if (visiting.has(entry.name)) {
+    // Cyclic union reference — already being resolved higher in the call
+    // stack; stop here rather than looping forever.
+    return [];
+  }
+  visiting.add(entry.name);
+
+  const resolved: string[] = [];
+  const seen = new Set<string>();
+  for (const memberName of extractUnionMembers(entry)) {
+    if (includedInterfaceNames.has(memberName)) {
+      if (!seen.has(memberName)) {
+        seen.add(memberName);
+        resolved.push(memberName);
+      }
+      continue;
+    }
+
+    const nestedUnion = unionMap.get(memberName);
+    if (nestedUnion) {
+      for (const transitive of resolveTransitiveInterfaceMembers(
+        nestedUnion,
+        unionMap,
+        includedInterfaceNames,
+        visiting
+      )) {
+        if (!seen.has(transitive)) {
+          seen.add(transitive);
+          resolved.push(transitive);
+        }
+      }
+    }
+    // Otherwise: memberName is neither an emitted interface nor a known union
+    // (e.g. a filtered-out type, or a datatype rule handled elsewhere) — skip.
+  }
+
+  visiting.delete(entry.name);
+  return resolved;
+}
+
+/**
  * Resolve keyword literals for a Langium keyword enum rule
  * (e.g. `CardinalityModifier returns string: 'any' | 'all'`).
  * Returns the keyword strings when all union members are string literals, undefined otherwise.
@@ -481,8 +556,11 @@ export function extractTypeDescriptors(
       continue;
     }
 
-    const allMembers = extractUnionMembers(entry);
-    const filteredMembers = allMembers.filter((member) => includedInterfaceNames.has(member));
+    const filteredMembers = resolveTransitiveInterfaceMembers(
+      entry,
+      unionMap,
+      includedInterfaceNames
+    );
 
     if (filteredMembers.length > 0) {
       // Discriminated union of known interface types
@@ -520,7 +598,11 @@ export function extractTypeDescriptors(
               primitive
             });
           }
-          // Otherwise silently skip (e.g. unions whose members are other unions, handled below)
+          // Otherwise silently skip — not a discriminated union, keyword-enum,
+          // regex-enum, or primitive alias (e.g. an all-union-member union
+          // whose members were themselves not interfaces AND resolved to
+          // nothing; unions-of-unions are flattened above via
+          // resolveTransitiveInterfaceMembers, so this branch is now rare).
         }
       }
     }

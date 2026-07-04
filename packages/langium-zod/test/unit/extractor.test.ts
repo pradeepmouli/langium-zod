@@ -232,6 +232,81 @@ describe('extractor', () => {
     expect(person.properties.find((p) => p.name === 'age')?.comment).toBeUndefined();
   });
 
+  it('flattens a union-of-unions member into its transitive interface members (RosettaExpression/RosettaLiteral shape)', () => {
+    // Mirrors rune's PrimaryExpression infers RosettaExpression: Other | LiteralRule
+    // where LiteralRule infers RosettaLiteral: A | B — a union whose OWN member list
+    // includes another UNION's name (not a leaf interface). Expression's discriminated
+    // union must include A and B (Literal's transitive members), not drop them.
+    const descriptors = extractTypeDescriptors({
+      interfaces: [
+        { name: 'Other', properties: [] },
+        { name: 'A', properties: [{ name: 'value', type: 'STRING', optional: false }] },
+        { name: 'B', properties: [{ name: 'value', type: 'ID', optional: false }] }
+      ],
+      unions: [
+        { name: 'Expression', members: ['Other', 'Literal'] },
+        { name: 'Literal', members: ['A', 'B'] }
+      ]
+    });
+
+    const expressionUnion = descriptors.find((entry) => entry.name === 'Expression');
+    expect(expressionUnion).toEqual({
+      name: 'Expression',
+      kind: 'union',
+      members: ['Other', 'A', 'B'],
+      discriminator: '$type'
+    });
+
+    // Literal itself is STILL emitted as its own discriminated union (both
+    // schemas coexist; Expression's flattening does not remove Literal).
+    const literalUnion = descriptors.find((entry) => entry.name === 'Literal');
+    expect(literalUnion).toEqual({
+      name: 'Literal',
+      kind: 'union',
+      members: ['A', 'B'],
+      discriminator: '$type'
+    });
+  });
+
+  it('flattens transitively through more than one level of union nesting', () => {
+    const descriptors = extractTypeDescriptors({
+      interfaces: [{ name: 'Leaf', properties: [] }],
+      unions: [
+        { name: 'Top', members: ['Middle'] },
+        { name: 'Middle', members: ['Leaf'] }
+      ]
+    });
+
+    const topUnion = descriptors.find((entry) => entry.name === 'Top');
+    expect(topUnion).toEqual({
+      name: 'Top',
+      kind: 'union',
+      members: ['Leaf'],
+      discriminator: '$type'
+    });
+  });
+
+  it('does not infinite-loop on a cyclic union reference', () => {
+    // Pathological grammar shape (two unions transitively referencing each
+    // other) — should resolve without hanging, dropping the cyclic branch's
+    // contribution rather than recursing forever.
+    const descriptors = extractTypeDescriptors({
+      interfaces: [{ name: 'Leaf', properties: [] }],
+      unions: [
+        { name: 'CycleA', members: ['CycleB', 'Leaf'] },
+        { name: 'CycleB', members: ['CycleA'] }
+      ]
+    });
+
+    const cycleAUnion = descriptors.find((entry) => entry.name === 'CycleA');
+    expect(cycleAUnion).toEqual({
+      name: 'CycleA',
+      kind: 'union',
+      members: ['Leaf'],
+      discriminator: '$type'
+    });
+  });
+
   it('deduplicates keyword-enum values', () => {
     const descriptors = extractTypeDescriptors({
       interfaces: [],

@@ -19,6 +19,7 @@ Thumbs.db
 .vscode/
 .idea/
 packages/langium-zod/test/.scratch-non-empty-body/
+packages/langium-zod/test/.scratch-union-flattening/
 docs/html/
 
 # Generated API docs (typedoc)
