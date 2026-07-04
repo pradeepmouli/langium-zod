@@ -600,7 +600,12 @@ export function generateZodCode(
       lines.push(
         `export function create${descriptor.name}Schema(refs: ${descriptor.name}SchemaRefs = {}) {`
       );
-      lines.push(`	return ${descriptor.name}Schema.extend({`);
+      // safeExtend (not extend): the base schema may carry a `.superRefine()`
+      // (e.g. an at-least-one-of constraint) — plain `.extend()` throws when
+      // overriding a key that already exists on a refined schema, and this
+      // factory always overrides cross-reference-bearing keys. safeExtend is
+      // a drop-in (same shape-merge semantics) that simply permits the overlap.
+      lines.push(`	return ${descriptor.name}Schema.safeExtend({`);
       for (const property of crossRefProperties) {
         const expression = renderCrossRefPropertyExpression(property, options.formMetadata);
         lines.push(`		"${property.name}": ${expression},`);
