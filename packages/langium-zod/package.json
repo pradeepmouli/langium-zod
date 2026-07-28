@@ -42,10 +42,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsgo -p tsconfig.json",
+    "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "test": "vitest run",
-    "type-check": "tsgo --noEmit -p tsconfig.json"
+    "type-check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "humanize-string": "^3.1.0",
@@ -54,10 +54,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^25.9.1",
-    "@typescript/native-preview": "beta",
-    "langium-cli": "^4.2.1",
-    "typescript": "^6.0.3",
+    "@types/node": "^25.9.1",    "langium-cli": "^4.2.1",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.7"
   },
   "author": "Pradeep Mouli <pmouli@mac.com> (https://github.com/pradeepmouli)"
