@@ -56,7 +56,7 @@
   "devDependencies": {
     "langium-cli": "^4.2.1",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.8"
   },
   "author": "Pradeep Mouli <pmouli@mac.com> (https://github.com/pradeepmouli)"
 }
