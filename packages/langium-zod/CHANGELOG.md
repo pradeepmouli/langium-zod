@@ -1,5 +1,12 @@
 # langium-zod
 
+## 0.5.5
+
+### Patch Changes
+
+- [#89](https://github.com/pradeepmouli/langium-zod/pull/89) [`71896a9`](https://github.com/pradeepmouli/langium-zod/commit/71896a9da9dbac327bd660d3834ad9800b6eec88) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - - chore: also drop .github/agents, prompts, skills, copilot from master
+  - chore: drop AI tooling files from master
+
 ## 0.5.4
 
 ### Patch Changes
