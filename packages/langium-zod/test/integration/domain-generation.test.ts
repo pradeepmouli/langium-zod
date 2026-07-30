@@ -21,7 +21,7 @@ const astTypes: AstTypesLike = {
 
 describe('generateDomainSchemas (integration)', () => {
   it('returns domain source and writes it when domainOutputPath is set', () => {
-    const outDir = join(tmpdir(), `langium-zod-domain-${process.pid}`);
+    const outDir = join(tmpdir(), `langium-zod-domain-${crypto.randomUUID()}`);
     mkdirSync(outDir, { recursive: true });
     const domainOutputPath = join(outDir, 'domain.ts');
 
@@ -45,7 +45,7 @@ describe('generateDomainSchemas (integration)', () => {
 
 describe('generate() — domain flag path', () => {
   it('writes domain.ts alongside zod-schemas.ts when emitDomain is set', async () => {
-    const dir = join(tmpdir(), `langium-zod-cli-domain-${process.pid}`);
+    const dir = join(tmpdir(), `langium-zod-cli-domain-${crypto.randomUUID()}`);
     mkdirSync(dir, { recursive: true });
     const langiumConfigPath = join(dir, 'langium-config.json');
     const grammarPath = join(dir, 'test.langium');
