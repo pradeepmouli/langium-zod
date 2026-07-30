@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { generateDomainSchemas, generate } from '../../src/index.js';
@@ -21,8 +21,7 @@ const astTypes: AstTypesLike = {
 
 describe('generateDomainSchemas (integration)', () => {
   it('returns domain source and writes it when domainOutputPath is set', () => {
-    const outDir = join(tmpdir(), `langium-zod-domain-${crypto.randomUUID()}`);
-    mkdirSync(outDir, { recursive: true });
+    const outDir = mkdtempSync(join(tmpdir(), 'langium-zod-domain-'));
     const domainOutputPath = join(outDir, 'domain.ts');
 
     try {
@@ -45,8 +44,7 @@ describe('generateDomainSchemas (integration)', () => {
 
 describe('generate() — domain flag path', () => {
   it('writes domain.ts alongside zod-schemas.ts when emitDomain is set', async () => {
-    const dir = join(tmpdir(), `langium-zod-cli-domain-${crypto.randomUUID()}`);
-    mkdirSync(dir, { recursive: true });
+    const dir = mkdtempSync(join(tmpdir(), 'langium-zod-cli-domain-'));
     const langiumConfigPath = join(dir, 'langium-config.json');
     const grammarPath = join(dir, 'test.langium');
     writeFileSync(
