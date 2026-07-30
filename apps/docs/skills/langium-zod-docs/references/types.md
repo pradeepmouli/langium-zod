@@ -40,12 +40,12 @@ tree produced by the extractor and consumed by the code generator.
 Each variant maps to a specific Zod combinator:
 - `primitive` → `z.string()` / `z.number()` / `z.boolean()` / `z.bigint()`
 - `literal` → `z.literal(value)`
-- `reference` → `<TypeName>Schema` (a reference to another generated schema)
+- `reference` → `&lt;TypeName&gt;Schema` (a reference to another generated schema)
 - `array` → `z.array(element)`
 - `crossReference` → `ReferenceSchema` (Langium cross-reference, optionally
   refined with zRef when cross-reference validation is enabled)
 - `union` → `z.union([...members])`
-- `lazy` → `z.lazy(() => inner)` (used for self-referential types)
+- `lazy` → `z.lazy(() =&gt; inner)` (used for self-referential types)
 ```ts
 { kind: "primitive"; primitive: ZodPrimitive } | { kind: "literal"; value: string } | { kind: "reference"; typeName: string } | { kind: "array"; element: ZodTypeExpression } | { kind: "crossReference"; targetType: string } | { kind: "union"; members: ZodTypeExpression[] } | { kind: "lazy"; inner: ZodTypeExpression }
 ```
@@ -79,7 +79,7 @@ the extractor checks this when `cardinality` is absent.
 Used by the extractor to emit `ReferenceSchema` with the correct target type name.
 - `comment: string` (optional) — JSDoc/grammar comment for this property, propagated to form metadata.
 - `astNodes: ReadonlySet<AstNode>` (optional) — Originating Langium grammar nodes for this property, from collectAst's
-`Property.astNodes` (a `Set<Assignment | Action | TypeAttribute>`). Used to
+`Property.astNodes` (a `Set&lt;Assignment | Action | TypeAttribute&gt;`). Used to
 derive array minimum-occurrence by walking each `+=` Assignment's cardinality
 chain. Absent on synthetic (hand-authored) `astTypes` test fixtures.
 
