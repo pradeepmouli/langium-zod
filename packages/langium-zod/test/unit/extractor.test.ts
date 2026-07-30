@@ -151,6 +151,30 @@ describe('extractor', () => {
     ).toBeUndefined();
   });
 
+  it('sets minItems=1 from astNodes (comma-list idiom, no synthetic cardinality)', () => {
+    const RULE = { $type: 'ParserRule' } as never;
+    const star = { $type: 'Group', cardinality: '*', $container: RULE } as never;
+    const first = { $type: 'Assignment', operator: '+=', cardinality: undefined, $container: RULE } as never;
+    const second = { $type: 'Assignment', operator: '+=', cardinality: undefined, $container: star } as never;
+
+    const descriptors = extractTypeDescriptors({
+      interfaces: [
+        {
+          name: 'Container',
+          properties: [
+            // No `assignment`/`cardinality` — exercises the real-grammar path only.
+            { name: 'sources', type: 'Item', optional: false, astNodes: new Set([first, second]) }
+          ]
+        },
+        { name: 'Item', properties: [{ name: 'name', type: 'ID', optional: false }] }
+      ],
+      unions: []
+    });
+    const container = descriptors.find((e) => e.name === 'Container' && e.kind === 'object');
+    if (!container || container.kind !== 'object') throw new Error('Container descriptor not found');
+    expect(container.properties.find((p) => p.name === 'sources')?.minItems).toBe(1);
+  });
+
   it('creates keyword-enum and regex-enum descriptors from union layouts', () => {
     const descriptors = extractTypeDescriptors({
       interfaces: [],
@@ -206,6 +230,81 @@ describe('extractor', () => {
     expect(person.comment).toBe('Represents a person');
     expect(person.properties.find((p) => p.name === 'firstName')?.comment).toBe('Given name');
     expect(person.properties.find((p) => p.name === 'age')?.comment).toBeUndefined();
+  });
+
+  it('flattens a union-of-unions member into its transitive interface members (RosettaExpression/RosettaLiteral shape)', () => {
+    // Mirrors rune's PrimaryExpression infers RosettaExpression: Other | LiteralRule
+    // where LiteralRule infers RosettaLiteral: A | B — a union whose OWN member list
+    // includes another UNION's name (not a leaf interface). Expression's discriminated
+    // union must include A and B (Literal's transitive members), not drop them.
+    const descriptors = extractTypeDescriptors({
+      interfaces: [
+        { name: 'Other', properties: [] },
+        { name: 'A', properties: [{ name: 'value', type: 'STRING', optional: false }] },
+        { name: 'B', properties: [{ name: 'value', type: 'ID', optional: false }] }
+      ],
+      unions: [
+        { name: 'Expression', members: ['Other', 'Literal'] },
+        { name: 'Literal', members: ['A', 'B'] }
+      ]
+    });
+
+    const expressionUnion = descriptors.find((entry) => entry.name === 'Expression');
+    expect(expressionUnion).toEqual({
+      name: 'Expression',
+      kind: 'union',
+      members: ['Other', 'A', 'B'],
+      discriminator: '$type'
+    });
+
+    // Literal itself is STILL emitted as its own discriminated union (both
+    // schemas coexist; Expression's flattening does not remove Literal).
+    const literalUnion = descriptors.find((entry) => entry.name === 'Literal');
+    expect(literalUnion).toEqual({
+      name: 'Literal',
+      kind: 'union',
+      members: ['A', 'B'],
+      discriminator: '$type'
+    });
+  });
+
+  it('flattens transitively through more than one level of union nesting', () => {
+    const descriptors = extractTypeDescriptors({
+      interfaces: [{ name: 'Leaf', properties: [] }],
+      unions: [
+        { name: 'Top', members: ['Middle'] },
+        { name: 'Middle', members: ['Leaf'] }
+      ]
+    });
+
+    const topUnion = descriptors.find((entry) => entry.name === 'Top');
+    expect(topUnion).toEqual({
+      name: 'Top',
+      kind: 'union',
+      members: ['Leaf'],
+      discriminator: '$type'
+    });
+  });
+
+  it('does not infinite-loop on a cyclic union reference', () => {
+    // Pathological grammar shape (two unions transitively referencing each
+    // other) — should resolve without hanging, dropping the cyclic branch's
+    // contribution rather than recursing forever.
+    const descriptors = extractTypeDescriptors({
+      interfaces: [{ name: 'Leaf', properties: [] }],
+      unions: [
+        { name: 'CycleA', members: ['CycleB', 'Leaf'] },
+        { name: 'CycleB', members: ['CycleA'] }
+      ]
+    });
+
+    const cycleAUnion = descriptors.find((entry) => entry.name === 'CycleA');
+    expect(cycleAUnion).toEqual({
+      name: 'CycleA',
+      kind: 'union',
+      members: ['Leaf'],
+      discriminator: '$type'
+    });
   });
 
   it('deduplicates keyword-enum values', () => {

@@ -175,7 +175,10 @@ describe('generation integration', () => {
       }
     });
 
-    expect(source).toContain('get children() { return z.array(TreeNodeSchema).optional(); }');
+    // Array-typed properties never carry `.optional()` — Langium always
+    // materialises `[]`, never `undefined`, regardless of the grammar's
+    // `optional` flag (which here is a synthetic fixture value only).
+    expect(source).toContain('get children() { return z.array(TreeNodeSchema); }');
   });
 
   it('throws ZodGeneratorError for unmappable property types with suggestion', () => {

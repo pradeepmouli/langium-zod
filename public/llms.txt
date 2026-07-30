@@ -5,6 +5,8 @@
 ### API
 
 - `generateZodSchemas`: Main entry point for programmatic Zod schema generation from a Langium grammar.
+- `generateDomainSchemas`: Programmatic entry point for the domain target.
+- `generateNamespaceOps`: No import-alias suffix is used.
 - `extractTypeDescriptors`: Extracts ZodTypeDescriptor records from a Langium grammar's type model.
 - `generateZodCode`: Generates a TypeScript source string containing Zod schema exports for all
 provided type descriptors.
@@ -13,6 +15,7 @@ graph.
 - `generate`: Programmatic entry point for the `langium-zod generate` command.
 - `zRef`: Creates a Zod string schema that validates a cross-reference value against an
 allowlist of known identifiers, evaluated lazily at parse time.
+- `generateDomainCode`
 - `ZodGeneratorError`: Custom error class thrown by the langium-zod code generator when it
 encounters a condition it cannot recover from.
 - `DefaultZodSchemaGenerator`: Default implementation of ZodSchemaGenerator.

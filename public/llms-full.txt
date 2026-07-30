@@ -46,6 +46,47 @@ const astTypes = collectAst(myGrammar);
 const source = generateZodSchemas({ astTypes });
 ```
 
+### generateDomainSchemas
+
+Programmatic entry point for the domain target. Runs the same extract pipeline
+as generateZodSchemas, then emits the domain surface (read interfaces +
+`toDomain` projection + field-precise write accessors). Writes to
+`config.domainOutputPath` when set.
+
+```ts
+generateDomainSchemas(config: ZodGeneratorConfig): string
+```
+
+**Parameters:**
+- `config: ZodGeneratorConfig` — 
+
+**Returns:** `string`
+
+### generateNamespaceOps
+
+No import-alias suffix is used. The generated `domain.ts` is a single barrel:
+
+  import * as ast from './ast.js';
+  export * from './ast.js';              // forwards every guard / reflection / non-namespaced type
+  export type Data = ast.Data;           // local type alias — shadows the star-exported interface
+  export namespace Data { ... }          // local value — shadows the star-exported reflection const
+
+A local `type` + `namespace` pair under the same name merges (type space + value space)
+and, per TypeScript export precedence, shadows the corresponding names brought in by
+`export * from './ast.js'`. So function signatures reference bare `Data` / `Attribute`,
+which resolve to the local alias (namespaced types) or the star-exported interface
+(non-namespaced element types) — no `$`-suffixed aliases, no TS2395.
+
+```ts
+generateNamespaceOps(types: ZodTypeDescriptor[], options?: NamespaceOpsOptions): string
+```
+
+**Parameters:**
+- `types: ZodTypeDescriptor[]` — 
+- `options: NamespaceOpsOptions` (optional) — 
+
+**Returns:** `string`
+
 ### extractTypeDescriptors
 
 Extracts ZodTypeDescriptor records from a Langium grammar's type model.
@@ -237,6 +278,18 @@ const lazySchema = zRef(() => liveRefs);
 liveRefs.push('Alice');
 lazySchema.parse('Alice'); // ok — picked up the live state
 ```
+
+### generateDomainCode
+
+```ts
+generateDomainCode(descriptors: ZodTypeDescriptor[], options: DomainGenerationOptions): string
+```
+
+**Parameters:**
+- `descriptors: ZodTypeDescriptor[]` — 
+- `options: DomainGenerationOptions` — 
+
+**Returns:** `string`
 
 ### ZodGeneratorError
 

@@ -13,7 +13,6 @@
     "verbatimModuleSyntax": true,
     "noEmit": false,
     "paths": {
-      "*": ["../../*"],
       "@/*": ["./packages/*/src"]
     },
     "skipLibCheck": true,

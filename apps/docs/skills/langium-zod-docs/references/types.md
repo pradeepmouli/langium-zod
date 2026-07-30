@@ -78,6 +78,10 @@ the extractor checks this when `cardinality` is absent.
 - `referenceType: string` (optional) — Target type name for cross-reference properties (e.g. `"Symbol"` in `ref:Symbol`).
 Used by the extractor to emit `ReferenceSchema` with the correct target type name.
 - `comment: string` (optional) — JSDoc/grammar comment for this property, propagated to form metadata.
+- `astNodes: ReadonlySet<AstNode>` (optional) — Originating Langium grammar nodes for this property, from collectAst's
+`Property.astNodes` (a `Set&lt;Assignment | Action | TypeAttribute&gt;`). Used to
+derive array minimum-occurrence by walking each `+=` Assignment's cardinality
+chain. Absent on synthetic (hand-authored) `astTypes` test fixtures.
 
 ### `UnionTypeLike`
 Duck-typed representation of a Langium `UnionType` (including datatype rules

@@ -1,3 +1,5 @@
+import type { AstNode } from 'langium';
+
 /** The subset of JavaScript primitive types that Zod supports natively. */
 export type ZodPrimitive = 'string' | 'number' | 'boolean' | 'bigint';
 
@@ -68,6 +70,15 @@ export interface ZodObjectTypeDescriptor {
   kind: 'object';
   properties: ZodPropertyDescriptor[];
   comment?: string;
+  /**
+   * Property names forming an "at least one of" constraint: the grammar rule
+   * that produces this type has a top-level `Alternatives` group whose branches
+   * are mutually-exclusive property producers, so the parser can never yield an
+   * instance where NONE of these properties are populated. When present, the
+   * generator emits a `.superRefine` requiring at least one listed property to
+   * be non-empty/defined. See {@link resolveAtLeastOneOf}.
+   */
+  atLeastOneOf?: string[];
 }
 
 export interface ZodUnionTypeDescriptor {
@@ -222,6 +233,13 @@ export interface PropertyLike {
   referenceType?: string;
   /** JSDoc/grammar comment for this property, propagated to form metadata. */
   comment?: string;
+  /**
+   * Originating Langium grammar nodes for this property, from collectAst's
+   * `Property.astNodes` (a `Set<Assignment | Action | TypeAttribute>`). Used to
+   * derive array minimum-occurrence by walking each `+=` Assignment's cardinality
+   * chain. Absent on synthetic (hand-authored) `astTypes` test fixtures.
+   */
+  astNodes?: ReadonlySet<AstNode>;
 }
 
 /**

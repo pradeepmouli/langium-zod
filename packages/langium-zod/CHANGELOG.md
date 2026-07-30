@@ -1,11 +1,231 @@
 # langium-zod
 
-## 0.5.5
+## 0.11.2
 
 ### Patch Changes
 
-- [#89](https://github.com/pradeepmouli/langium-zod/pull/89) [`71896a9`](https://github.com/pradeepmouli/langium-zod/commit/71896a9da9dbac327bd660d3834ad9800b6eec88) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - - chore: also drop .github/agents, prompts, skills, copilot from master
-  - chore: drop AI tooling files from master
+- [#102](https://github.com/pradeepmouli/langium-zod/pull/102) [`6221bb3`](https://github.com/pradeepmouli/langium-zod/commit/6221bb36ec64fec7a2a7308b8725e5e8314575a9) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - Fix the generated `create<X>Schema(refs)` cross-reference factory throwing at
+  first invocation when its base object schema carries a `.superRefine()`
+  (e.g. an at-least-one-of constraint from the schema-driven-synonym-validity
+  work).
+
+  Zod v4's `.extend()` throws ("Cannot overwrite keys on object schemas
+  containing refinements") when overriding a key that already exists on a
+  refined schema — and the generated factory always overrides at least one
+  cross-reference-bearing key on the base object shape. No real consumer has
+  hit this yet (rune-langium's own generated schemas didn't combine a refined
+  type with a cross-reference property until recently), so it was latent, but
+  it's a landmine for the first adopter of the generated cross-ref factories
+  against any refined type.
+
+  Switched the factory emitter to `.safeExtend()` — a drop-in replacement with
+  identical shape-merge semantics that simply permits the refinement/overlap
+  case, mirroring the fix already applied consumer-side in rune-langium's
+  `deriveUiSchema` (commit `e789fbad`). Covered by a new integration test that
+  parses a real grammar producing a type that is BOTH refined (a mandatory
+  2-way alternation) and cross-reference-bearing, generates its schema with
+  `crossRefValidation: true`, and confirms the resulting `create<X>Schema`
+  factory constructs and validates without throwing — confirmed to fail with
+  the exact zod overlap error before the fix (reverted, reran, restored).
+
+## 0.11.1
+
+### Patch Changes
+
+- [#100](https://github.com/pradeepmouli/langium-zod/pull/100) [`e90cba3`](https://github.com/pradeepmouli/langium-zod/commit/e90cba308fddcc5f33958e055ceca9a11263eb3e) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - Fix a pre-existing bug where a discriminated union's member list silently
+  dropped any raw member that was itself another union (rather than a leaf
+  interface), instead of flattening that nested union's own members in.
+
+  Grammar rules like:
+
+  ```
+  PrimaryExpression infers Expression: A | LiteralRule | ...
+  LiteralRule infers Literal: BoolLiteral | StringLiteral | NumberLiteral | IntLiteral
+  ```
+
+  produce a Langium type model where `Expression`'s raw alternation includes the
+  name `Literal` — itself a union, never a `$type` any real AST node carries.
+  The extractor's union-member filter only kept members that were already-known
+  LEAF interfaces, so `Literal`'s 4 members were silently omitted from
+  `ExpressionSchema`'s `z.discriminatedUnion(...)` member array (even though
+  `LiteralSchema` itself was generated correctly, just never merged in). Any
+  real parser-produced node using one of those 4 literal shapes wherever an
+  `Expression` was expected failed the discriminator check with "Invalid
+  discriminator value" — a direct violation of the schema-never-rejects-parser-
+  output invariant this generator exists to uphold.
+
+  Fixed by resolving each union's transitive interface membership (recursively
+  flattening any member that names another union, guarded against cyclic union
+  graphs) instead of a single non-recursive filter pass. Covered by: a unit test
+  reproducing the exact `RosettaExpression`/`RosettaLiteral` shape plus a
+  2-level-deeper synthetic case and a cyclic-reference safety case; an
+  integration test parsing a real grammar and `safeParse`-ing real literal-typed
+  AST shapes against the regenerated schema; and a permanent completeness-audit
+  test that independently recomputes (via a separate BFS over the raw grammar
+  union graph, not by calling the fixed function itself) every union's expected
+  transitive interface closure and asserts it matches the generated
+  `members` set — a regression guard for this whole bug CLASS, not just this
+  one instance.
+
+  Verified against a real large consuming grammar (rune-langium): the fix
+  surfaces the missing 4 literal members on `RosettaExpressionSchema` as
+  expected, plus two additional real cases the completeness audit was designed
+  to catch (`RosettaMapTestSchema` and `RosettaMapTestExpressionSchema`, which
+  transitively reach the same `RosettaLiteral` union through a different,
+  two-level nesting path plus a second nested union) — confirming the
+  class-level fix, not a one-off patch for the single reported symptom. No
+  existing union's members shrank; no `.superRefine()`/`.min(1)`/array-optional
+  invariants from the prior release regressed.
+
+## 0.11.0
+
+### Minor Changes
+
+- [#98](https://github.com/pradeepmouli/langium-zod/pull/98) [`bfb6b96`](https://github.com/pradeepmouli/langium-zod/commit/bfb6b961edce55794e72ced4587bc3c3caa7d343) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - Make generated Zod schemas an honest validity oracle for two remaining gaps:
+
+  - **At-least-one-of refinements**: for grammar rules whose top-level `Alternatives`
+    group is a GUARANTEED-TO-EXECUTE mutually-exclusive property producer (e.g.
+    `RosettaSynonymBody`'s `value|hint|merge|...` choice, or a `when`/`set` mapping
+    instance), the parser can never produce an instance where none of the
+    branch-introduced properties are populated. The generator now derives this
+    structurally from the grammar (via each property's `Assignment`/`Action`
+    `astNodes`) and emits a `.superRefine` requiring at least one to be
+    present/non-empty, naming the missing set in the issue message. The
+    `Alternatives` group must be unconditional: any `?`/`*` cardinality on the
+    group itself or an ancestor element, a branch position inside an OUTER
+    multi-way `Alternatives`, or a fragment-rule call-site boundary all skip the
+    refinement entirely (an optional, starred, nested, or optionally-called
+    alternation may legally execute zero times). Each branch's OWN candidate
+    assignment must also be unconditional WITHIN the branch — a branch entered
+    via a leading keyword whose only checkable assignment is starred, optional,
+    or nested inside an optional sub-group does not guarantee that assignment
+    fires, so it is excluded from the "at least one" set the same way a
+    keyword-only branch is. Boolean flag assignments (`?=`) are excluded from the
+    check (Langium always serialises them as `false` when absent, so a branch
+    containing only a flag can legally produce zero checkable properties — the
+    whole refinement is dropped when it would otherwise reject a valid
+    empty-except-flag branch). Branches whose subtree infers a DIFFERENT type via
+    `{infer Type.x=current}` (Langium's tree-rebuilding left-recursion idiom, e.g.
+    path-vs-deep-path selection) are also excluded — that shape is a type-union
+    rule, not an intra-type alternation.
+  - **Array `.optional()` cleanup**: array-typed properties never emit
+    `.optional()` regardless of the grammar's optional flag. Langium's
+    `assignMandatoryProperties` always materialises `[]` for array-typed
+    properties — an array is never `undefined` in real parse output, so
+    `.optional()` admitted a shape the parser can never produce. `min(1)` (from
+    the existing comma-list/`+`-cardinality analysis) is preserved where derived.
+
+  Both changes tighten what a passing `safeParse` guarantees without ever
+  rejecting anything a real grammar's parser can produce. Validated against a
+  real consuming grammar (rune-langium): the four rules that gain at-least-one-of
+  refinements there are all unconditional alternations, so rune's generated
+  output is unaffected by the cardinality guard; separately, adversarial
+  synthetic grammars (optional/starred/nested/fragment-gated alternations) are
+  covered by regression tests confirming the refinement is correctly withheld.
+
+## 0.10.1
+
+### Patch Changes
+
+- [#96](https://github.com/pradeepmouli/langium-zod/pull/96) [`5bbb59a`](https://github.com/pradeepmouli/langium-zod/commit/5bbb59ad95752b8b0eb6037625fece032799c084) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - Fix fragment-defined array properties incorrectly emitting `.min(1)`.
+
+  When a `+=` assignment lives inside a grammar fragment (e.g.
+  `fragment ClassSynonyms: synonyms+=RosettaClassSynonym;`), Langium's
+  `Property.astNodes` points to the assignment inside the fragment definition.
+  The `$container` chain of that assignment ends at the fragment rule — not at
+  the optional use site (e.g. `(ClassSynonyms)*`) — so the cardinality walk in
+  `isMandatoryOccurrence` never saw the optionality and incorrectly returned
+  `true`, emitting `.min(1)` for arrays that can legitimately be empty.
+
+  The fix adds a guard after the walk: if the terminal container is a fragment
+  `ParserRule`, the occurrence is treated as optional (conservative under-emit —
+  never rejects a valid document). Assignments in regular rules (e.g. the
+  mandatory comma-list `sources+=[Src] (',' sources+=[Src])*`) are unaffected.
+
+## 0.10.0
+
+### Minor Changes
+
+- [#94](https://github.com/pradeepmouli/langium-zod/pull/94) [`cb0bafb`](https://github.com/pradeepmouli/langium-zod/commit/cb0bafb8fddf9829ef8ac2036367f8ace06f4a4c) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - Derive array `.min(1)` from grammar minimum-occurrence for real parsed grammars.
+
+  Previously `.min(1)` was emitted only when a single rule call carried an explicit
+  `+` cardinality — and only for synthetic `astTypes` fixtures, never from a real
+  `collectAst` grammar (the real Langium `Property` exposes `astNodes` but no
+  `cardinality`/`operator`). The generator now walks each array property's
+  originating `Assignment` nodes' cardinality chains (`Property.astNodes` +
+  `isOptionalCardinality`) and emits `.min(1)` when any `+=` assignment occurs on a
+  mandatory path. This covers both `x+=A+` and the comma-list idiom
+  `x+=A (',' x+=A)*` (e.g. a required `sources+=[Src] (',' sources+=[Src])*`).
+
+## 0.9.0
+
+### Minor Changes
+
+- [#87](https://github.com/pradeepmouli/langium-zod/pull/87) [`76e3df3`](https://github.com/pradeepmouli/langium-zod/commit/76e3df363f7b9fd840b96add4aad845728cb78b1) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - namespace-ops: emit a generated typed domain repository — generic `Repository<T>` + `createRepository` (throws `DuplicateKeyError` on duplicate key), plus `AnyDomain` union, `DomainRepository` (`byType` typed via `Extract<AnyDomain, { $type: K }>`), and `createDomainRepository`, driven by a new `repository.elementTypes` list in the domain-surface config. Configured element types are validated at codegen time to declare a required `name` (the qualified-name identity source), so a missing/optional `name` fails fast instead of producing a `domain.ts` that won't compile downstream.
+
+## 0.8.3
+
+### Patch Changes
+
+- [#83](https://github.com/pradeepmouli/langium-zod/pull/83) [`5769eae`](https://github.com/pradeepmouli/langium-zod/commit/5769eae3b4cb2c6f7636d5232b230ff87ec60193) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - namespace-ops: `moveXAt` now guards an out-of-range `from` index. Previously
+  `splice(from, 1)` with a negative `from` removed an element from the END of the
+  array (corrupting order) instead of being a no-op. Adds
+  `if (from < 0 || from >= node.<field>.length) return;`, matching the typical
+  consumer reorder contract (out-of-range from → no-op).
+
+## 0.8.2
+
+### Patch Changes
+
+- [#81](https://github.com/pradeepmouli/langium-zod/pull/81) [`fe4f779`](https://github.com/pradeepmouli/langium-zod/commit/fe4f779a4f029ae9bf0478dc97a64a63b42dfa66) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - namespace-ops: config-declared identity `removeX` op. `generateNamespaceOps`
+  accepts `{ identity: Record<elementType, fieldPath> }`; array fields whose
+  element type has an identity path get `removeX(node, item): boolean` matching
+  by that path (single-segment direct, nested segments optional-chained). New CLI
+  flag `--domain-surface-config <path>` loads the `{ identity: {...} }` map.
+
+## 0.8.1
+
+### Patch Changes
+
+- [#79](https://github.com/pradeepmouli/langium-zod/pull/79) [`cc9491f`](https://github.com/pradeepmouli/langium-zod/commit/cc9491f6dff00ef367514f6f4d6d6440c1d724d7) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - namespace-ops: emit a single-barrel `domain.ts` so AST names merge with their ops
+
+  The emitter now produces `import * as ast` + `export * from './ast.js'` and, per
+  namespaced type, a local `export type Foo = ast.Foo` alongside `export namespace Foo`.
+  The type alias merges with the value namespace under one name (type space + value
+  space) and shadows the star-exported interface/reflection-const, so consumers import a
+  single barrel where `Foo` is both the interface type AND the ops namespace
+  (`Foo.addBar(node, ...)`). Function signatures qualify every type through the `ast.*`
+  binding because `export *` re-exports names to consumers without binding them in the
+  module's own lexical scope. Replaces the prior `$`-suffixed aliased-import form.
+
+## 0.8.0
+
+### Minor Changes
+
+- [`6171c9d`](https://github.com/pradeepmouli/langium-zod/commit/6171c9d83dd6cb51b5f05ae7cf33efc4d58e1d8d) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - Fix three bugs in namespace-ops emitter:
+  - Skip non-object referenced types (e.g. ValidID string unions) to avoid unimported names in generated code
+  - Add reserved-word escaping for field names used as parameter names (`function` → `function_`)
+  - Alias all AST type imports with `$` suffix to avoid TS2395 when `export namespace Foo` and `import type { Foo }` coexist in the same file
+
+## 0.7.0
+
+### Minor Changes
+
+- [#75](https://github.com/pradeepmouli/langium-zod/pull/75) [`abb1460`](https://github.com/pradeepmouli/langium-zod/commit/abb14602bef215d87ca9d7ae957348be6e44c9a7) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - - fix(domain): toAst reads renamed fields from the domain key, not the AST key
+  - fix(domain): normalise crossReference reads to plain DomainRef, stripping Langium runtime ref
+  - test(domain): document toAst merge-target drop is a known non-round-trippable limitation
+  - feat(domain): $type-dispatched toAst inverse (drops normalization aliases)
+  - fix(domain): preserve + forward config-file normalizations to the emitter
+
+## 0.6.0
+
+### Minor Changes
+
+- [#68](https://github.com/pradeepmouli/langium-zod/pull/68) [`6f1ee85`](https://github.com/pradeepmouli/langium-zod/commit/6f1ee85cf44197b977202155bd8875843a270ebb) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - - feat(domain): add domain-surface target — emit quirk-free read interfaces, `toDomain` read projections, and field-precise write accessors from a Langium grammar
+  - feat(domain): `generateDomainSchemas` API + `domainOverlays` config for project-specific renames and read-only merges
+  - feat(domain): CLI `--domain` / `--domain-out` flags
+  - fix(domain): type-qualify write-accessor names to avoid export collisions
+  - note: `regexOverrides` are intentionally not applied on the domain path; domain output is documented in the README under "Domain target (experimental)"
 
 ## 0.5.4
 

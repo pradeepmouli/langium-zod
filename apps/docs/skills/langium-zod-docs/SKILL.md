@@ -62,7 +62,7 @@ Before generating, ask:
 - You do not need structured context — a plain `Error.message` check is sufficient for simple pipelines. (`ZodGeneratorError`)
 - You need the full ZodGeneratorConfig surface (projection, conformance, formMetadata, etc.) — use generateZodSchemas directly. (`DefaultZodSchemaGenerator`)
 
-API surface: 6 functions, 2 classes, 9 types, 2 constants
+API surface: 9 functions, 2 classes, 9 types, 2 constants
 
 ## NEVER
 
@@ -89,7 +89,7 @@ API surface: 6 functions, 2 classes, 9 types, 2 constants
 
 ## Configuration
 
-4 configuration interfaces — see references/config.md for details.
+7 configuration interfaces — see references/config.md for details.
 
 ## Quick Reference
 
@@ -97,13 +97,15 @@ API surface: 6 functions, 2 classes, 9 types, 2 constants
 provided type descriptors), `zRef` (Creates a Zod string schema that validates a cross-reference value against an
 allowlist of known identifiers, evaluated lazily at parse time), `ZodGeneratorError` (Custom error class thrown by the langium-zod code generator when it
 encounters a condition it cannot recover from)
+**api:** `generateDomainSchemas` (Programmatic entry point for the domain target)
+**emitters:** `generateNamespaceOps` (No import-alias suffix is used), `generateDomainCode`
 **Analysis:** `extractTypeDescriptors` (Extracts ZodTypeDescriptor records from a Langium grammar's type model), `detectRecursiveTypes` (Detects type names that participate in a reference cycle across the descriptor
 graph), `AstTypesLike` (Duck-typed representation of the type model returned by Langium's `collectAst()`
 function), `InterfaceTypeLike` (Duck-typed representation of a Langium `InterfaceType`, carrying only the fields
 that langium-zod needs), `ZodTypeDescriptor` (Union of all type descriptor shapes that the extractor can produce and the
 code generator can consume), `ZodTypeExpression` (A discriminated union that represents a single Zod type node in the descriptor
 tree produced by the extractor and consumed by the code generator)
-**cli:** `generate` (Programmatic entry point for the `langium-zod generate` command)
+**generate:** `generate` (Programmatic entry point for the `langium-zod generate` command)
 **DI:** `DefaultZodSchemaGenerator` (Default implementation of ZodSchemaGenerator), `ZodSchemaGenerator` (Service interface for generating Zod schemas from a parsed Langium grammar), `ZodSchemaGeneratorServices` (Langium DI service container shape for the langium-zod extension), `ZodSchemaGeneratorModule` (Langium `Module` definition that registers DefaultZodSchemaGenerator
 under `shared)
 **types:** `PropertyLike` (Duck-typed representation of a single property within a Langium `InterfaceType`), `UnionTypeLike` (Duck-typed representation of a Langium `UnionType` (including datatype rules
@@ -117,7 +119,7 @@ project's `langium-config)
 
 Load these on demand — do NOT read all at once:
 
-- When calling any function → read `references/functions.md` for full signatures, parameters, and return types
+- When calling any function → browse `references/functions/` for grouped indexes, full signatures, parameters, and return types
 - When using a class → read `references/classes.md` for properties, methods, and inheritance
 - When defining typed variables or function parameters → read `references/types.md`
 - When using exported constants → read `references/variables.md`
