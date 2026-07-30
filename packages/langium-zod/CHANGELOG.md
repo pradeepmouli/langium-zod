@@ -1,5 +1,14 @@
 # langium-zod
 
+## 0.12.0
+
+### Minor Changes
+
+- [#113](https://github.com/pradeepmouli/langium-zod/pull/113) [`2a2dfe1`](https://github.com/pradeepmouli/langium-zod/commit/2a2dfe14cd57c90ca855af060382e05b10b81961) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - - feat(domain): emit flat read interfaces with cross-ref flattening
+  - chore: upgrade to TypeScript 7, drop @typescript/native-preview
+  - chore: rename typedoc-plugin-to-skills -> typedoc-plugin-skillit
+  - chore: pnpm update --latest across the workspace
+
 ## 0.11.2
 
 ### Patch Changes
