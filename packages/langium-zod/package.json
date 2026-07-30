@@ -50,11 +50,11 @@
   "dependencies": {
     "humanize-string": "^3.1.0",
     "langium": "^4.3.1",
-    "x-to-zod": "^0.10.3",
+    "x-to-zod": "^0.10.4",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.1.2",
     "langium-cli": "^4.3.0",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
