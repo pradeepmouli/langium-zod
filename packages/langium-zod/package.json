@@ -50,7 +50,7 @@
   "dependencies": {
     "humanize-string": "^3.1.0",
     "langium": "^4.3.1",
-    "x-to-zod": "^0.10.4",
+    "x-to-zod": "^0.10.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {
