@@ -75,8 +75,8 @@ importers:
         specifier: ^4.3.1
         version: 4.3.1
       x-to-zod:
-        specifier: ^0.10.4
-        version: 0.10.4
+        specifier: ^0.10.5
+        version: 0.10.5
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -2014,8 +2014,8 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
-  x-to-zod@0.10.4:
-    resolution: {integrity: sha512-QIoUE7cXmJJAarBMxMB64djtM1jJedmjVji0ymnu1YMF8XHVlGc8k42R5F2GcUfHA+0RZ48z2GmqagLs7CkAeQ==}
+  x-to-zod@0.10.5:
+    resolution: {integrity: sha512-bUUR+R2wyI3Nb+wi2gO6MQYpVQ3Sp5yvHeigUHzMI3MfYum46+IG+ALCksbGkGqw60MjPgRdBYElSm/Q9olnyA==}
     engines: {node: '>=22.0.0', pnpm: '>=11.0.0'}
     hasBin: true
 
@@ -3797,7 +3797,7 @@ snapshots:
       siginfo: 2.0.0
       stackback: 0.0.2
 
-  x-to-zod@0.10.4:
+  x-to-zod@0.10.5:
     dependencies:
       json-schema-typed: 8.0.2
       tinyglobby: 0.2.17
