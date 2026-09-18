@@ -70,8 +70,8 @@
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/ui": "^4.1.10",
     "lint-staged": "^17.2.0",
-    "oxfmt": "^0.61.0",
-    "oxlint": "^1.76.0",
+    "oxfmt": "^0.67.0",
+    "oxlint": "^1.82.0",
     "simple-git-hooks": "^2.13.1",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
