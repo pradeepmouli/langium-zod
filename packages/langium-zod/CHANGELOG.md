@@ -1,5 +1,11 @@
 # langium-zod
 
+## 0.12.1
+
+### Patch Changes
+
+- - chore(deps): update runtime dependencies
+
 ## 0.12.0
 
 ### Minor Changes
