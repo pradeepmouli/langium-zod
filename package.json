@@ -66,13 +66,13 @@
   "devDependencies": {
     "@changesets/changelog-github": "^1.0.1",
     "@changesets/cli": "^3.0.3",
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.6.1",
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/ui": "^4.1.10",
-    "lint-staged": "^17.2.0",
-    "oxfmt": "^0.67.0",
-    "oxlint": "^1.82.0",
-    "simple-git-hooks": "^2.13.1",
+    "lint-staged": "^17.5.1",
+    "oxfmt": "^0.68.0",
+    "oxlint": "^1.83.0",
+    "simple-git-hooks": "^2.14.0",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   },
