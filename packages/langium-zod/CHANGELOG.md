@@ -1,5 +1,11 @@
 # langium-zod
 
+## 0.12.2
+
+### Patch Changes
+
+- [#142](https://github.com/pradeepmouli/langium-zod/pull/142) [`0204333`](https://github.com/pradeepmouli/langium-zod/commit/02043336dcabc32c32746d150569b6c1a4e968ac) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - - fix(ci): bump docs deploy to Node 22
+
 ## 0.12.1
 
 ### Patch Changes
