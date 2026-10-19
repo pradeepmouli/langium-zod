@@ -51,7 +51,7 @@
     "humanize-string": "^3.1.0",
     "langium": "^4.4.0",
     "x-to-zod": "^0.10.9",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",
