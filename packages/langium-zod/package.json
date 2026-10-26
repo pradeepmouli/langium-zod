@@ -48,7 +48,7 @@
     "type-check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "humanize-string": "^3.1.0",
+    "humanize-string": "^4.0.0",
     "langium": "^4.4.0",
     "x-to-zod": "^0.10.9",
     "zod": "^4.6.7"
