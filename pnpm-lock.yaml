@@ -69,8 +69,8 @@ importers:
   packages/langium-zod:
     dependencies:
       humanize-string:
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^4.0.0
+        version: 4.0.0
       langium:
         specifier: ^4.4.0
         version: 4.4.0
@@ -1085,9 +1085,9 @@ packages:
   dataloader@2.2.3:
     resolution: {integrity: sha512-y2krtASINtPFS1rSDjacrFgn1dcUuoREVabwlOGOe4SdxenREqwjwjElAdwvbGM7kgZz9a3KVicWR7vcz8rnzA==}
 
-  decamelize@6.0.1:
-    resolution: {integrity: sha512-G7Cqgaelq68XHJNGlZ7lrNQyhZGsFqpwtGFexqUv4IQdjKoSYF7ipZ9UuTJZUSQXFj/XaoBLuEVIVqr8EJngEQ==}
-    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+  decamelize@7.0.0:
+    resolution: {integrity: sha512-uT/0KzZIx9u4b5vW3HLWtSYwjLTuY2QFVY3xNmfXXUmTqnfgzfT8DEA2gY93go5sXEjnbqP66KcURdVxm0rDXA==}
+    engines: {node: '>=22'}
 
   dequal@2.0.3:
     resolution: {integrity: sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==}
@@ -1176,9 +1176,9 @@ packages:
     resolution: {integrity: sha512-zPGsiS+dWoTZtZ4AtpA9Y+BdSFSNWvnouNlWNoUFyAM6xHOHmdCvqO3k8AIbdamCOv4gUFUVNPf6rJFfc4UiJw==}
     hasBin: true
 
-  humanize-string@3.1.0:
-    resolution: {integrity: sha512-wEtOOR3sT8nZ7W0WZwEXo68z2EA0kpcpjaN/ZXxpps9PDzZdX8+TAj+XOGKx2WkagP9mnhWtFpfMNSd2WAhiIQ==}
-    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+  humanize-string@4.0.0:
+    resolution: {integrity: sha512-oKTbe92h1hinDADnGU7310aeeoaSFIL3UJ13GuM+E2D/wKMFewot4wbbHWeiAW53ymmK6cF89mRrlCkom0umgg==}
+    engines: {node: '>=22'}
 
   import-meta-resolve@4.2.0:
     resolution: {integrity: sha512-Iqv2fzaTQN28s/FwZAoFq0ZSs/7hMAHJVX+w8PZl3cY19Pxk6jFFalxQoIfW2826i/fDLXv8IiEZRIT0lDuWcg==}
@@ -2508,7 +2508,7 @@ snapshots:
 
   dataloader@2.2.3: {}
 
-  decamelize@6.0.1: {}
+  decamelize@7.0.0: {}
 
   dequal@2.0.3: {}
 
@@ -2589,9 +2589,9 @@ snapshots:
 
   human-id@4.2.1: {}
 
-  humanize-string@3.1.0:
+  humanize-string@4.0.0:
     dependencies:
-      decamelize: 6.0.1
+      decamelize: 7.0.0
 
   import-meta-resolve@4.2.0: {}
 
