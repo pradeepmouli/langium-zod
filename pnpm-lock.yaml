@@ -85,8 +85,8 @@ importers:
         specifier: ^26.6.4
         version: 26.6.4
       langium-cli:
-        specifier: ^4.4.0
-        version: 4.4.0
+        specifier: ^4.4.1
+        version: 4.4.1
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
@@ -1177,8 +1177,8 @@ packages:
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
 
-  graceful-fs@4.2.11:
-    resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+  graceful-fs@4.2.12:
+    resolution: {integrity: sha512-iuyGF2E4oafQfPsRrG2wtY2ILupMhvtdrhzrxB+0VcjsPpSPttpfYdjnGFGsTi5MaJFjI1jOKHPQ6UTbTj9TAw==}
 
   hast-util-to-html@9.0.6:
     resolution: {integrity: sha512-1SZUxCN3TtJAE7e2BQN2MBHsoZ1gnmi9GoCP5Di59CSWptIezSAW09yDZyVbanb78V9eCwrKqdQsjtfVTxYHWA==}
@@ -1221,9 +1221,9 @@ packages:
   jsonschema@1.5.0:
     resolution: {integrity: sha512-K+A9hhqbn0f3pJX17Q/7H6yQfD/5OXgdrR5UE12gMXCiN9D5Xq2o5mddV2QEcX/bjla99ASsAAQUyMCCRWAEhw==}
 
-  langium-cli@4.4.0:
-    resolution: {integrity: sha512-CSqwKebp8qWa9Y5s1xgEl4qxGPH71Wf4yMXKPuwICoL2yRfVtUl2zpTwF4O5WhYOxnuSpf0rJrxzjQRK5whL7Q==}
-    engines: {node: '>=20.10.0', npm: '>=10.2.3'}
+  langium-cli@4.4.1:
+    resolution: {integrity: sha512-egbDRXcIe4rFQWcrutFJUpAKP1T4b96q3aA4HK+alRdFKHcV+/xqjgOZ195dJ7kLx1Nj8UfZgH0wWW+86+dFLg==}
+    engines: {node: ^22.22.2 || ^24.15.0 || >=26, npm: '>=10.2.3'}
     hasBin: true
 
   langium-railroad@4.4.0:
@@ -2580,14 +2580,14 @@ snapshots:
 
   fs-extra@11.4.1:
     dependencies:
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.12
       jsonfile: 6.2.1
       universalify: 2.0.1
 
   fsevents@2.3.3:
     optional: true
 
-  graceful-fs@4.2.11: {}
+  graceful-fs@4.2.12: {}
 
   hast-util-to-html@9.0.6:
     dependencies:
@@ -2631,11 +2631,11 @@ snapshots:
     dependencies:
       universalify: 2.0.1
     optionalDependencies:
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.12
 
   jsonschema@1.5.0: {}
 
-  langium-cli@4.4.0:
+  langium-cli@4.4.1:
     dependencies:
       chalk: 5.6.2
       commander: 15.0.0
