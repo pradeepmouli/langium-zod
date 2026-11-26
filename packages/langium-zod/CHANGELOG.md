@@ -1,5 +1,13 @@
 # langium-zod
 
+## 0.12.4
+
+### Patch Changes
+
+- - chore(deps): update runtime dependencies
+
+- [#182](https://github.com/pradeepmouli/langium-zod/pull/182) [`7ed4f3a`](https://github.com/pradeepmouli/langium-zod/commit/7ed4f3a682e92cecd0610e7aa0ad93d602c8efad) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - Update the x-to-zod generator dependency to 0.10.11.
+
 ## 0.12.3
 
 ### Patch Changes
