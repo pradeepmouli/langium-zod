@@ -1,5 +1,19 @@
 # langium-zod
 
+## 0.12.3
+
+### Patch Changes
+
+- - chore(deps): update runtime dependencies
+
+- [#146](https://github.com/pradeepmouli/langium-zod/pull/146) [`3e0c0ee`](https://github.com/pradeepmouli/langium-zod/commit/3e0c0eef6bf444e258ad7f45c4d2b334a8a924d4) Thanks [@github-actions](https://github.com/apps/github-actions)! - - chore(deps): update dependencies to latest
+
+## 0.12.2
+
+### Patch Changes
+
+- [#142](https://github.com/pradeepmouli/langium-zod/pull/142) [`0204333`](https://github.com/pradeepmouli/langium-zod/commit/02043336dcabc32c32746d150569b6c1a4e968ac) Thanks [@pradeepmouli](https://github.com/pradeepmouli)! - - fix(ci): bump docs deploy to Node 22
+
 ## 0.12.1
 
 ### Patch Changes
