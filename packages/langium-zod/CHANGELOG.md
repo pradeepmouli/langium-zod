@@ -1,5 +1,13 @@
 # langium-zod
 
+## 0.12.3
+
+### Patch Changes
+
+- - chore(deps): update runtime dependencies
+
+- [#146](https://github.com/pradeepmouli/langium-zod/pull/146) [`3e0c0ee`](https://github.com/pradeepmouli/langium-zod/commit/3e0c0eef6bf444e258ad7f45c4d2b334a8a924d4) Thanks [@github-actions](https://github.com/apps/github-actions)! - - chore(deps): update dependencies to latest
+
 ## 0.12.2
 
 ### Patch Changes
